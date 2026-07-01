@@ -1,13 +1,13 @@
 # 3forge-mcp
 
 Give your AI coding tool (Claude Code, Codex, Copilot, Gemini, Cursor) the skills and
-agents for 3forge AMI authoring and, when you configure a runtime MCP server separately,
-live instance workflows.
+agents for 3forge AMI authoring and live instance workflows.
 
 The plugin ships **no offline 3forge documentation** — all conceptual knowledge is fetched
-at runtime from the live instance via `aidoc_getDocumentation`. It ships the operating
-skills and authoring agents, but no bundled runtime MCP server configuration. Nothing here
-duplicates what your instance already knows.
+at runtime from the live instance via `aidoc_getDocumentation`. For **Claude Code** it also
+bundles the `3forge-runtime` MCP connection, so live tools connect automatically on install
+(override the endpoint with the `AMI_MCP_URL` env var). Other tools configure the runtime
+MCP separately. Nothing here duplicates what your instance already knows.
 
 ---
 
@@ -33,11 +33,19 @@ duplicates what your instance already knows.
 >
 > All commands below assume you have this local clone.
 
-### 1. Configure runtime MCP separately, if needed
+### 1. Runtime MCP connection
 
-This package no longer bundles `3forge-runtime` MCP configuration. Install it for skills and
-agents. If you need live runtime tools, configure the MCP server in the consuming tool or
-project outside this package.
+**Claude Code** bundles the `3forge-runtime` MCP connection in the plugin (`3forge-mcp/.mcp.json`),
+so it connects automatically once the plugin is installed — no `claude mcp add` needed. It
+defaults to `http://localhost:8766/mcp`; to target another host/port, set `AMI_MCP_URL`
+before launching Claude Code:
+
+```bash
+export AMI_MCP_URL=http://ami-host:8766/mcp
+```
+
+**Other tools** (Codex, Copilot, Gemini, Cursor) don't consume the Claude `.mcp.json` —
+configure the `3forge-runtime` MCP server in that tool's own config if you need live tools.
 
 ### 2. Install the plugin
 
@@ -122,8 +130,10 @@ Skills for each tool are under `dist/<tool>/skills/`.
 - **6 Claude Code commands** — `ami-init`, `runtime`, `ami-plan`, `ami-query`, `ami-review`,
   `ami-debug`. The generator also syncs these into the `commands` skill as command-equivalent
   workflows for harnesses that do not load Claude slash commands.
-- **No bundled MCP server config** - runtime connections are environment-specific and should
-  be configured in the consuming tool or project.
+- **Bundled MCP server config (Claude Code)** — `3forge-mcp/.mcp.json` registers the
+  `3forge-runtime` HTTP server so it auto-connects on install. The endpoint defaults to
+  `http://localhost:8766/mcp` and is overridable via the `AMI_MCP_URL` env var. Other tools
+  configure the runtime MCP in their own config.
 
 ### The bundled-reference exception
 

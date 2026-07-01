@@ -164,8 +164,22 @@ function codexAgentToml(content, path) {
   ].join("\n");
 }
 
-function validateNoBundledMcpConfig() {
-  expect(!existsSync(join(SRC, ".mcp.json")), "3forge-mcp/.mcp.json should not be bundled");
+function validateMcpConfig() {
+  // Claude Code: the plugin bundles the runtime MCP connection so live tools
+  // auto-connect on install. The URL is overridable via the AMI_MCP_URL env var.
+  const mcpPath = join(SRC, ".mcp.json");
+  expect(existsSync(mcpPath), "3forge-mcp/.mcp.json must be bundled for Claude Code");
+  const mcp = readJson(mcpPath);
+  const server = mcp.mcpServers?.["3forge-runtime"];
+  expect(!!server, "3forge-mcp/.mcp.json must define the 3forge-runtime server");
+  expect(server?.type === "http", "3forge-runtime must use the http transport");
+  expect(
+    typeof server?.url === "string" && server.url.includes("${AMI_MCP_URL"),
+    "3forge-runtime url must be overridable via ${AMI_MCP_URL:-...}"
+  );
+
+  // Other tools (Codex/Copilot/Gemini/Cursor) do NOT consume the Claude .mcp.json;
+  // their runtime MCP is configured separately, so nothing is bundled or generated.
   const manifest = readJson(join(SRC, ".codex-plugin", "plugin.json"));
   expect(!("mcpServers" in manifest), "Codex manifest should not declare mcpServers");
   expect(manifest.skills === "./skills/", "Codex manifest skills path must be ./skills/");
@@ -297,7 +311,7 @@ function validateGeneratedPathsExist() {
 }
 
 validateGeneratedPathsExist();
-validateNoBundledMcpConfig();
+validateMcpConfig();
 validateCommands();
 validateCodexAgents();
 validateDist();
