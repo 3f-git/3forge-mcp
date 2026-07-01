@@ -13,13 +13,15 @@ integrations. This plugin currently gives Codex:
 - One MCP server: `3forge-runtime`
 - 28 3forge skills under `3forge-mcp/skills`
 - A Codex command-equivalent skill named `commands`
+- Generated Codex custom-agent TOML under `3forge-mcp/.codex/agents`
 - Plugin metadata and default prompts from `3forge-mcp/.codex-plugin/plugin.json`
 
 Claude Code also loads the files under `3forge-mcp/agents` and
 `3forge-mcp/commands` as native Claude agent and slash-command surfaces. Codex
-does not treat those exact files as native slash commands. Instead, this repo
-syncs the Claude command prompts into `skills/commands/reference`, and Codex
-uses the `commands` skill to run the equivalent workflows.
+does not treat those exact Markdown files as native slash commands or custom
+agents. Instead, this repo syncs command prompts into
+`skills/commands/reference` and generates Codex custom-agent TOML from the
+agent Markdown source.
 
 ## Install
 
@@ -302,12 +304,22 @@ groups.
 
 ## Agent Roles
 
-The repo includes Claude Code agent prompt files under `3forge-mcp/agents`.
-They are useful names for how to delegate work, but Codex does not currently
-load those files as native plugin subagents. In Codex, ask for the role
-explicitly or use the matching skill/workflow. If you want Codex-native
-parallel subagents, ask Codex to spawn subagents and assign these roles in the
-prompt.
+The repo includes Claude Code agent prompt files under `3forge-mcp/agents` and
+generated Codex custom-agent files under `3forge-mcp/.codex/agents`.
+
+Codex custom agents are loaded from `.codex/agents/` in a project or from
+`~/.codex/agents/` globally. To enable these as native custom agents in a
+target project, copy or symlink the generated TOML files into that project's
+`.codex/agents/` directory:
+
+```bash
+mkdir -p .codex/agents
+cp path/to/3forge-mcp/3forge-mcp/.codex/agents/*.toml .codex/agents/
+```
+
+After that, start a new Codex thread and ask Codex to spawn the agent by name.
+If you do not install the TOML files into a Codex agent directory, use the same
+names as role prompts or rely on the matching skill/workflow.
 
 | Agent role | How to ask in Codex | Use when |
 |---|---|---|
@@ -326,6 +338,12 @@ Parallel review example:
 
 ```text
 Use 3forge MCP and spawn parallel Codex subagents: one as ami-reviewer for AMIScript correctness, one as ami-layout-style for UI/style issues, and one as ami-sql-builder for schema risks. Wait for all three and summarize findings.
+```
+
+Native custom-agent example after installing the TOML files:
+
+```text
+Use the ami-reviewer custom agent to review data/cloud/Orders.ami, and use the ami-sql-builder custom agent to review schema/orders.amisql. Wait for both and summarize blocking findings.
 ```
 
 ## Prompt Cookbook
@@ -394,8 +412,11 @@ Use 3forge MCP and the Excel migration workflow to analyze workbook.xlsx, identi
 - Do not commit or save transient Web changes without explicit confirmation.
 - Do not create headless sessions during `/ami-init` unless you asked for one.
 - Do not hand-edit `dist/`; edit `3forge-mcp/` and run `node build/generate.mjs`.
-- Do not assume `3forge-mcp/agents/*.md` are native Codex plugin subagents.
-  Treat them as role prompts unless Codex subagents are explicitly requested.
+- Do not hand-edit `3forge-mcp/.codex/agents/*.toml`; edit
+  `3forge-mcp/agents/*.md` and regenerate.
+- Do not assume `3forge-mcp/agents/*.md` are native Codex custom agents. Use
+  the generated TOML files under a project/global `.codex/agents/` directory
+  when you want native custom-agent spawning.
 
 ## Updating The Local Plugin During Development
 
@@ -403,6 +424,7 @@ After changing plugin source under `3forge-mcp/`:
 
 ```bash
 node build/generate.mjs
+node build/validate.mjs
 conda run -n forge python /home/ethan/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py 3forge-mcp
 python3 /home/ethan/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py 3forge-mcp
 codex plugin add 3forge-mcp@3forge-mcp-marketplace
@@ -414,6 +436,7 @@ Then start a new Codex thread.
 
 ```bash
 codex plugin list
+node build/validate.mjs
 conda run -n forge python /home/ethan/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py 3forge-mcp
 conda run -n forge python /home/ethan/.codex/skills/.system/skill-creator/scripts/quick_validate.py 3forge-mcp/skills/commands
 diff -qr 3forge-mcp/skills dist/codex/skills

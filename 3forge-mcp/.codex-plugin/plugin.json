@@ -1,6 +1,6 @@
 {
   "name": "3forge-mcp",
-  "version": "0.1.2+codex.20260701183612",
+  "version": "0.1.2+codex.20260701192141",
   "description": "Drive and build on a live 3forge instance through the 3forge-runtime MCP server.",
   "author": {
     "name": "3forge"

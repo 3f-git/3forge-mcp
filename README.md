@@ -134,6 +134,8 @@ Skills for each tool are under `dist/<tool>/skills/`.
 - **10 agents** — `3forge-runtime` (drive the instance) plus authoring agents (`ami-sql-builder`,
   `ami-layout-architect`, `ami-layout-style`, `ami-reviewer`, `ami-architect`,
   `ami-config-writer`, `ami-datasource-advisor`, `excel-decomposer`, `excel-to-ami`).
+  Claude Code reads the source `agents/*.md` files; Codex-native custom-agent TOML is generated
+  under `3forge-mcp/.codex/agents/` and `dist/codex/.codex/agents/`.
 - **6 Claude Code commands** — `ami-init`, `runtime`, `ami-plan`, `ami-query`, `ami-review`,
   `ami-debug`. The generator also syncs these into the `commands` skill as command-equivalent
   workflows for harnesses that do not load Claude slash commands.
@@ -164,6 +166,7 @@ so `aidoc` cannot serve it. That content is bundled read-only under:
 ├── 3forge-mcp/                         # ← CANONICAL SOURCE (edit here)
 │   ├── .claude-plugin/plugin.json      # plugin manifest (name, version)
 │   ├── .codex-plugin/plugin.json       # Codex plugin manifest
+│   ├── .codex/agents/                  # GENERATED Codex custom-agent TOML
 │   ├── CLAUDE.md                       # canonical operating guidance (projected to mirrors)
 │   ├── .mcp.json                       # 3forge-runtime server, local default URL
 │   ├── skills/                         # <name>/SKILL.md (+ optional reference/)
@@ -209,7 +212,9 @@ regenerated from `3forge-mcp/` by the build script and your changes there will b
 ### Add or edit an agent / command
 
 - Agents: `3forge-mcp/agents/<name>.md` with frontmatter (`name`, `description`, optional
-  `tools`, `model`). Only reference other agents/skills that exist in this package.
+  `tools`, `model`). Only reference other agents/skills that exist in this package. Do not
+  hand-edit `3forge-mcp/.codex/agents/*.toml`; the generator derives those Codex custom-agent
+  files from the Markdown source.
 - Commands: `3forge-mcp/commands/<name>.md`. These are Claude Code slash commands and the
   canonical source for the generated `3forge-mcp/skills/commands/reference/*.md` copies used by
   Codex and other non-Claude harnesses.
@@ -231,6 +236,7 @@ After **any** change under `3forge-mcp/`, regenerate the per-tool outputs:
 
 ```bash
 node build/generate.mjs
+node build/validate.mjs
 ```
 
 Adding a new tool target is a config-only change in `build/tools.json` (instruction filename,
@@ -239,6 +245,7 @@ MCP file, format; optional `instructionPrefix` for tool-specific frontmatter).
 ### Validate before committing
 
 ```bash
+node build/validate.mjs             # generated parity, MCP defaults, command refs, Codex agents
 claude plugin validate ./3forge-mcp        # plugin: expect 0 frontmatter warnings
 claude plugin validate --strict .          # marketplace: must pass strict
 ```
