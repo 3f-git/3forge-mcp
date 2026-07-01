@@ -83,7 +83,7 @@ Register your **local clone** as a Codex marketplace, then install from it:
 
 ```bash
 codex plugin marketplace add ./dist/codex        # the generated standalone Codex plugin
-codex plugin add 3forge-mcp@3forge-mcp-marketplace
+codex plugin add 3forge-mcp@3forge-mcp-codex
 ```
 
 After installing or updating the plugin, start a new Codex thread so the plugin skills are
@@ -100,7 +100,7 @@ marketplace). Register it as a marketplace, then install:
 
 ```bash
 copilot plugin marketplace add ./dist/copilot     # the generated standalone Copilot plugin
-copilot plugin install 3forge-mcp@3forge-mcp-marketplace
+copilot plugin install 3forge-mcp@3forge-mcp-copilot
 ```
 
 This installs the skills, the 10 agents (as Copilot `.agent.md` files), and the bundled

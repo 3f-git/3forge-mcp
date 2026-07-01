@@ -41,7 +41,7 @@ the local path. Copilot's generated plugin tree carries its own marketplace cata
 
 ```bash
 copilot plugin marketplace add ./dist/copilot      # the generated standalone Copilot plugin
-copilot plugin install 3forge-mcp@3forge-mcp-marketplace
+copilot plugin install 3forge-mcp@3forge-mcp-copilot
 ```
 
 Verify and manage the plugin:

@@ -29,7 +29,7 @@ From a local clone of this repository:
 
 ```bash
 codex plugin marketplace add ./dist/codex
-codex plugin add 3forge-mcp@3forge-mcp-marketplace
+codex plugin add 3forge-mcp@3forge-mcp-codex
 ```
 
 After installing or updating, start a new Codex thread so the plugin skills are
@@ -43,7 +43,7 @@ codex plugin list
 
 Expected:
 
-- `3forge-mcp@3forge-mcp-marketplace`
+- `3forge-mcp@3forge-mcp-codex`
 - `installed, enabled`
 - The current local cachebuster version, for example
   `0.1.2+codex.20260701183612` or newer.
@@ -418,7 +418,7 @@ node build/generate.mjs
 node build/verify.mjs
 conda run -n forge python /home/ethan/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py dist/codex
 python3 /home/ethan/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py 3forge-mcp
-codex plugin add 3forge-mcp@3forge-mcp-marketplace
+codex plugin add 3forge-mcp@3forge-mcp-codex
 ```
 
 Then start a new Codex thread.
