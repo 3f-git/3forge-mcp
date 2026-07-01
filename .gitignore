@@ -1,0 +1,6 @@
+# Local endpoint / per-user overrides — never commit
+.env
+*.local.json
+.mcp.local.json
+node_modules/
+.DS_Store
