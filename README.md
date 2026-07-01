@@ -23,6 +23,16 @@ already knows.
 
 ## Install
 
+> **⚠️ Not published to any marketplace yet.** There is no hosted/public marketplace for this
+> plugin, so you can't `marketplace add` it by org name. **Clone the repo and install from the
+> local path:**
+>
+> ```bash
+> git clone git@github.com:3f-git/3forge-mcp.git
+> ```
+>
+> All commands below assume you have this local clone.
+
 ### 1. Point at your instance
 
 The shipped MCP config uses the `${THREEFORGE_MCP_URL}` environment variable — there is no baked-in
@@ -36,13 +46,19 @@ export THREEFORGE_MCP_URL=http://your-3forge-host:8766/mcp
 
 #### Claude Code (first-class)
 
+Register your **local clone** as a marketplace, then install from it:
+
 ```bash
-claude plugin marketplace add <your-org>/3forge-mcp
-claude plugin install 3forge-mcp
+claude plugin marketplace add ./3forge-mcp        # path to the cloned repo root
+claude plugin install 3forge-mcp@3forge-mcp-marketplace
 ```
 
-The bundled `3forge-runtime` MCP server starts automatically. Alternatively: clone this repo,
-open Claude Code in it, and accept the install prompt.
+The bundled `3forge-runtime` MCP server starts automatically (once `THREEFORGE_MCP_URL` is
+set). Alternatively: open Claude Code inside the clone and accept the install prompt.
+
+> Once this is published to a hosted marketplace, `marketplace add` will instead take the
+> remote (e.g. `claude plugin marketplace add 3f-git/3forge-mcp`). Until then, use the local
+> path above.
 
 #### Codex / Copilot / Gemini / Cursor
 
