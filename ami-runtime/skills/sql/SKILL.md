@@ -8,6 +8,4 @@ Activate when writing AMI SQL queries, troubleshooting SQL errors, converting st
 
 ## Knowledge
 
-Full patterns, examples, and pitfalls: [`knowledge/sql/guide.md`](../knowledge/sql/guide.md)
-
-Full syntax reference: [`knowledge/sql/reference.md`](../knowledge/sql/reference.md)
+Full patterns, examples, pitfalls, and syntax reference: call `aidoc_getDocumentation("amisql")` on the live instance.

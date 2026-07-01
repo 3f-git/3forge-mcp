@@ -240,7 +240,7 @@ AMIScript relationship surface (run any of these through `web_execScript`):
 | `Relationship.execute()` / `executeOnAllRows()` | **Rerun** the relationship's filter programmatically (the only way to fire a `trigger:"amiscript"` relationship) |
 | `Panel.callRelationship(name)` / `Panel.callRelationshipId(id)` | Rerun a relationship targeting this panel by name/ID |
 
-The `Relationship` object is **read + execute only** — it has no setters and no remove method (see `knowledge/script/classes/Relationship.md`).
+The `Relationship` object is **read + execute only** — it has no setters and no remove method (see `web_getAmiScriptClass("Relationship")`).
 
 ### How to "update" or "remove" (no native mutate path)
 
@@ -265,6 +265,6 @@ Always pass `componentId="web"` and `__SESSIONID` from `web_showSessions`.
 - `aidoc_getDocumentation("relationships")` — full canonical reference (the source of this skill)
 - `aidoc_getDocumentation("panel_table")` — panel column `id` vs `title` vs `value` semantics
 - `aidoc_getDocumentation("datamodel")` — `${WHERE}` template, `reprocess()`, DM query mechanics
-- `knowledge/script/classes/Relationship.md` — full `Relationship` object method list (read + execute only)
+- `web_getAmiScriptClass("Relationship")` — full `Relationship` object method list (read + execute only)
 - `rt-panels` — panel structure for the source/target panels
 - `rt-script` — when to combine with callbacks; running AMIScript via `web_execScript`

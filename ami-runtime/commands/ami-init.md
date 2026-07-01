@@ -10,15 +10,14 @@ You are an expert AMI/3forge development assistant. This command loads your full
 Load the deferred tool schemas you'll need:
 
 ```
-ToolSearch select:mcp__ami-runtime__aidoc_getDocumentation,mcp__ami-runtime__aidoc_searchPatterns,mcp__ami-runtime__ami_showComponents,mcp__knowledge-mcp__query_summaries,mcp__knowledge-mcp__get_documents,mcp__methods-mcp__list_classes,mcp__methods-mcp__find_method_by_name
+ToolSearch select:mcp__ami-runtime__aidoc_getDocumentation,mcp__ami-runtime__aidoc_searchPatterns,mcp__ami-runtime__ami_showComponents,mcp__ami-runtime__web_getAmiScriptClass
 ```
 
-Then probe each server:
+Then probe the server:
 
 - `mcp__ami-runtime__aidoc_getDocumentation` (no args) → confirms `ami-runtime` is online and lists available doc topics
 - `mcp__ami-runtime__ami_showComponents` → live component list
-- `mcp__knowledge-mcp__query_summaries` with `"AMI execution context"` → confirms `knowledge-mcp`
-- `mcp__methods-mcp__list_classes` → confirms `methods-mcp`
+- `mcp__ami-runtime__web_getAmiScriptClass` (no args) → confirms method-signature introspection is available and lists all classes
 
 If `ami-runtime` is offline, surface this and stop — most runtime work depends on it.
 
@@ -28,7 +27,7 @@ Read `.claude/skills/runtime/tool-catalog.md` and `.claude/skills/workflows/doc-
 
 ## Step 3 — Internalize your role
 
-- **Never generate AMI code from training knowledge alone.** Verify with `aidoc_*` (live, authoritative), then `methods-mcp`, then `knowledge-mcp`.
+- **Never generate AMI code from training knowledge alone.** Verify with `aidoc_*` (live, authoritative), then `web_getAmiScriptClass` for method signatures.
 - **Doc to verify to apply** for every live mutation. Stage panels as transient, confirm with the user, then commit via `web_commitPanel` / `web_commitSession` / `web_saveLayout`.
 - **Classify before coding.** Apply the Architecture Decision Guide below.
 - **Output target:** file in `outputs/` vs apply-to-live. Ask if ambiguous.
@@ -119,11 +118,6 @@ Reserved column names to avoid: C, M, V, E, I
 | `ami-reviewer` | Reviewing any generated or user-supplied AMI artifact |
 | `excel-decomposer-agent` | Reverse-engineering Excel workbooks into business logic |
 | `excel-to-ami-agent` | Migrating Excel workbooks into full AMI deployments |
-| `source-fetcher` | Source / docs from Perforce or local workspace |
-| `documentation-writer` | 3forge technical documentation |
-| `brancher` | Perforce branch patching / promotion |
-| `styler` | Adding new style options to the AMI platform |
-| `icon-packer` | Material icons bundle updates |
 
 ## Step 9 — Available Commands
 
@@ -133,8 +127,6 @@ Reserved column names to avoid: C, M, V, E, I
 | `/ami-review` | Before delivering any code |
 | `/ami-debug` | Diagnosing an error |
 | `/ami-query` | Writing or fixing AMI SQL |
-| `/ami-lookup` | Verifying a method signature |
-| `/ami-explain` | Understanding a concept or pattern |
 | `/runtime` | Interacting with a live AMI deployment |
 
 ## Step 10 — Confirm context loaded
@@ -146,12 +138,10 @@ Respond with:
 
 MCP status:
 - ami-runtime: [online — N tools / offline]
-- knowledge-mcp: [online / offline]
-- methods-mcp: [online / offline]
 
 Live components: [from ami_showComponents — Name (Type), ...]
 
-API classes indexed: [count from list_classes, or "unavailable"]
+API classes indexed: [count from web_getAmiScriptClass, or "unavailable"]
 
 Doc topics available: [count from aidoc_getDocumentation, or "unavailable"]
 
@@ -159,8 +149,7 @@ Workflow loaded: doc to verify to apply (transient panels commit on confirmation
 
 Agents available: ami-runtime, ami-architect, ami-layout-architect, ami-layout-style,
   ami-sql-builder, ami-config-writer, ami-datasource-advisor, ami-reviewer,
-  excel-decomposer, excel-to-ami, source-fetcher, documentation-writer,
-  brancher, styler, icon-packer
+  excel-decomposer, excel-to-ami
 
 Ready. Use /ami-plan to start a feature, /runtime to talk to the live deployment,
 or describe what you need.

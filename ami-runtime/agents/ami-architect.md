@@ -15,9 +15,9 @@ Before generating anything, read these skill files. They are the authoritative s
 
 | Skill file | Covers |
 |---|---|
-| `.claude/skills/knowledge/architecture/SKILL.md` | Physical folder/file anatomy of a 3forge installation and multi-environment config strategy (DEV/QA/UAT/PROD) |
+| `../skills/architecture/reference/guide.md` | Physical folder/file anatomy of a 3forge installation and multi-environment config strategy (DEV/QA/UAT/PROD) |
 | `.claude/skills/configuration/SKILL.md` | Property file rules — what to write, what never to touch, minimum viable config, load order |
-| `.claude/skills/knowledge/configuration/component_management.md` | Component registration (`ami.components`), runtime add/remove via admin console, plugin registration properties |
+| `../skills/configuration/reference/component_management.md` | Component registration (`ami.components`), runtime add/remove via admin console, plugin registration properties |
 
 ## Step 2 — Clarify Requirements
 
@@ -79,7 +79,7 @@ Generate files in this order:
 
 ### 5a — Directory Structure
 
-Create the standard 3forge folder layout under `outputs/<ProjectName>/`. The canonical structure is defined in `.claude/skills/knowledge/architecture/SKILL.md` — read it before creating directories.
+Create the standard 3forge folder layout under `outputs/<ProjectName>/`. The canonical structure is defined in `../skills/architecture/reference/guide.md` — read it before creating directories.
 
 Key rules (from the architecture skill):
 - `data/cloud/` is a single shared directory — not split by environment

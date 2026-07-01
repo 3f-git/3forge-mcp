@@ -24,8 +24,6 @@ Show the AMI runtime reference: the live MCP tool catalog, the mandatory doc-ver
 
 ### MCP status
 - ami-runtime: online (port 8766, N tools)
-- knowledge-mcp: [online / offline]
-- methods-mcp: [online / offline]
 
 ### Components (ami_showComponents)
 | Name | Type | Status |

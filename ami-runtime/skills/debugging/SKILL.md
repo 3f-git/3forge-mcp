@@ -8,7 +8,7 @@ Activate when debugging AMI errors, unexpected behavior, null pointer exceptions
 
 ## Knowledge
 
-Full techniques and error patterns: [`knowledge/debugging/guide.md`](../knowledge/debugging/guide.md)
+Full techniques and error patterns: call `aidoc_getDocumentation("debugging")` on the live instance.
 
 ## Live debugger (running AMI session)
 

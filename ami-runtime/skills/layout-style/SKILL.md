@@ -18,11 +18,10 @@ Activate when:
 ## Knowledge
 
 Full styling reference, theme patterns, and design principles:
-[`knowledge/layout-style/guide.md`](../knowledge/layout-style/guide.md)
+call `aidoc_getDocumentation("layout_style")` on the live instance.
 
 Layout structure and panel type reference (required context):
-[`knowledge/layout/guide.md`](../knowledge/layout/guide.md)
-[`knowledge/layout/reference.md`](../knowledge/layout/reference.md)
+call `aidoc_getDocumentation("layout_structure")`, and use `web_showDomSchema(null)` for exact style property names per panel type.
 
 ---
 

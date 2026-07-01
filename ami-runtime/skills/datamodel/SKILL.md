@@ -8,7 +8,7 @@ Activate when working with AMI DataModels, subscriptions, real-time data process
 
 ## Knowledge
 
-Full patterns, examples, and pitfalls: [`knowledge/datamodel/guide.md`](../knowledge/datamodel/guide.md)
+Full patterns, examples, and pitfalls: call `aidoc_getDocumentation("datamodel")` on the live instance.
 
 ## Live DataModel editing (running session)
 

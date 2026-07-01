@@ -234,4 +234,4 @@ Always pass `componentId="web"` and `__SESSIONID` (from `web_showSessions`).
 - `aidoc_getDocumentation("amiscript")` — language reference
 - `aidoc_getDocumentation("callbacks")` — callback parameter scope per event name
 - `aidoc_getDocumentation("web")` — Web-context constraints (USE DS, session.log, HTML escaping)
-- `mcp__methods-mcp__find_method_by_name` / `list_methods_in_class` — secondary signature source if `web_getAmiScriptClass` is missing a class
+- `web_getAmiScriptClass` — primary signature source; omit `className` to list all available classes if a specific one isn't returning results

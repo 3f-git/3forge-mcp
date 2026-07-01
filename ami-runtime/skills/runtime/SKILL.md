@@ -64,8 +64,6 @@ When the user opens with a generic prompt ("what's running?"), return:
 
 ### MCP status
 - ami-runtime: online (port 8766, 152 tools)
-- knowledge-mcp: [online / offline]
-- methods-mcp: [online / offline]
 
 ### Components (ami_showComponents)
 | Name | Type | Status |

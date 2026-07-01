@@ -15,14 +15,9 @@ If no file path is given, look for a `.ami` file in `inputs/`. Use that as the s
 
 ## Step 1 — Load the Style Knowledge
 
-Before touching any file, read:
+Before touching any file, call `aidoc_getDocumentation("layout_style")` for the full amiStyle reference, styleSets, CSS, column coloring, and design principles. Call `aidoc_getDocumentation("layout_structure")` for panel types and structure (context for what you are styling).
 
-| File | Covers |
-|---|---|
-| `.claude/skills/knowledge/layout-style/guide.md` | Full amiStyle reference, styleSets, CSS, column coloring, design principles |
-| `.claude/skills/knowledge/layout/guide.md` | Panel types and structure (context for what you are styling) |
-
-For exact `styles` property names (`panelBgCl`, `panelFontCl`, panel-specific style keys, valid value ranges) — the authoritative source is the schema file at the repo root: `AmiJsonSchema.json`. Do not invent style property names from training knowledge. If a property name is uncertain, load the relevant section from `.claude/skills/knowledge/layout/schema/` (e.g. `panels-table.md` for table style keys, `panels-form.md` for form style keys) — each section file includes a **Style Properties** table grouped by category.
+For exact `styles` property names (`panelBgCl`, `panelFontCl`, panel-specific style keys, valid value ranges) — the authoritative source is the live DOM schema: call `web_showDomSchema(null)` (or `web_showDomSchema(typeName)` for a single panel type). Do not invent style property names from training knowledge. If a property name is uncertain, pull the relevant type from the live schema — each panel type's schema includes its style-related properties grouped by category.
 
 ## Step 2 — Read the Target Layout
 

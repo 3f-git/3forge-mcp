@@ -21,56 +21,31 @@ Unless explicitly stated, all layouts you generate must be version 6. Unless exp
 
 ## Step 2 — Load the Structural Knowledge
 
-Read the authoritative references before generating anything:
+Call `aidoc_getDocumentation(topic)` on the live instance before generating anything (topics listed in `runtime/tool-catalog.md`):
 
-| File | Covers |
+| Topic | Covers |
 |---|---|
-| [Layout References](../skills/knowledge/layout/guide.md) | 
-| [AMI Frontend Knowledge](../skills/knowledge/web/guide.md) | Web-side API: session, layout, DataModel, callbacks, HTML escaping |
+| `layout_structure` | Layout structural patterns — divider tree, windows, panel/datamodel wiring |
+| `web` | Web-side API: session, layout, DataModel, callbacks, HTML escaping |
+| `panel_table` | Table, realtime table, or tree panels |
+| `panel_form` | Form panels or any field type |
+| `panel_chart` | Chart panels |
+| `panel_divider` | Dividers, tabs, scroll, or blank panels |
+| `callbacks` | All callback signatures — exact parameter types, return types, and layout schema placement |
+| `amiscript` | All AMI Script features and quirks — allows inline AMI SQL |
+| `amisql` | All AMI SQL features and differences from traditional SQL — can be natively embedded into AMI Script |
 
-| File | Load when |
-|---|---|
-| [Panel References](../skills/knowledge/layout/schema/_index.md) | Always — lightweight TOC + staleness warning |
-| [Layout Root](../skills/knowledge/layout/schema/layout-root.md) | Always — Layout, Datamodel, Relationship |
-| [Table Panels](../skills/knowledge/layout/schema/panels-table.md) | Building table, realtime table, or tree panels |
-| [Interactive Panel](../skills/knowledge/layout/schema/panels-form.md) | Building form panels or any field type |
-| [Chart Panels](../skills/knowledge/layout/schema/panels-chart.md) | Building chart panels |
-| [Container Panels](../skills/knowledge/layout/schema/panels-container.md) | Building dividers, tabs, scroll, or blank panels |
-| [Other Panels](../skills/knowledge/layout/schema/panels-viz.md) | Building heatmap, surface, or filter panels |
+For exact panel/property schemas (field names, types, valid values), the authoritative source is the live DOM schema — see Step 2.1.
 
-> **Schema staleness:** `AmiJsonSchema.json` is pulled from a live AMI instance and may lag behind the latest release. If a property name in the schema conflicts with a verified `.ami` export or the DO NOT rules in this agent, **trust the DO NOT rules and the exports over the schema**.
+## Step 2.1 — Load the Live DOM Schema
 
-Always load the callback and syntax references when code generation is necessary:
+Call `web_showDomSchema(null)` to return the full DOM schema for every registered `.ami` type in one call. Pass a specific `typeName` (see `web_showDomTypes` for valid names) to fetch just one panel/object type's schema when you already know what you're building.
 
-| File | Covers |
-|---|---|
-| [Callbacks (script execution context)](../skills/knowledge/layout/callbacks.md) | All callback signatures — exact parameter types, return types, and layout schema placement |
-| [AMI Script Syntax](../skills/knowledge/script/guide.md) | All AMI Script features and quirks - allows inline AMI SQL |
-| [AMI SQL Syntax](../skills/knowledge/sql/guide.md) | All AMI SQL features and differences from traditional SQL - can be natively embedded into AMI Script |
+Use this as the property-name and type source for every `.ami` JSON object you write — panels, datamodels, relationships, columns. If a property name in the schema conflicts with a verified `.ami` export or the DO NOT rules in this agent, **trust the DO NOT rules and the exports over the schema** — the live schema can occasionally lag the newest release.
 
-## Step 2.1 — Refresh Schema (if AMI is running)
+**Skip the full-schema call** if you are generating a snippet or partial layout and already know the exact property names needed (token cost not justified).
 
-If the `ami-runtime` MCP tools are available in this session, refresh `AmiJsonSchema.json` before loading the schema section files:
-
-```
-1. Call web_showDomSchema(null)
-   → Returns the full DOM schema for all registered types in one call.
-     (Pass null or omit the typeName argument — passing a specific typeName
-      returns only that type's schema object, not the full aggregation.)
-
-2. Write the result to AmiJsonSchema.json at the repo root
-   (replace the existing file — it is the full schema JSON)
-
-3. Run: python scripts/gen_schema_ref.py
-   → Regenerates .claude/skills/knowledge/layout/schema/*.md
-```
-
-**Skip this step** if:
-- AMI is not running or the runtime tools are not available
-- The caller confirms the current `AmiJsonSchema.json` is up to date
-- You are generating a snippet or partial layout (token cost not justified)
-
-Proceed to Step 2.5 after the refresh (or immediately if skipped).
+Proceed to Step 2.5 after loading the schema (or immediately if skipped).
 
 ## Step 2.5 — Load Learnings
 
@@ -170,9 +145,9 @@ When extending an existing `.ami` file:
    - Create a new `DividerPanel` with `child1 = new_panel_id`, `child2 = existing_root_id`.
    - Update the `windows` entry `child` field to the new divider's ID.
 
-Refer to the [Full Layout JSON Schema](../skills/knowledge/layout/schema/) for the rest of the schema. **Always check if a field exists or if a value is appropriate before writing any layout JSON!**
+Refer to the live DOM schema (`web_showDomSchema(null)`, Step 2.1) for the rest of the schema. **Always check if a field exists or if a value is appropriate before writing any layout JSON!**
 
-When generating code (AMI Script or AMI SQL), **ensure that all code compiles** by referring to the [AMI Script Guide](../skills/knowledge/script/guide.md) and the [AMI SQL Guide](../skills/knowledge/sql/guide.md). Remember that code can only be executed inside of [Callbacks](../skills/knowledge/layout/callbacks.md)!
+When generating code (AMI Script or AMI SQL), **ensure that all code compiles** by referring to `aidoc_getDocumentation("amiscript")` and `aidoc_getDocumentation("amisql")`. Remember that code can only be executed inside of Callbacks — see `aidoc_getDocumentation("callbacks")`!
 
 ## Step 6 — Review and Correct
 

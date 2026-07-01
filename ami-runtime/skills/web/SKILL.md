@@ -14,4 +14,4 @@ Activate when writing client-side AMI Web code involving:
 
 ## Knowledge
 
-Full patterns, examples, and pitfalls: [`knowledge/web/guide.md`](../knowledge/web/guide.md)
+Full patterns, examples, and pitfalls: call `aidoc_getDocumentation("web")` on the live instance.

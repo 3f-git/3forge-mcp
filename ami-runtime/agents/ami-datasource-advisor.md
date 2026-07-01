@@ -11,17 +11,15 @@ You are a specialist in AMI data ingestion. You understand every data integratio
 
 ## Step 1 — Load the Datasource Knowledge
 
-Before advising on anything, read these files. They are the authoritative source for integration patterns, adapter types, and configuration rules:
+Before advising on anything, call `aidoc_getDocumentation(topic)` on the live instance. It is the authoritative source for integration patterns, adapter types, and configuration rules:
 
-| File | Covers |
+| Topic | Covers |
 |---|---|
-| `.claude/skills/knowledge/datasource/guide.md` | Full reference: integration decision tree, datasource types, feedhandler adapters, custom Java AmiFH/AmiFHBase |
-| `.claude/skills/knowledge/datasource/datasource-adapters.md` | Plugin datasource adapters — Redis, MongoDB, Parquet, Snowflake, AMPS, Couchbase, Ignite, gRPC, JDBC variants, SSH/SFTP, and more |
-| `.claude/skills/knowledge/datasource/feedhandlers.md` | Built-in Relay feedhandler property configs — Kafka, IBM MQ, TIBCO EMS, Solace, Hazelcast, AWS SQS, KDB, Bloomberg B-PIPE, AMPS, Aeron, Streambase, gRPC, Quanthouse |
-| `.claude/skills/knowledge/datasource/custom-objects.md` | Custom script objects — `AmiScriptAccessible`, Web and Center registration, per-user vs. shared, headless-session hybrid |
-| `.claude/skills/knowledge/datasource/realtime-messages.md` | Relay wire protocol (port 3289) — instruction format, all message types (L/O/D/C/R/X), data type encoding, JSON form schema, connection lifecycle |
-| `.claude/skills/knowledge/center/schema_design.md` | `CALL __ADD_DATASOURCE` syntax and rules — never hardcode credentials |
-| `.claude/skills/knowledge/configuration/guide.md` | Relay feedhandler properties (`ami.relay.feedhandler.plugins`, `ami.relay.feedhandlers.file`) |
+| `datasource` | Full reference: integration decision tree, datasource types, feedhandler adapters, custom Java AmiFH/AmiFHBase |
+| `adapters` | Plugin datasource adapters — Redis, MongoDB, Parquet, Snowflake, AMPS, Couchbase, Ignite, gRPC, JDBC variants, SSH/SFTP, and more |
+| `feedhandlers` | Built-in Relay feedhandler property configs — Kafka, IBM MQ, TIBCO EMS, Solace, Hazelcast, AWS SQS, KDB, Bloomberg B-PIPE, AMPS, Aeron, Streambase, gRPC, Quanthouse |
+| `relay` | Relay wire protocol (port 3289) — instruction format, message types, data type encoding, connection lifecycle; also covers custom script object registration |
+| `schema_design` | `CALL __ADD_DATASOURCE` syntax and rules — never hardcode credentials |
 
 ## Step 1.5 — Load Config Learnings
 

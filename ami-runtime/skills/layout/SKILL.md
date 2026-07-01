@@ -13,8 +13,8 @@ Activate when:
 
 ## Knowledge
 
-Full patterns, examples, and pitfalls: [`knowledge/layout/guide.md`](../knowledge/layout/guide.md)
+Full patterns, examples, and pitfalls: call `aidoc_getDocumentation("layout_structure")` on the live instance.
 
-Full syntax reference: [`knowledge/layout/reference.md`](../knowledge/layout/reference.md)
+Full syntax reference: the live DOM schema via `web_showDomSchema(null)` (or `web_showDomSchema(typeName)` for a single panel/object type).
 
-Common deployment patterns (filter bar, form-to-table, row select, cascading dropdowns): [`knowledge/layout/patterns.md`](../knowledge/layout/patterns.md)
+Common deployment patterns (filter bar, form-to-table, row select, cascading dropdowns): call `aidoc_searchPatterns(query)` → `aidoc_getPattern(name)` for prebuilt skeletons.

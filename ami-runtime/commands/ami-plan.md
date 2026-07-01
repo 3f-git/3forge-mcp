@@ -9,16 +9,16 @@ Create a detailed implementation plan for an AMI feature.
 
 1. **Clarify requirements if unclear** — Is this Center, Web, or both? Real-time shared state or per-user analysis? Does data need to survive restart?
 
-2. **Load knowledge** — Read the following files before producing the plan:
-   - `.claude/skills/knowledge/architecture/guide.md` — deployment structure, primitive selection, 6-concern framework
-   - `.claude/skills/knowledge/center/schema_design.md` — table types, PersistEngine, index strategy
-   - `.claude/skills/knowledge/center/guide.md` — triggers, timers, procedures
-   - `.claude/skills/knowledge/web/guide.md` — DataModels, session, callbacks
+2. **Load knowledge** — Read the following skills before producing the plan:
+   - `architecture` skill — deployment structure, primitive selection, 6-concern framework
+   - `center` skill (schema design section) — table types, PersistEngine, index strategy
+   - `center` skill — triggers, timers, procedures
+   - `web` skill — DataModels, session, callbacks
 
-3. **Query MCP for patterns** — Do NOT spawn a subagent:
-   - **First**, if MCP tools have not been used yet in this conversation, call `ToolSearch` with `select:mcp__knowledge-mcp__query_summaries,mcp__knowledge-mcp__get_documents,mcp__methods-mcp__find_method_by_name,mcp__methods-mcp__find_method_by_desc` to load their schemas before calling them.
-   - For architecture/pattern questions: `mcp__knowledge-mcp__query_summaries` + `mcp__knowledge-mcp__get_documents`
-   - For method signatures in the plan: `mcp__methods-mcp__find_method_by_name` or `mcp__methods-mcp__find_method_by_desc`
+3. **Query the live instance for patterns** — Do NOT spawn a subagent:
+   - **First**, if MCP tools have not been used yet in this conversation, call `ToolSearch` with `select:mcp__ami-runtime__aidoc_getDocumentation,mcp__ami-runtime__aidoc_searchPatterns,mcp__ami-runtime__web_getAmiScriptClass` to load their schemas before calling them.
+   - For architecture/pattern questions: `aidoc_getDocumentation(topic)` (topics listed in `runtime/tool-catalog.md`) + `aidoc_searchPatterns(query)` → `aidoc_getPattern(name)`
+   - For method signatures in the plan: `web_getAmiScriptClass`
 
 4. **Apply the 6-concern framework** from the architecture guide to classify the problem and select the right primitives.
 

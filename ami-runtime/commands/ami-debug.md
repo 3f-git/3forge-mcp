@@ -9,11 +9,11 @@ Debug AMI errors systematically.
 
 1. **Gather error info** — Get the exact error message and context (Center or Web).
 
-2. **Load knowledge** — Read `.claude/skills/knowledge/debugging/guide.md` for error patterns, null handling, and debug logging techniques before diagnosing.
+2. **Load knowledge** — Read the `debugging` skill for error patterns, null handling, and debug logging techniques before diagnosing.
 
-3. **Verify method signatures via MCP if needed** — Do NOT spawn a subagent:
-   - **First**, if MCP tools have not been used yet in this conversation, call `ToolSearch` with `select:mcp__methods-mcp__find_method_by_name,mcp__methods-mcp__find_method_by_desc` to load their schemas before calling them.
-   - Call `mcp__methods-mcp__find_method_by_name` to confirm any method call in question.
+3. **Verify method signatures via the live instance if needed** — Do NOT spawn a subagent:
+   - **First**, if MCP tools have not been used yet in this conversation, call `ToolSearch` with `select:mcp__ami-runtime__web_getAmiScriptClass` to load its schema before calling it.
+   - Call `mcp__ami-runtime__web_getAmiScriptClass` to confirm any method call in question.
 
 4. **Diagnose** using the error patterns and debug techniques from the knowledge file.
 

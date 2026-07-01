@@ -12,4 +12,4 @@ Activate when:
 
 ## Knowledge
 
-Full patterns and deployment guide: [`knowledge/architecture/guide.md`](../knowledge/architecture/guide.md)
+Full patterns and deployment guide: [`reference/guide.md`](reference/guide.md)

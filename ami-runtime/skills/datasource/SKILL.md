@@ -14,6 +14,6 @@ Activate when the user is:
 
 ## Knowledge
 
-Full reference for datasource types, feedhandler adapters, custom Java implementation, and integration patterns: [`knowledge/datasource/guide.md`](../knowledge/datasource/guide.md)
+Full reference for datasource types, feedhandler adapters, custom Java implementation, and integration patterns: call `aidoc_getDocumentation("datasource")` (and `aidoc_getDocumentation("adapters")` / `aidoc_getDocumentation("feedhandlers")`) on the live instance.
 
-Relay wire protocol for external applications connecting directly to the Relay socket (port 3289) — message types, data type encoding, command definitions, and JSON form schema: [`knowledge/datasource/realtime-messages.md`](../knowledge/datasource/realtime-messages.md)
+Relay wire protocol for external applications connecting directly to the Relay socket (port 3289) — message types, data type encoding, command definitions, and JSON form schema: call `aidoc_getDocumentation("relay")` on the live instance.

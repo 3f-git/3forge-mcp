@@ -15,18 +15,18 @@ Before writing any file, read the authoritative references:
 
 | File | When to read |
 |---|---|
-| `.claude/skills/knowledge/configuration/guide.md` | Always — index of all configuration knowledge files |
-| `.claude/skills/knowledge/architecture/guide.md` | Always — property chain load order, file naming, deployment structure |
-| `.claude/skills/knowledge/configuration/common.md` | Always — shared properties: AES, auth, AMIScript defaults, REST, port reference |
-| `.claude/skills/knowledge/configuration/center.md` | Center component is in deployment |
-| `.claude/skills/knowledge/configuration/relay.md` | Relay component is in deployment |
-| `.claude/skills/knowledge/configuration/web.md` | Web component is in deployment |
-| `.claude/skills/knowledge/configuration/webbalancer.md` | WebBalancer is in deployment |
-| `.claude/skills/knowledge/configuration/webmanager.md` | WebManager is in deployment |
-| `.claude/skills/knowledge/configuration/overrides.md` | When setting custom ports, AES encryption, schema paths, relay feed handler, or plugins |
-| `.claude/skills/knowledge/configuration/component_management.md` | When configuring which components load (`ami.components`), multi-component deployments, or registering plugin classes |
-| `.claude/skills/knowledge/configuration/ssl.md` | When configuring SSL/TLS — keystore properties, HTTPS port, unified vs split patterns |
-| `.claude/skills/knowledge/configuration/ldap.md` | When configuring LDAP authentication — correct property names, class path, optional SSL properties |
+| `../skills/configuration/reference/guide.md` | Always — index of all configuration knowledge files |
+| `../skills/architecture/reference/guide.md` | Always — property chain load order, file naming, deployment structure |
+| `../skills/configuration/reference/common.md` | Always — shared properties: AES, auth, AMIScript defaults, REST, port reference |
+| `../skills/configuration/reference/center.md` | Center component is in deployment |
+| `../skills/configuration/reference/relay.md` | Relay component is in deployment |
+| `../skills/configuration/reference/web.md` | Web component is in deployment |
+| `../skills/configuration/reference/webbalancer.md` | WebBalancer is in deployment |
+| `../skills/configuration/reference/webmanager.md` | WebManager is in deployment |
+| `../skills/configuration/reference/overrides.md` | When setting custom ports, AES encryption, schema paths, relay feed handler, or plugins |
+| `../skills/configuration/reference/component_management.md` | When configuring which components load (`ami.components`), multi-component deployments, or registering plugin classes |
+| `../skills/configuration/reference/ssl.md` | When configuring SSL/TLS — keystore properties, HTTPS port, unified vs split patterns |
+| `../skills/configuration/reference/ldap.md` | When configuring LDAP authentication — correct property names, class path, optional SSL properties |
 
 ## Step 2 — Understand the Project Requirements
 
@@ -158,13 +158,13 @@ For all override patterns, read the relevant knowledge file loaded in Step 1 —
 
 | Pattern | Knowledge file |
 |---|---|
-| Custom ports | `.claude/skills/knowledge/configuration/overrides.md` |
-| AES encryption | `.claude/skills/knowledge/configuration/overrides.md` |
-| Schema file locations | `.claude/skills/knowledge/configuration/overrides.md` |
-| Relay feed handler | `.claude/skills/knowledge/configuration/overrides.md` |
-| Plugin registration | `.claude/skills/knowledge/configuration/overrides.md` |
-| SSL / TLS | `.claude/skills/knowledge/configuration/ssl.md` |
-| LDAP authentication | `.claude/skills/knowledge/configuration/ldap.md` |
+| Custom ports | `../skills/configuration/reference/overrides.md` |
+| AES encryption | `../skills/configuration/reference/overrides.md` |
+| Schema file locations | `../skills/configuration/reference/overrides.md` |
+| Relay feed handler | `../skills/configuration/reference/overrides.md` |
+| Plugin registration | `../skills/configuration/reference/overrides.md` |
+| SSL / TLS | `../skills/configuration/reference/ssl.md` |
+| LDAP authentication | `../skills/configuration/reference/ldap.md` |
 
 ## Step 6 — Self-Review and Correct
 

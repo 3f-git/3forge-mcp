@@ -156,27 +156,27 @@ There is no schema cache or sidecar state. Discover state directly:
 
 ## Step 5 — Knowledge Gate (BLOCKING)
 
-Scan the task. If **any** trigger below matches, **read the listed file before taking any other action** — including before delegating to a sub-agent.
+Scan the task. If **any** trigger below matches, **call `aidoc_getDocumentation(topic)` for the listed topic before taking any other action** — including before delegating to a sub-agent.
 
-| If the task involves… | Read this file first |
+| If the task involves… | Call `aidoc_getDocumentation` with this topic first |
 |---|---|
-| Any relay feedhandler operation (add, remove, start, stop, update) | `.claude/skills/knowledge/admin/ami_relay.md` |
-| Connecting any streaming or external data source (Kafka, KDB+, Bloomberg, CSV, Solace, FIX, or any feed) | `.claude/skills/knowledge/datasource/feedhandlers.md` |
-| Loading reference data from a file (Excel, `.xlsx`, CSV) into Center | `.claude/skills/knowledge/datasource/guide.md` |
-| Adding, removing, restarting, or **naming** a component | `.claude/skills/knowledge/configuration/component_management.md` |
-| Relay routing: routes file, fan-out rules | `.claude/skills/knowledge/configuration/relay-routes.md` |
-| Relay transforms: object type renaming/remapping, field filtering, PASSTHROUGH | `.claude/skills/knowledge/admin/ami_relay.md` |
-| Second Center, multi-center queries, historical archive | `.claude/skills/knowledge/center/multi_center.md` |
-| Admin console commands, namespaces, introspection patterns | `.claude/skills/knowledge/admin/guide.md` |
-| Realtime relay socket, wire protocol, O/D messages | `.claude/skills/knowledge/datasource/realtime-messages.md` |
-| AMIScript method calls on session / layout / panel objects | `.claude/skills/knowledge/script/classes/<ClassName>.md` |
-| Any error, unexpected result, or repeated failure | `.claude/skills/knowledge/debugging/guide.md` |
+| Any relay feedhandler operation (add, remove, start, stop, update) | `relay` |
+| Connecting any streaming or external data source (Kafka, KDB+, Bloomberg, CSV, Solace, FIX, or any feed) | `feedhandlers` |
+| Loading reference data from a file (Excel, `.xlsx`, CSV) into Center | `loadfile` or `data_loading` |
+| Adding, removing, restarting, or **naming** a component | `admin` (see also `rt-ops` skill for the `ami_*` lifecycle tools) |
+| Relay routing: routes file, fan-out rules | `relay_routes` |
+| Relay transforms: object type renaming/remapping, field filtering, PASSTHROUGH | `relay` |
+| Second Center, multi-center queries, historical archive | `center` |
+| Admin console commands, namespaces, introspection patterns | `admin` |
+| Realtime relay socket, wire protocol, O/D messages | `relay` |
+| AMIScript method calls on session / layout / panel objects | `web_getAmiScriptClass(className)` (not a doc topic — a direct signature-lookup tool) |
+| Any error, unexpected result, or repeated failure | `debugging` |
 
 > **The four highest-failure omissions:**
-> - Skipping `component_management.md` before naming a component → hyphenated names silently rejected
-> - Skipping `ami_relay.md` before adding a feedhandler → wrong method, wrong parameters
-> - Skipping `feedhandlers.md` before connecting any data feed → wrong deserializer → silent empty records
-> - Skipping `ami_relay.md` before using relay transforms → agent tries invalid options like `destination=X` or `object=X`; correct syntax is `objectTypes="Target=Source"` with `options="PASSTHROUGH"`
+> - Skipping the `admin` topic before naming a component → hyphenated names silently rejected
+> - Skipping the `relay` topic before adding a feedhandler → wrong method, wrong parameters
+> - Skipping the `feedhandlers` topic before connecting any data feed → wrong deserializer → silent empty records
+> - Skipping the `relay` topic before using relay transforms → agent tries invalid options like `destination=X` or `object=X`; correct syntax is `objectTypes="Target=Source"` with `options="PASSTHROUGH"`
 
 ---
 
@@ -543,10 +543,10 @@ When the user asks to add a field, change a column, or update any property on a 
 
 **Never write AMI SQL, DDL, DML, procedures, timers, triggers, or `.amisql` content directly.** All SQL authoring belongs to `ami-sql-builder`.
 
-**Delegation gate:** If you notice you are about to read any of these files, spawn `ami-sql-builder` instead:
-- `.claude/skills/knowledge/center/schema_design.md`
-- `.claude/skills/knowledge/center/guide.md`
-- `.claude/skills/knowledge/sql/` (any file)
+**Delegation gate:** If you notice you are about to call `aidoc_getDocumentation` for any of these topics to author SQL yourself, spawn `ami-sql-builder` instead:
+- `schema_design`
+- `center`
+- `amisql`
 
 ### Constraint 2 — No Workaround Scripts
 
@@ -569,8 +569,8 @@ Do you want me to investigate further or take a different approach?
 
 **Never generate AMIScript to pass into `web_execScript` from training knowledge.** Method names hallucinate easily.
 
-- Verify exact signatures in `.claude/skills/knowledge/script/classes/` before using any `session.*`, `layout.*`, `Datamodel.*`, or panel method.
-- If a method is not found in the reference files, say so and ask the user rather than guessing.
+- Verify exact signatures via `web_getAmiScriptClass(className)` before using any `session.*`, `layout.*`, `Datamodel.*`, or panel method.
+- If a method is not found via `web_getAmiScriptClass`, say so and ask the user rather than guessing.
 - Run `web_validateScript` on any non-trivial AMIScript before `web_execScript`.
 
 ### Constraint 4 — Never Commit or Save Without Being Asked

@@ -11,21 +11,14 @@ You are a backend database systems engineer specialising in AMIDB. You write `.a
 
 ## Step 1 — Load the Knowledge
 
-Read the following files before writing anything. They are the authoritative source — do not rely on memory for syntax or patterns.
+Call `aidoc_getDocumentation(topic)` on the live instance before writing anything. It is the authoritative source — do not rely on memory for syntax or patterns.
 
-| File | When to read |
+| Topic | When to read |
 |---|---|
-| `.claude/skills/knowledge/sql/guide.md` | Always — full AMI SQL (interchangeable with AMI Script) syntax |
-| `.claude/skills/knowledge/center/schema_design.md` | Always — file structure, table/index design, datasource management |
-| `.claude/skills/knowledge/center/guide.md` | Always — comment syntax, common pitfalls, deferred execution rules |
-| `.claude/skills/knowledge/script/guide.md` | When complex logic is needed - full AMI Script (interchangeable with AMI SQL) syntax |
-| `.claude/skills/knowledge/center/center_objects/realtime_tables.md` | When any `CREATE PUBLIC TABLE` is needed — full syntax, types, persistence engines |
-| `.claude/skills/knowledge/center/center_objects/indexes.md` | When writing indexes — syntax, HASH/SORT/SERIES, AUTOGEN, joint indexes |
-| `.claude/skills/knowledge/center/center_objects/triggers.md` | When triggers are required |
-| `.claude/skills/knowledge/center/center_objects/timers.md` | When timers are required |
-| `.claude/skills/knowledge/center/center_objects/procedures.md` | When stored procedures are required |
-| `.claude/skills/knowledge/center/center_objects/methods.md` | When Center custom methods are required |
-| `.claude/skills/knowledge/center/center_objects/historical_tables.md` | When creating cold, archival tables — full syntax, types, persistence engines |
+| `amisql` | Always — full AMI SQL (interchangeable with AMI Script) syntax |
+| `schema_design` | Always — file structure, table/index design, datasource management |
+| `center` | Always — comment syntax, common pitfalls, deferred execution rules; also covers `CREATE PUBLIC TABLE`, indexes, triggers, timers, procedures, custom methods, and historical tables |
+| `amiscript` | When complex logic is needed — full AMI Script (interchangeable with AMI SQL) syntax |
 
 ## Step 1.5 — Load Learnings
 
@@ -44,11 +37,11 @@ Before designing any table, resolve the following from the caller's spec or by a
 5. **What columns will the layout bind to?** — column names become form binding field names in DataModels. Choose stable, descriptive names.
 6. **What is the write path?** — trigger, stored procedure, or direct insert from Web? Define it explicitly.
 
-Document these answers in the consumer context comment block at the top of the schema file (see `schema_design.md` for the template).
+Document these answers in the consumer context comment block at the top of the schema file (see `aidoc_getDocumentation("schema_design")` for the template).
 
 ## Step 3 — Write the Schema
 
-Apply the patterns and syntax from the loaded knowledge files. Follow the file structure from `schema_design.md`. Omit sections that have no content.
+Apply the patterns and syntax from the documentation loaded in Step 1. Follow the file structure from `aidoc_getDocumentation("schema_design")`. Omit sections that have no content.
 
 ## Step 4 — Write the File
 

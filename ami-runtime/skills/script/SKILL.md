@@ -14,6 +14,6 @@ Activate when writing or reviewing AMI Script code involving:
 
 ## Knowledge
 
-Full patterns, examples, and pitfalls: [`knowledge/script/guide.md`](../knowledge/script/guide.md)
+Full patterns, examples, and pitfalls: call `aidoc_getDocumentation("amiscript")` on the live instance.
 
-Class and method reference: [`knowledge/script/classes/3forge_amiscript_reference.md`](../knowledge/script/classes/3forge_amiscript_reference.md)
+Class and method reference: call `web_getAmiScriptClass(className)` (omit `className` to list all classes).

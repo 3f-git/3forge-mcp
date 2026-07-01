@@ -20,9 +20,9 @@ Only override properties when the project requires a non-default value. Generati
 
 ## Knowledge
 
-Full property reference: [`knowledge/configuration/guide.md`](../knowledge/configuration/guide.md)
+Full property reference: [`reference/guide.md`](reference/guide.md)
 
-Deployment structure and file chain: [`knowledge/architecture/guide.md`](../knowledge/architecture/guide.md)
+Deployment structure and file chain: [`../architecture/reference/guide.md`](../architecture/reference/guide.md)
 
 ---
 
