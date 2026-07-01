@@ -65,6 +65,10 @@ install flow.
 > remote (e.g. `claude plugin marketplace add 3f-git/3forge-mcp`). Until then, use the local
 > path above.
 
+For day-to-day Claude Code usage, including slash commands, subagents, MCP tool families,
+skills, and the doc → verify → apply workflow, see
+[`docs/claude-code-usage.md`](docs/claude-code-usage.md).
+
 #### Codex
 
 Register your **local clone** as a Codex marketplace, then install from it:
