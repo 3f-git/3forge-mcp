@@ -208,7 +208,10 @@ function writeMirror(tool, cfg) {
   console.log(`generated dist/${tool} (mirror): ${cfg.instructionFile}, skills/`);
 }
 
-syncCommandSkillReferences();
+// The command-equivalent reference lives in the canonical source tree
+// (3forge-mcp/skills/commands/reference). Only regenerate it for a real build —
+// when verify.mjs regenerates into a temp DIST it must not mutate the source.
+if (!process.env.THREEFORGE_DIST) syncCommandSkillReferences();
 
 if (existsSync(DIST)) rmSync(DIST, { recursive: true, force: true });
 
