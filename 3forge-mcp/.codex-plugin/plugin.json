@@ -1,0 +1,31 @@
+{
+  "name": "3forge-mcp",
+  "version": "0.1.2",
+  "description": "Drive and build on a live 3forge instance through the 3forge-runtime MCP server.",
+  "author": {
+    "name": "3forge"
+  },
+  "license": "UNLICENSED",
+  "keywords": ["3forge", "ami", "mcp", "runtime"],
+  "skills": "./skills/",
+  "mcpServers": {
+    "3forge-runtime": {
+      "type": "http",
+      "url": "${THREEFORGE_MCP_URL}"
+    }
+  },
+  "interface": {
+    "displayName": "3forge MCP",
+    "shortDescription": "Operate and build on a live 3forge instance.",
+    "longDescription": "Connect Codex to a running 3forge AMI instance through the 3forge-runtime MCP server, with reusable skills for runtime operations and authoring workflows.",
+    "developerName": "3forge",
+    "category": "Productivity",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "defaultPrompt": [
+      "Use 3forge MCP to inspect my AMI instance.",
+      "Use 3forge MCP to plan a layout change.",
+      "Use 3forge MCP to review a 3forge workflow."
+    ],
+    "brandColor": "#2F6FED"
+  }
+}

@@ -60,14 +60,26 @@ set). Alternatively: open Claude Code inside the clone and accept the install pr
 > remote (e.g. `claude plugin marketplace add 3f-git/3forge-mcp`). Until then, use the local
 > path above.
 
-#### Codex / Copilot / Gemini / Cursor
+#### Codex
 
-These tools have no equivalent one-command plugin install, so the repo ships **generated
-mirrors** under `dist/<tool>/`. Copy the pieces your tool expects:
+Register your **local clone** as a Codex marketplace, then install from it:
+
+```bash
+codex plugin marketplace add ./3forge-mcp        # path to the cloned repo root
+codex plugin add 3forge-mcp@3forge-mcp-marketplace
+```
+
+The bundled `3forge-runtime` MCP server starts automatically once
+`THREEFORGE_MCP_URL` is set. After installing or updating the plugin, start a new Codex thread so
+the plugin skills and MCP tools are loaded.
+
+#### Copilot / Gemini / Cursor
+
+These tools have no equivalent one-command plugin install in this repo, so the repo ships
+**generated mirrors** under `dist/<tool>/`. Copy the pieces your tool expects:
 
 | Tool | Instruction file | MCP config |
 |---|---|---|
-| Codex | `dist/codex/AGENTS.md` | `dist/codex/mcp.codex.toml` → merge into `~/.codex/config.toml` |
 | Copilot | `dist/copilot/.github/copilot-instructions.md` | `dist/copilot/.vscode/mcp.json` |
 | Gemini | `dist/gemini/GEMINI.md` | `dist/gemini/settings.json` → merge into your Gemini settings |
 | Cursor | `dist/cursor/.cursor/rules/3forge-mcp.mdc` | `dist/cursor/.cursor/mcp.json` |
@@ -131,6 +143,7 @@ so `aidoc` cannot serve it. That content is bundled read-only under:
 ├── .claude-plugin/marketplace.json     # marketplace catalog (one plugin entry)
 ├── 3forge-mcp/                         # ← CANONICAL SOURCE (edit here)
 │   ├── .claude-plugin/plugin.json      # plugin manifest (name, version)
+│   ├── .codex-plugin/plugin.json       # Codex plugin manifest
 │   ├── CLAUDE.md                       # canonical operating guidance (projected to mirrors)
 │   ├── .mcp.json                       # 3forge-runtime server, ${THREEFORGE_MCP_URL}
 │   ├── skills/                         # <name>/SKILL.md (+ optional reference/)
