@@ -1,3 +1,8 @@
+---
+name: datasource
+description: Use when connecting AMI to an external data source (database, REST API, file, market data vendor), configuring or troubleshooting a datasource (`CALL __ADD_DATASOURCE`), setting up a Relay feedhandler (Bloomberg, FIX, Kafka, Refinitiv, custom), implementing a custom Java feedhandler, or deciding between a datasource and a feedhandler for an integration.
+---
+
 # AMI Datasource & Feedhandler Patterns
 
 ## When to Activate

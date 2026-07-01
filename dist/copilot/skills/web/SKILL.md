@@ -1,3 +1,8 @@
+---
+name: web
+description: Use when writing client-side AMI Web code — panel callbacks and event handlers, DataModel subscriptions, session and layout manipulation, real-time query execution in Web context, layout lifecycle/startup behavior, or designing TablePanel, ChartPanel, HeatmapPanel, or HTML panels.
+---
+
 # AMI Web — Client-Side Patterns
 
 ## When to Activate

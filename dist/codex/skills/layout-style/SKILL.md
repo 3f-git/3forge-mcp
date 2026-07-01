@@ -1,3 +1,8 @@
+---
+name: layout-style
+description: Use when applying or improving the visual design of an existing `.ami` layout — choosing colors/themes, configuring `amiStyle` on panels, defining a `styleSets`/`LAYOUT_DEFAULT` theme, writing custom CSS, coloring table/tree columns with `fg`/`bg`/`sy` formulas, designing `htmlTemplate2` banners, or deciding panel chrome/row height/flash behavior.
+---
+
 # AMI Layout — Visual Styling
 
 ## When to Activate

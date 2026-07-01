@@ -1,3 +1,8 @@
+---
+name: debugging
+description: Use when debugging AMI errors, unexpected behavior, null pointer exceptions, or data issues.
+---
+
 # AMI Debugging
 
 ## When to Activate

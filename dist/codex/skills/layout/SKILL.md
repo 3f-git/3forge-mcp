@@ -1,3 +1,8 @@
+---
+name: layout
+description: Use when generating or modifying `.ami` layout files, designing multi-panel dashboards or modularizing large applications, working with included layouts or cross-layout method sharing, implementing layout startup/access-control/lifecycle callbacks, or building filter bar + table, FormPanel → DataModel, or row-select → detail patterns.
+---
+
 # AMI Layout — Format (v5) and Design Patterns
 
 ## When to Activate

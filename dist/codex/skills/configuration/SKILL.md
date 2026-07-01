@@ -1,3 +1,8 @@
+---
+name: configuration
+description: Use when writing or reviewing AMI `.properties` files for any component (Center, Web, Relay, WebBalancer, WebManager) — adding config for a feature (auth, ports, persistence, SSL, plugins), generating environment-specific config files, or auditing property files for correctness or missing required keys.
+---
+
 # AMI Configuration — Properties Files
 
 ## When to Activate

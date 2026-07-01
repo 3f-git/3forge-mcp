@@ -1,3 +1,8 @@
+---
+name: script
+description: Use when writing or reviewing AMI Script code — variable declarations and the type system, null handling and safety checks, control flow, custom method definitions, string operations, or templating for dynamic SQL/HTML.
+---
+
 # AMI Script Basics
 
 ## When to Activate

@@ -1,3 +1,8 @@
+---
+name: runtime
+description: Use when the user wants to interact with a running AMI deployment — query data, inspect tables, manage panels/layouts, manage components, tail logs, or run AMI SQL. Entry point that routes to the matching `rt-*` subdomain skill (center, panels, relay, ops, logs).
+---
+
 # AMI Runtime — Live Service Interaction
 
 ## When to Activate

@@ -1,3 +1,8 @@
+---
+name: sql
+description: Use when writing AMI SQL queries, troubleshooting SQL errors, converting standard SQL to AMI syntax, creating AMI Center tables, or planning schema design.
+---
+
 # AMI SQL
 
 ## When to Activate

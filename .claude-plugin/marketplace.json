@@ -1,5 +1,6 @@
 {
   "name": "ami-runtime-marketplace",
+  "description": "AI-assistant integration for driving and building on a live 3forge AMI instance via the ami-runtime MCP.",
   "owner": {
     "name": "3forge"
   },

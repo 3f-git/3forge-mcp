@@ -1,3 +1,8 @@
+---
+name: datamodel
+description: Use when working with AMI DataModels, subscriptions, real-time data processing, onProcess/onComplete handlers, rerun control, DataModel Blenders (merging parallel DMs), DataModel tree navigation, soft-referencing panels or sibling DMs, or deciding between datamodels and realtime tables.
+---
+
 # AMI DataModel Patterns
 
 ## When to Activate

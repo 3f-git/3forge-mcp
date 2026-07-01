@@ -1,3 +1,8 @@
+---
+name: center
+description: Use when writing server-side AMI Center code — table operations, triggers, timers, stored procedures, server-side indexes and constraints, deferred execution, external datasource calls, or deciding between datamodels and realtime tables for shared live state.
+---
+
 # AMI Center — Server-Side Patterns
 
 ## When to Activate

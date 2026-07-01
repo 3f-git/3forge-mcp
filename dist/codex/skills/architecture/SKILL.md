@@ -1,3 +1,8 @@
+---
+name: architecture
+description: Use when designing, scaffolding, or auditing a 3forge deployment — multi-environment configuration (DEV/QA/UAT/PROD), promoting changes between environments, or configuring property files, schema files, or datasources.
+---
+
 # AMI Architecture — Deployment Structure and Multi-Environment Configuration
 
 ## When to Activate
