@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync, mkdirSync, cpSync, rmSync, existsSync } fr
 import { dirname, join, resolve } from "node:path";
 
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname), "..");
-const SRC = join(ROOT, "ami-runtime");
+const SRC = join(ROOT, "3forge-mcp");
 const DIST = join(ROOT, "dist");
 const tools = JSON.parse(readFileSync(join(ROOT, "build/tools.json"), "utf8"));
 

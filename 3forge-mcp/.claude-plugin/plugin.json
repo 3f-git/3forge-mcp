@@ -1,0 +1,10 @@
+{
+  "name": "3forge-mcp",
+  "version": "0.1.0",
+  "description": "Drive and build on a live 3forge instance through the ami-runtime MCP server. Ships runtime operation skills and authoring agents. All 3forge knowledge is served by the live instance via aidoc.",
+  "author": {
+    "name": "3forge"
+  },
+  "license": "UNLICENSED",
+  "keywords": ["3forge", "ami", "mcp", "runtime"]
+}
