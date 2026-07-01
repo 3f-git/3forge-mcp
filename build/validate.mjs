@@ -133,6 +133,50 @@ function codexAgentInstructions(content) {
     .replaceAll("You have `Agent` in your tool list.", "Use Codex subagent workflows when delegation is required.");
 }
 
+function copilotAgentInstructions(content) {
+  return content
+    .replaceAll(".claude/skills/", "skills/")
+    .replaceAll(".claude/learnings/", ".copilot/learnings/")
+    .replaceAll(".claude/learnings", ".copilot/learnings")
+    .replaceAll("mcp__3forge-runtime__", "")
+    .replaceAll("select:mcp__3forge_runtime__", "")
+    .replaceAll("select:mcp__3forge-runtime__", "")
+    .replaceAll("`ToolSearch`", "tool discovery")
+    .replaceAll("Call `ToolSearch`", "Use tool discovery")
+    .replaceAll("**Delegation method: always the `Agent` tool.** You have `Agent` in your tool list. **Never run `claude` as a Bash command** — it fails. Go straight to Agent.",
+      "**Delegation method: delegate to the named Copilot agent.** Do not run a CLI command to delegate; use Copilot's agent/subagent workflow.")
+    .replaceAll("**Always use the `Agent` tool — never invoke `claude` as a shell command.**",
+      "**Always delegate through Copilot's agent workflow. Never invoke a CLI command as a delegation fallback.**")
+    .replaceAll("Use the Agent tool:", "Delegate to the named Copilot agent:")
+    .replaceAll("Use the Agent tool", "Delegate to the named Copilot agent")
+    .replaceAll("use the Agent tool to invoke", "delegate to")
+    .replaceAll("Agent tool call:", "Copilot agent delegation:")
+    .replaceAll("If the Agent tool call fails", "If the Copilot agent delegation fails")
+    .replaceAll("You have `Agent` in your tool list.", "Use Copilot's agent workflow when delegation is required.");
+}
+
+function copilotAgentMarkdown(content, path) {
+  const { frontmatter, body } = parseMarkdownFrontmatter(content, path);
+  expect(frontmatter.name, `${relativePath(path)} must define name`);
+  expect(frontmatter.description, `${relativePath(path)} must define description`);
+  const instructions = [
+    "Copilot custom-agent adaptation:",
+    "- Follow these instructions as a GitHub Copilot CLI agent.",
+    "- When delegation to another named agent is required, delegate to that Copilot agent by name and wait for its summary.",
+    "- Use available 3forge MCP tools and skills in the current Copilot session; do not assume Claude-only tools or slash commands exist.",
+    "",
+    copilotAgentInstructions(body),
+  ].join("\n");
+  const fm = [
+    "---",
+    `name: ${JSON.stringify(frontmatter.name ?? "")}`,
+    `description: ${JSON.stringify(frontmatter.description ?? "")}`,
+    "---",
+    "",
+  ].join("\n");
+  return `${fm}${instructions.trimEnd()}\n`;
+}
+
 function tomlBasicString(value) {
   return JSON.stringify(value);
 }
@@ -197,6 +241,49 @@ function validateMcpConfig() {
     join(DIST, "cursor", ".cursor", "mcp.json"),
   ]) {
     expect(!existsSync(path), `${relativePath(path)} should not be generated`);
+  }
+}
+
+function validateCopilotPlugin() {
+  // Copilot CLI reads a plugin manifest from `.plugin/plugin.json` (checked before
+  // `.claude-plugin/`), so Copilot gets a dedicated manifest that leaves the Claude
+  // manifest untouched. Skills and the marketplace are shared; agents and the MCP
+  // config are Copilot-specific because Copilot only loads `.agent.md` agents and
+  // does not support the Claude `.mcp.json` env-substitution syntax.
+  const manifestPath = join(SRC, ".plugin", "plugin.json");
+  expect(existsSync(manifestPath), "3forge-mcp/.plugin/plugin.json must exist for Copilot");
+  const manifest = readJson(manifestPath);
+  expect(manifest.name === "3forge-mcp", "Copilot manifest name must be 3forge-mcp");
+  expect(manifest.skills === "skills/", "Copilot manifest skills path must be skills/");
+  expect(manifest.agents === ".plugin/agents/", "Copilot manifest agents path must be .plugin/agents/");
+  expect(manifest.mcpServers === ".plugin/mcp.json", "Copilot manifest mcpServers must point to .plugin/mcp.json");
+
+  // Copilot MCP config: literal http URL for reliable auto-connect. Copilot does not
+  // support the ${AMI_MCP_URL:-...} default-fallback syntax the Claude .mcp.json uses.
+  const mcpPath = join(SRC, ".plugin", "mcp.json");
+  expect(existsSync(mcpPath), "3forge-mcp/.plugin/mcp.json must exist for Copilot");
+  const mcp = readJson(mcpPath);
+  const server = mcp.mcpServers?.["3forge-runtime"];
+  expect(!!server, "Copilot mcp.json must define the 3forge-runtime server");
+  expect(server?.type === "http", "Copilot 3forge-runtime must use the http transport");
+  expect(
+    typeof server?.url === "string" && server.url.startsWith("http") && !server.url.includes("${"),
+    "Copilot 3forge-runtime url must be a literal http URL (no ${...} substitution)"
+  );
+
+  // Generated Copilot agents must be in sync with the source markdown, one .agent.md
+  // per source agent (Copilot ignores non-.agent.md files, so no Claude conflict).
+  const sourceAgents = join(SRC, "agents");
+  const copilotAgents = join(SRC, ".plugin", "agents");
+  const markdownFiles = listFiles(sourceAgents).filter((path) => path.endsWith(".md"));
+  const agentFiles = listFiles(copilotAgents).filter((path) => path.endsWith(".agent.md"));
+  expect(
+    markdownFiles.length === agentFiles.length,
+    "Copilot .agent.md count must match source agent markdown count"
+  );
+  for (const source of markdownFiles) {
+    const file = relative(sourceAgents, source).replace(/\.md$/, ".agent.md");
+    expectFile(join(copilotAgents, file), copilotAgentMarkdown(read(source), source));
   }
 }
 
@@ -275,6 +362,7 @@ function validateNoBadGeneratedStrings() {
   const targets = [
     join(SRC, "skills", "commands", "reference"),
     join(SRC, ".codex", "agents"),
+    join(SRC, ".plugin", "agents"),
     join(DIST, "codex", "skills", "commands", "reference"),
     join(DIST, "codex", ".codex", "agents"),
     join(DIST, "copilot", "skills", "commands", "reference"),
@@ -304,6 +392,7 @@ function validateGeneratedPathsExist() {
   for (const path of [
     join(SRC, "skills", "commands", "reference"),
     join(SRC, ".codex", "agents"),
+    join(SRC, ".plugin", "agents"),
     join(DIST, "codex", ".codex", "agents"),
   ]) {
     expect(existsSync(path) && statSync(path).isDirectory(), `${relativePath(path)} must exist`);
@@ -312,6 +401,7 @@ function validateGeneratedPathsExist() {
 
 validateGeneratedPathsExist();
 validateMcpConfig();
+validateCopilotPlugin();
 validateCommands();
 validateCodexAgents();
 validateDist();

@@ -1,0 +1,13 @@
+{
+  "name": "3forge-mcp",
+  "description": "3forge AMI authoring and runtime workflow skills and agents. Bundles the 3forge-runtime MCP connection (HTTP; auto-connects to http://localhost:8766/mcp on install). All 3forge knowledge is served by the live instance via aidoc.",
+  "version": "0.2.0",
+  "author": {
+    "name": "3forge"
+  },
+  "license": "UNLICENSED",
+  "keywords": ["3forge", "ami", "mcp", "runtime"],
+  "skills": "skills/",
+  "agents": ".plugin/agents/",
+  "mcpServers": ".plugin/mcp.json"
+}

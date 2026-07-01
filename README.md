@@ -4,10 +4,12 @@ Give your AI coding tool (Claude Code, Codex, Copilot, Gemini, Cursor) the skill
 agents for 3forge AMI authoring and live instance workflows.
 
 The plugin ships **no offline 3forge documentation** — all conceptual knowledge is fetched
-at runtime from the live instance via `aidoc_getDocumentation`. For **Claude Code** it also
-bundles the `3forge-runtime` MCP connection, so live tools connect automatically on install
-(override the endpoint with the `AMI_MCP_URL` env var). Other tools configure the runtime
-MCP separately. Nothing here duplicates what your instance already knows.
+at runtime from the live instance via `aidoc_getDocumentation`. **Claude Code** and **Copilot**
+are first-class plugin targets and bundle the `3forge-runtime` MCP connection, so live tools
+connect automatically on install (Claude Code defaults to `http://localhost:8766/mcp` and
+overrides the endpoint with the `AMI_MCP_URL` env var; Copilot connects to the same default
+literal URL). Codex, Gemini, and Cursor configure the runtime MCP separately. Nothing here
+duplicates what your instance already knows.
 
 ---
 
@@ -44,8 +46,14 @@ before launching Claude Code:
 export AMI_MCP_URL=http://ami-host:8766/mcp
 ```
 
-**Other tools** (Codex, Copilot, Gemini, Cursor) don't consume the Claude `.mcp.json` —
-configure the `3forge-runtime` MCP server in that tool's own config if you need live tools.
+**Copilot** also bundles the connection, in its own plugin MCP config
+(`3forge-mcp/.plugin/mcp.json`), so it connects automatically on install. Copilot does not
+support the `${AMI_MCP_URL:-…}` substitution syntax, so the URL is the literal default
+`http://localhost:8766/mcp`. To target another host for a single session, launch Copilot with
+`--additional-mcp-config` pointing at a config that overrides the `3forge-runtime` url.
+
+**Codex, Gemini, and Cursor** don't consume a bundled `.mcp.json` — configure the
+`3forge-runtime` MCP server in that tool's own config if you need live tools.
 
 ### 2. Install the plugin
 
@@ -84,14 +92,31 @@ loaded. Live MCP tools only appear when configured separately in Codex.
 For day-to-day Codex usage, including command-equivalent prompts, MCP tool families, skills,
 and agent-role prompts, see [`docs/codex-usage.md`](docs/codex-usage.md).
 
-#### Copilot / Gemini / Cursor
+#### Copilot (first-class)
+
+GitHub Copilot CLI reads its plugin manifest from `3forge-mcp/.plugin/plugin.json` and its
+marketplace catalog from the same `.claude-plugin/marketplace.json` the other tools use, so
+install works the same way — register your **local clone** as a marketplace, then install:
+
+```bash
+copilot plugin marketplace add ./3forge-mcp        # path to the cloned repo root
+copilot plugin install 3forge-mcp@3forge-mcp-marketplace
+```
+
+This installs the skills, the 10 agents (as Copilot `.agent.md` files), and the bundled
+`3forge-runtime` MCP connection (auto-connects to `http://localhost:8766/mcp`). Start a fresh
+Copilot session so the plugin is discovered.
+
+For day-to-day Copilot usage — skills, agents, MCP tool families, and the doc → verify →
+apply workflow — see [`docs/copilot-usage.md`](docs/copilot-usage.md).
+
+#### Gemini / Cursor
 
 These tools have no equivalent one-command plugin install in this repo, so the repo ships
 **generated mirrors** under `dist/<tool>/`. Copy the pieces your tool expects:
 
 | Tool | Instruction file |
 |---|---|
-| Copilot | `dist/copilot/.github/copilot-instructions.md` |
 | Gemini | `dist/gemini/GEMINI.md` |
 | Cursor | `dist/cursor/.cursor/rules/3forge-mcp.mdc` |
 
@@ -130,14 +155,16 @@ Skills for each tool are under `dist/<tool>/skills/`.
   `ami-layout-architect`, `ami-layout-style`, `ami-reviewer`, `ami-architect`,
   `ami-config-writer`, `ami-datasource-advisor`, `excel-decomposer`, `excel-to-ami`).
   Claude Code reads the source `agents/*.md` files; Codex-native custom-agent TOML is generated
-  under `3forge-mcp/.codex/agents/` and `dist/codex/.codex/agents/`.
+  under `3forge-mcp/.codex/agents/`, and Copilot-native `.agent.md` agents are generated under
+  `3forge-mcp/.plugin/agents/`.
 - **6 Claude Code commands** — `ami-init`, `runtime`, `ami-plan`, `ami-query`, `ami-review`,
   `ami-debug`. The generator also syncs these into the `commands` skill as command-equivalent
   workflows for harnesses that do not load Claude slash commands.
-- **Bundled MCP server config (Claude Code)** — `3forge-mcp/.mcp.json` registers the
-  `3forge-runtime` HTTP server so it auto-connects on install. The endpoint defaults to
-  `http://localhost:8766/mcp` and is overridable via the `AMI_MCP_URL` env var. Other tools
-  configure the runtime MCP in their own config.
+- **Bundled MCP server config (Claude Code + Copilot)** — `3forge-mcp/.mcp.json` registers the
+  `3forge-runtime` HTTP server for Claude Code (endpoint defaults to `http://localhost:8766/mcp`,
+  overridable via the `AMI_MCP_URL` env var). Copilot gets its own `3forge-mcp/.plugin/mcp.json`
+  with a literal default URL (Copilot lacks the `${AMI_MCP_URL:-…}` substitution syntax). Codex,
+  Gemini, and Cursor configure the runtime MCP in their own config.
 
 ### The bundled-reference exception
 
@@ -160,9 +187,13 @@ so `aidoc` cannot serve it. That content is bundled read-only under:
 .
 ├── .claude-plugin/marketplace.json     # marketplace catalog (one plugin entry)
 ├── 3forge-mcp/                         # ← CANONICAL SOURCE (edit here)
-│   ├── .claude-plugin/plugin.json      # plugin manifest (name, version)
+│   ├── .claude-plugin/plugin.json      # Claude Code plugin manifest (name, version)
+│   ├── .mcp.json                       # Claude Code bundled 3forge-runtime MCP (AMI_MCP_URL)
 │   ├── .codex-plugin/plugin.json       # Codex plugin manifest
 │   ├── .codex/agents/                  # GENERATED Codex custom-agent TOML
+│   ├── .plugin/plugin.json             # Copilot plugin manifest
+│   ├── .plugin/mcp.json                # Copilot bundled 3forge-runtime MCP (literal URL)
+│   ├── .plugin/agents/                 # GENERATED Copilot .agent.md agents
 │   ├── CLAUDE.md                       # canonical operating guidance (projected to mirrors)
 │   ├── skills/                         # <name>/SKILL.md (+ optional reference/)
 │   ├── agents/                         # <name>.md
@@ -208,8 +239,9 @@ regenerated from `3forge-mcp/` by the build script and your changes there will b
 
 - Agents: `3forge-mcp/agents/<name>.md` with frontmatter (`name`, `description`, optional
   `tools`, `model`). Only reference other agents/skills that exist in this package. Do not
-  hand-edit `3forge-mcp/.codex/agents/*.toml`; the generator derives those Codex custom-agent
-  files from the Markdown source.
+  hand-edit `3forge-mcp/.codex/agents/*.toml` or `3forge-mcp/.plugin/agents/*.agent.md`; the
+  generator derives those Codex custom-agent and Copilot `.agent.md` files from the Markdown
+  source.
 - Commands: `3forge-mcp/commands/<name>.md`. These are Claude Code slash commands and the
   canonical source for the generated `3forge-mcp/skills/commands/reference/*.md` copies used by
   Codex and other non-Claude harnesses.
@@ -296,7 +328,8 @@ or `ami_showComponents`.
 
 ### Versioning & release
 
-1. Bump `version` in `3forge-mcp/.claude-plugin/plugin.json`.
+1. Bump `version` in `3forge-mcp/.claude-plugin/plugin.json` (and keep
+   `3forge-mcp/.plugin/plugin.json` in sync for Copilot).
 2. Regenerate mirrors, validate, commit.
 3. Tag: `git tag vX.Y.Z && git push origin main --tags`.
 

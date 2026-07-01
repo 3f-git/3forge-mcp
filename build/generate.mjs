@@ -56,6 +56,51 @@ function codexAgentInstructions(content) {
     .replaceAll("You have `Agent` in your tool list.", "Use Codex subagent workflows when delegation is required.");
 }
 
+function copilotAgentInstructions(content) {
+  return content
+    .replaceAll(".claude/skills/", "skills/")
+    .replaceAll(".claude/learnings/", ".copilot/learnings/")
+    .replaceAll(".claude/learnings", ".copilot/learnings")
+    .replaceAll("mcp__3forge-runtime__", "")
+    .replaceAll("select:mcp__3forge_runtime__", "")
+    .replaceAll("select:mcp__3forge-runtime__", "")
+    .replaceAll("`ToolSearch`", "tool discovery")
+    .replaceAll("Call `ToolSearch`", "Use tool discovery")
+    .replaceAll("**Delegation method: always the `Agent` tool.** You have `Agent` in your tool list. **Never run `claude` as a Bash command** — it fails. Go straight to Agent.",
+      "**Delegation method: delegate to the named Copilot agent.** Do not run a CLI command to delegate; use Copilot's agent/subagent workflow.")
+    .replaceAll("**Always use the `Agent` tool — never invoke `claude` as a shell command.**",
+      "**Always delegate through Copilot's agent workflow. Never invoke a CLI command as a delegation fallback.**")
+    .replaceAll("Use the Agent tool:", "Delegate to the named Copilot agent:")
+    .replaceAll("Use the Agent tool", "Delegate to the named Copilot agent")
+    .replaceAll("use the Agent tool to invoke", "delegate to")
+    .replaceAll("Agent tool call:", "Copilot agent delegation:")
+    .replaceAll("If the Agent tool call fails", "If the Copilot agent delegation fails")
+    .replaceAll("You have `Agent` in your tool list.", "Use Copilot's agent workflow when delegation is required.");
+}
+
+function copilotAgentMarkdown(content, path) {
+  const { frontmatter, body } = parseMarkdownFrontmatter(content, path);
+  if (!frontmatter.name || !frontmatter.description) {
+    throw new Error(`${path} must define name and description`);
+  }
+  const instructions = [
+    "Copilot custom-agent adaptation:",
+    "- Follow these instructions as a GitHub Copilot CLI agent.",
+    "- When delegation to another named agent is required, delegate to that Copilot agent by name and wait for its summary.",
+    "- Use available 3forge MCP tools and skills in the current Copilot session; do not assume Claude-only tools or slash commands exist.",
+    "",
+    copilotAgentInstructions(body),
+  ].join("\n");
+  const fm = [
+    "---",
+    `name: ${JSON.stringify(frontmatter.name)}`,
+    `description: ${JSON.stringify(frontmatter.description)}`,
+    "---",
+    "",
+  ].join("\n");
+  return `${fm}${instructions.trimEnd()}\n`;
+}
+
 function tomlBasicString(value) {
   return JSON.stringify(value);
 }
@@ -116,6 +161,20 @@ function syncCodexAgents() {
   }
 }
 
+function syncCopilotAgents() {
+  const sourceAgents = join(SRC, "agents");
+  const copilotAgents = join(SRC, ".plugin", "agents");
+  if (!existsSync(sourceAgents)) return;
+  rmSync(copilotAgents, { recursive: true, force: true });
+  mkdirSync(copilotAgents, { recursive: true });
+  for (const entry of readdirSync(sourceAgents, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
+    const source = join(sourceAgents, entry.name);
+    const target = join(copilotAgents, entry.name.replace(/\.md$/, ".agent.md"));
+    writeFileSync(target, copilotAgentMarkdown(readFileSync(source, "utf8"), source));
+  }
+}
+
 function writeFileEnsuring(path, content) {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content);
@@ -123,6 +182,7 @@ function writeFileEnsuring(path, content) {
 
 syncCommandSkillReferences();
 syncCodexAgents();
+syncCopilotAgents();
 
 if (existsSync(DIST)) rmSync(DIST, { recursive: true, force: true });
 
