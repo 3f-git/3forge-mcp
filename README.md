@@ -79,7 +79,9 @@ skills, and the doc → verify → apply workflow, see
 
 #### Codex
 
-Register your **local clone** as a Codex marketplace, then install from it:
+Codex installs from the generated standalone plugin tree under `dist/codex/`.
+From the repository root, register that tree as a local marketplace, then install
+the `3forge-mcp` plugin from it:
 
 ```bash
 codex plugin marketplace add ./dist/codex        # the generated standalone Codex plugin
@@ -87,10 +89,34 @@ codex plugin add 3forge-mcp@3forge-mcp-codex
 ```
 
 The generated Codex marketplace file lives at `dist/codex/.agents/plugins/marketplace.json`
-and points back to the standalone `dist/codex` plugin tree.
+and points back to the standalone `dist/codex` plugin tree. The installed plugin
+contains the Codex manifest, 28 skills, `AGENTS.md`, and generated custom-agent
+TOML under `dist/codex/.codex/agents/`.
 
-After installing or updating the plugin, start a new Codex thread so the plugin skills are
-loaded. Live MCP tools only appear when configured separately in Codex.
+Verify install state:
+
+```bash
+codex plugin marketplace list
+codex plugin list
+```
+
+Expected: marketplace `3forge-mcp-codex`, plugin `3forge-mcp@3forge-mcp-codex`,
+and plugin state `installed, enabled`.
+
+After installing or updating the plugin, start a new Codex thread so the plugin
+skills are loaded. Use the bundled command-equivalent skill rather than bare
+Claude-style slash commands:
+
+```text
+Use 3forge MCP /ami-init.
+Use 3forge MCP /runtime status.
+Use 3forge MCP to write an AMI SQL query for live Orders rows.
+```
+
+Codex does not get a bundled `3forge-runtime` MCP server from this package. For
+live AMI instance work, configure `3forge-runtime` in your Codex MCP config
+separately, then use `/mcp` in a new Codex thread to confirm the tools are
+available.
 
 For day-to-day Codex usage, including command-equivalent prompts, MCP tool families, skills,
 and agent-role prompts, see [`docs/codex-usage.md`](docs/codex-usage.md).
