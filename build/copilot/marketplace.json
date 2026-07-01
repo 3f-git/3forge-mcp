@@ -1,0 +1,14 @@
+{
+  "name": "3forge-mcp-marketplace",
+  "description": "3forge AMI skills and agents for GitHub Copilot CLI.",
+  "owner": {
+    "name": "3forge"
+  },
+  "plugins": [
+    {
+      "name": "3forge-mcp",
+      "source": ".",
+      "description": "3forge AMI skills, agents, and bundled 3forge-runtime MCP."
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "name": "3forge-mcp",
+  "description": "3forge skills and agents for AMI authoring and optional live runtime workflows.",
+  "author": {
+    "name": "3forge"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "3forge",
+    "ami",
+    "mcp",
+    "runtime"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "3forge MCP",
+    "shortDescription": "Operate and build on a live 3forge instance.",
+    "longDescription": "Provide Codex with reusable skills for 3forge AMI authoring, operations guidance, and optional live-runtime workflows. Runtime MCP connections are configured outside this plugin.",
+    "developerName": "3forge",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use 3forge MCP to inspect my AMI instance.",
+      "Use 3forge MCP to plan a layout change.",
+      "Use 3forge MCP to review a 3forge workflow."
+    ],
+    "brandColor": "#2F6FED"
+  }
+}
