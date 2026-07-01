@@ -72,8 +72,8 @@ build/
 dist/
 ├── codex/                         # GENERATED standalone Codex plugin
 │   ├── .codex-plugin/plugin.json
-│   ├── .codex-plugin/marketplace.json   # Codex marketplace (source → this tree)
-│   ├── agents/*.toml
+│   ├── .agents/plugins/marketplace.json # Codex marketplace (source → this tree)
+│   ├── .codex/agents/*.toml
 │   ├── skills/**                        # incl. commands/reference/*.md
 │   └── AGENTS.md                        # projected from CLAUDE.md
 ├── copilot/                       # GENERATED standalone Copilot plugin
@@ -98,8 +98,9 @@ wipes and rewrites `dist/` on every run (as today).
 ### Codex plugin (`dist/codex/`)
 - `.codex-plugin/plugin.json` — copied/derived from the current Codex manifest
   (name, version, `skills: ./skills/`, interface metadata).
-- `.codex-plugin/marketplace.json` — self-referencing Codex marketplace entry.
-- `agents/*.toml` — from `3forge-mcp/agents/*.md` via the existing
+- `.agents/plugins/marketplace.json` — repo-style Codex marketplace entry with
+  `source: { "source": "local", "path": "./" }`.
+- `.codex/agents/*.toml` — from `3forge-mcp/agents/*.md` via the existing
   `codexAgentToml()` transform (name/description + `developer_instructions`, with
   Agent-tool → Codex-subagent delegation wording).
 - `skills/**` — copied from `3forge-mcp/skills/`, including the generated
@@ -160,20 +161,19 @@ claude  plugin install 3forge-mcp@3forge-mcp-marketplace
 
 # Codex (own generated marketplace)
 codex   plugin marketplace add ./dist/codex
-codex   plugin add 3forge-mcp@3forge-mcp-marketplace
+codex   plugin add 3forge-mcp@3forge-mcp-codex
 
 # Copilot (own generated marketplace)
 copilot plugin marketplace add ./dist/copilot
 copilot plugin install 3forge-mcp@3forge-mcp-marketplace
 ```
 
-Proposed default for each generated tree: a `marketplace.json` under the tree's
-`.claude-plugin/` directory, advertising marketplace name `3forge-mcp-marketplace`
-and a single plugin `3forge-mcp` with `source: "."` (self-referencing the tree
-root). **To confirm during planning:** that Codex and Copilot accept a
-self-referencing `source: "."` (vs. requiring a plugin subdirectory) and read
-`marketplace.json` from `.claude-plugin/`. This affects only the marketplace file
-placement, not the overall structure.
+Codex uses the documented repo/local marketplace path
+`dist/codex/.agents/plugins/marketplace.json`, advertising marketplace name
+`3forge-mcp-codex` and a single `3forge-mcp` plugin whose local source path is
+`./`. This self-contained layout has been verified with `codex plugin
+marketplace add ./dist/codex` followed by `codex plugin add
+3forge-mcp@3forge-mcp-codex`.
 
 ## Migration / Impact
 

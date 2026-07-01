@@ -66,11 +66,17 @@ Move the tool-specific manifest/MCP/marketplace scaffolding out of `3forge-mcp/`
 
 ```json
 {
-  "name": "3forge-mcp-marketplace",
-  "description": "3forge AMI skills and agents for Codex.",
-  "owner": { "name": "3forge" },
+  "name": "3forge-mcp-codex",
+  "interface": {
+    "displayName": "3forge MCP for Codex"
+  },
   "plugins": [
-    { "name": "3forge-mcp", "source": ".", "description": "3forge AMI skills and agents for authoring and optional live runtime work." }
+    {
+      "name": "3forge-mcp",
+      "source": { "source": "local", "path": "./" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Productivity"
+    }
   ]
 }
 ```
@@ -132,7 +138,7 @@ Rewrite the tool loop so Codex and Copilot each produce a complete, installable 
 
 **Interfaces:**
 - Consumes: `3forge-mcp/` source (skills, agents, commands, CLAUDE.md, `.claude-plugin/plugin.json` for version), and `build/{codex,copilot}/*` templates from Task 1.
-- Produces: `dist/codex/` (`.codex-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.codex/agents/*.toml`, `skills/`, `AGENTS.md`), `dist/copilot/` (`plugin.json`, `.mcp.json`, `.claude-plugin/marketplace.json`, `agents/*.agent.md`, `skills/`, `.github/copilot-instructions.md`), `dist/gemini/`, `dist/cursor/`. Exposes functions `readVersion()`, `writeCodexPlugin()`, `writeCopilotPlugin()`, `writeMirror(tool, cfg)` reused by `verify.mjs`.
+- Produces: `dist/codex/` (`.codex-plugin/plugin.json`, `.agents/plugins/marketplace.json`, `.codex/agents/*.toml`, `skills/`, `AGENTS.md`), `dist/copilot/` (`plugin.json`, `.mcp.json`, `.claude-plugin/marketplace.json`, `agents/*.agent.md`, `skills/`, `.github/copilot-instructions.md`), `dist/gemini/`, `dist/cursor/`. Exposes functions `readVersion()`, `writeCodexPlugin()`, `writeCopilotPlugin()`, `writeMirror(tool, cfg)` reused by `verify.mjs`.
 
 - [ ] **Step 1: Reduce `build/tools.json` to mirrors only**
 
@@ -165,7 +171,7 @@ function writeCodexPlugin(version) {
   const out = join(DIST, "codex");
   // manifest + marketplace (version injected)
   writeFileEnsuring(join(out, ".codex-plugin", "plugin.json"), withVersion(join(ROOT, "build/codex/plugin.json"), version));
-  writeFileEnsuring(join(out, ".claude-plugin", "marketplace.json"), readFileSync(join(ROOT, "build/codex/marketplace.json"), "utf8"));
+  writeFileEnsuring(join(out, ".agents", "plugins", "marketplace.json"), readFileSync(join(ROOT, "build/codex/marketplace.json"), "utf8"));
   // agents → TOML under .codex/agents/
   const sourceAgents = join(SRC, "agents");
   for (const entry of readdirSync(sourceAgents, { withFileTypes: true })) {
@@ -231,7 +237,7 @@ Run: `node build/generate.mjs`
 Expected output includes `generated dist/codex (standalone Codex plugin)` and `generated dist/copilot (standalone Copilot plugin)`.
 
 ```bash
-ls dist/codex/.codex-plugin/plugin.json dist/codex/.claude-plugin/marketplace.json dist/codex/AGENTS.md
+ls dist/codex/.codex-plugin/plugin.json dist/codex/.agents/plugins/marketplace.json dist/codex/AGENTS.md
 ls dist/copilot/plugin.json dist/copilot/.mcp.json dist/copilot/.claude-plugin/marketplace.json
 ls dist/copilot/agents/*.agent.md | wc -l   # expect 10
 ls dist/codex/.codex/agents/*.toml | wc -l  # expect 10
@@ -316,7 +322,8 @@ Keep/adapt from validate.mjs:
 - `dist/copilot/.mcp.json`: `3forge-runtime` http, url is literal `http://…`, no `${`.
 - `dist/copilot/plugin.json`: name `3forge-mcp`, `skills: "skills/"`, `agents: "agents/"`, `mcpServers: ".mcp.json"`.
 - `dist/codex/.codex-plugin/plugin.json`: name `3forge-mcp`, `skills: "./skills/"`, no `mcpServers`.
-- Each marketplace (`dist/codex/.claude-plugin/marketplace.json`, `dist/copilot/.claude-plugin/marketplace.json`, root `.claude-plugin/marketplace.json`): valid JSON, one plugin `3forge-mcp`, `source` set.
+- Codex marketplace (`dist/codex/.agents/plugins/marketplace.json`): valid JSON, one plugin `3forge-mcp`, local `source.path: "./"`, policy fields, and category set.
+- Claude/Copilot marketplaces (`dist/copilot/.claude-plugin/marketplace.json`, root `.claude-plugin/marketplace.json`): valid JSON, one plugin `3forge-mcp`, `source` set.
 
 - [ ] **Step 3: Port parity + hygiene checks**
 
@@ -366,7 +373,7 @@ Show `3forge-mcp/` as Claude-only; `build/{codex,copilot}/` templates + `generat
 ```bash
 # Codex
 codex   plugin marketplace add ./dist/codex
-codex   plugin add 3forge-mcp@3forge-mcp-marketplace
+codex   plugin add 3forge-mcp@3forge-mcp-codex
 # Copilot
 copilot plugin marketplace add ./dist/copilot
 copilot plugin install 3forge-mcp@3forge-mcp-marketplace
@@ -402,10 +409,10 @@ Expected: both succeed; `git status` clean (dist committed and in sync).
 
 ```bash
 codex plugin marketplace add ./dist/codex
-codex plugin add 3forge-mcp@3forge-mcp-marketplace
+codex plugin add 3forge-mcp@3forge-mcp-codex
 codex plugin list | grep 3forge-mcp     # expect installed, enabled
-codex plugin remove 3forge-mcp@3forge-mcp-marketplace
-codex plugin marketplace remove 3forge-mcp-marketplace
+codex plugin remove 3forge-mcp@3forge-mcp-codex
+codex plugin marketplace remove 3forge-mcp-codex
 ```
 
 - [ ] **Step 3: Copilot install from standalone tree — confirm NO `Invalid url`**

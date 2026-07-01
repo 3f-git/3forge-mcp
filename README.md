@@ -86,6 +86,9 @@ codex plugin marketplace add ./dist/codex        # the generated standalone Code
 codex plugin add 3forge-mcp@3forge-mcp-codex
 ```
 
+The generated Codex marketplace file lives at `dist/codex/.agents/plugins/marketplace.json`
+and points back to the standalone `dist/codex` plugin tree.
+
 After installing or updating the plugin, start a new Codex thread so the plugin skills are
 loaded. Live MCP tools only appear when configured separately in Codex.
 
@@ -200,7 +203,7 @@ so `aidoc` cannot serve it. That content is bundled read-only under:
 │   ├── codex/                          # Codex scaffolding (plugin.json, marketplace.json)
 │   └── copilot/                        # Copilot scaffolding (plugin.json, mcp.json, marketplace.json)
 ├── dist/                               # ← GENERATED (never hand-edit)
-│   ├── codex/                          # standalone Codex plugin (.codex-plugin, .codex/agents, skills, AGENTS.md)
+│   ├── codex/                          # standalone Codex plugin (.codex-plugin, .agents/plugins, .codex/agents, skills, AGENTS.md)
 │   ├── copilot/                        # standalone Copilot plugin (plugin.json, .mcp.json, agents, skills)
 │   ├── gemini/                         # mirror (GEMINI.md + skills)
 │   └── cursor/                         # mirror (.cursor rules + skills)

@@ -152,10 +152,28 @@ function verifyManifests() {
   expect(codex.version === claudeVersion, `Codex version ${codex.version} != Claude ${claudeVersion}`);
   expect(copilot.version === claudeVersion, `Copilot version ${copilot.version} != Claude ${claudeVersion}`);
 
-  // Marketplaces: one plugin named 3forge-mcp with a source.
+  // Codex marketplace: current repo/local marketplace shape.
+  const codexMarketplace = readJson(join(DIST, "codex", ".agents", "plugins", "marketplace.json"));
+  const codexMarketplacePlugin = (codexMarketplace.plugins ?? []).find((p) => p.name === "3forge-mcp");
+  expect(codexMarketplace.name === "3forge-mcp-codex", "Codex marketplace name must be 3forge-mcp-codex");
+  expect(codexMarketplace.interface?.displayName === "3forge MCP for Codex",
+    "Codex marketplace must set interface.displayName");
+  expect(!!codexMarketplacePlugin, "Codex marketplace must list a 3forge-mcp plugin");
+  expect(codexMarketplacePlugin?.source?.source === "local", "Codex marketplace source.source must be local");
+  expect(codexMarketplacePlugin?.source?.path === "./", "Codex marketplace source.path must be ./");
+  expect(codexMarketplacePlugin?.policy?.installation === "AVAILABLE",
+    "Codex marketplace policy.installation must be AVAILABLE");
+  expect(codexMarketplacePlugin?.policy?.authentication === "ON_INSTALL",
+    "Codex marketplace policy.authentication must be ON_INSTALL");
+  expect(codexMarketplacePlugin?.category === "Productivity", "Codex marketplace category must be Productivity");
+  expect(existsSync(join(DIST, "codex", codexMarketplacePlugin?.source?.path ?? "", ".codex-plugin", "plugin.json")),
+    "Codex marketplace source.path must resolve to a Codex plugin manifest");
+  expect(!existsSync(join(DIST, "codex", ".claude-plugin", "marketplace.json")),
+    "Codex marketplace must live at dist/codex/.agents/plugins/marketplace.json");
+
+  // Claude/Copilot marketplaces still use their tool-compatible shorthand shape.
   for (const [path, label] of [
     [join(ROOT, ".claude-plugin", "marketplace.json"), "Claude marketplace"],
-    [join(DIST, "codex", ".claude-plugin", "marketplace.json"), "Codex marketplace"],
     [join(DIST, "copilot", ".claude-plugin", "marketplace.json"), "Copilot marketplace"],
   ]) {
     const mp = readJson(path);

@@ -15,6 +15,7 @@ app integrations. This plugin currently gives Codex:
 - A Codex command-equivalent skill named `commands`
 - Generated Codex custom-agent TOML under `dist/codex/.codex/agents`
 - Plugin metadata and default prompts from `dist/codex/.codex-plugin/plugin.json`
+- Marketplace metadata from `dist/codex/.agents/plugins/marketplace.json`
 
 Claude Code also loads the files under `3forge-mcp/agents` and
 `3forge-mcp/commands` as native Claude agent and slash-command surfaces. Codex
@@ -32,6 +33,9 @@ codex plugin marketplace add ./dist/codex
 codex plugin add 3forge-mcp@3forge-mcp-codex
 ```
 
+The generated marketplace file is `dist/codex/.agents/plugins/marketplace.json`
+and it points back to the standalone `dist/codex` plugin tree.
+
 After installing or updating, start a new Codex thread so the plugin skills are
 loaded. Live MCP tools only appear when configured separately in Codex.
 
@@ -45,8 +49,8 @@ Expected:
 
 - `3forge-mcp@3forge-mcp-codex`
 - `installed, enabled`
-- The current local cachebuster version, for example
-  `0.1.2+codex.20260701183612` or newer.
+- The current generated version, for example `0.2.0`. Local development
+  refreshes may show a cachebuster suffix such as `0.2.0+codex.20260701183612`.
 
 ## Runtime MCP Configuration
 
@@ -417,7 +421,7 @@ After changing plugin source under `3forge-mcp/`:
 node build/generate.mjs
 node build/verify.mjs
 conda run -n forge python /home/ethan/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py dist/codex
-python3 /home/ethan/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py 3forge-mcp
+python3 /home/ethan/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py dist/codex
 codex plugin add 3forge-mcp@3forge-mcp-codex
 ```
 
@@ -427,6 +431,7 @@ Then start a new Codex thread.
 
 ```bash
 codex plugin list
+codex plugin marketplace list
 node build/verify.mjs
 conda run -n forge python /home/ethan/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py dist/codex
 conda run -n forge python /home/ethan/.codex/skills/.system/skill-creator/scripts/quick_validate.py 3forge-mcp/skills/commands
