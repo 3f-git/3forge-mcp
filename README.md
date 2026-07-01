@@ -85,6 +85,9 @@ The bundled `3forge-runtime` MCP server starts automatically against
 `http://localhost:8766/mcp`. After installing or updating the plugin, start a new Codex thread so
 the plugin skills and MCP tools are loaded.
 
+For day-to-day Codex usage, including command-equivalent prompts, MCP tool families, skills,
+and agent-role prompts, see [`docs/codex-usage.md`](docs/codex-usage.md).
+
 #### Copilot / Gemini / Cursor
 
 These tools have no equivalent one-command plugin install in this repo, so the repo ships
@@ -123,7 +126,7 @@ Skills for each tool are under `dist/<tool>/skills/`.
 
 ## What's inside the plugin
 
-- **27 skills** — runtime operation (`runtime`, `rt-*`), authoring (`sql`, `layout`,
+- **28 skills** — runtime operation (`runtime`, `rt-*`), authoring (`sql`, `layout`,
   `datamodel`, `datasource`, `configuration`, `architecture`, …), the always-relevant
   `using-3forge-runtime` operating guide, command-equivalent workflows for Codex and other
   non-Claude harnesses, plus bundled offline `reference/` for the topics that have no `aidoc`
