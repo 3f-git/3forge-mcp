@@ -1,7 +1,7 @@
-# ami-runtime — Live 3forge AMI MCP
+# 3forge-runtime — Live 3forge AMI MCP
 
 This plugin connects your AI coding tool to a running 3forge AMI instance through the
-`ami-runtime` MCP server. It ships the skills and agents for operating and building on
+`3forge-runtime` MCP server. It ships the skills and agents for operating and building on
 that instance. It ships **no AMI concept documentation** — the live instance is the
 source of truth.
 
@@ -9,7 +9,7 @@ source of truth.
 
 Set your instance endpoint (defaults to `http://localhost:8766/mcp`):
 
-    export AMI_MCP_URL=http://your-ami-host:8766/mcp
+    export THREEFORGE_MCP_URL=http://your-ami-host:8766/mcp
 
 ## The one rule for AMI knowledge
 
@@ -39,7 +39,7 @@ user confirmation.
 
 | Intent | Agent |
 |---|---|
-| Interact with the live instance | `ami-runtime` |
+| Interact with the live instance | `3forge-runtime` |
 | Write/modify `.amisql` schema | `ami-sql-builder` |
 | Generate/design a `.ami` layout | `ami-layout-architect` |
 | Style/theme a layout | `ami-layout-style` |

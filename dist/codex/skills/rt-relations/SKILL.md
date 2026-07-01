@@ -1,6 +1,6 @@
 ---
 name: rt-relations
-description: Use when adding cross-panel filtering / drill-down relationships in a live AMI Web session via the ami-runtime MCP — select a row in one panel and filter another. Owns the relationship surface and its two clause dialects.
+description: Use when adding cross-panel filtering / drill-down relationships in a live AMI Web session via the 3forge-runtime MCP — select a row in one panel and filter another. Owns the relationship surface and its two clause dialects.
 ---
 
 # Live Relationships — cross-panel filtering & drill-down

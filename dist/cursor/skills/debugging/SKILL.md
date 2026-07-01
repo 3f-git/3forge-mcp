@@ -17,7 +17,7 @@ Full techniques and error patterns: call `aidoc_getDocumentation("debugging")` o
 
 ## Live debugger (running AMI session)
 
-For a live AMI Web session, the `ami-runtime` MCP exposes a one-shot debugger that captures stack + locals at a specific line of a callback or DataModel without leaving Claude Code:
+For a live AMI Web session, the `3forge-runtime` MCP exposes a one-shot debugger that captures stack + locals at a specific line of a callback or DataModel without leaving Claude Code:
 
 ```
 h = web_getDatamodelEditor("web", sid, dmName="dm_xyz")    # or getCallbackEditor for a panel callback

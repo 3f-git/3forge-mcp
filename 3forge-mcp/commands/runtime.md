@@ -23,7 +23,7 @@ Show the AMI runtime reference: the live MCP tool catalog, the mandatory doc-ver
 ## AMI Deployment — localhost
 
 ### MCP status
-- ami-runtime: online (port 8766, N tools)
+- 3forge-runtime: online (port 8766, N tools)
 
 ### Components (ami_showComponents)
 | Name | Type | Status |

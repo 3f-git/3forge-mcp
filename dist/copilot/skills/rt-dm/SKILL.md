@@ -1,6 +1,6 @@
 ---
 name: rt-dm
-description: Use when creating, updating, executing, or inspecting AMI DataModels in a live Web session via the ami-runtime MCP — output tables, queryMode, onProcess callbacks, ${WHERE} substitution, reprocess(). Owns the `web_*Datamodel*` tool surface and the live DM editor flow.
+description: Use when creating, updating, executing, or inspecting AMI DataModels in a live Web session via the 3forge-runtime MCP — output tables, queryMode, onProcess callbacks, ${WHERE} substitution, reprocess(). Owns the `web_*Datamodel*` tool surface and the live DM editor flow.
 ---
 
 # Live DataModels — `web_*Datamodel*` tools

@@ -155,7 +155,7 @@ Run a correction loop using the MCP validation tools (max 3 passes):
 
 ### Step 6a — Validate AMI Script / SQL (if any code was generated)
 
-Call `mcp__ami-runtime__web_validateScript` with the generated AMIScript/SQL string to check for syntax errors and known anti-patterns. The tool returns diagnostics with line/column and severity. For DataModel `onProcess` scripts specifically, also call `mcp__ami-runtime__web_validateDatamodel` which validates the full DM (script + queryMode + output table schema). Fix all CRITICAL diagnostics before proceeding.
+Call `mcp__3forge-runtime__web_validateScript` with the generated AMIScript/SQL string to check for syntax errors and known anti-patterns. The tool returns diagnostics with line/column and severity. For DataModel `onProcess` scripts specifically, also call `mcp__3forge-runtime__web_validateDatamodel` which validates the full DM (script + queryMode + output table schema). Fix all CRITICAL diagnostics before proceeding.
 
 ### Step 6b — Validate Layout JSON
 
@@ -163,7 +163,7 @@ Run a correction loop (max 3 passes):
 
 **Each pass:**
 1. Call the layout validation MCP tool:
-   Call `mcp__ami-runtime__web_validateJson` with the path to (or contents of) the generated `.ami` file. The tool parses the layout JSON against the AMI DOM schema and returns a structured diagnostics report. Treat any CRITICAL diagnostic as BLOCK and any HIGH as WARN.
+   Call `mcp__3forge-runtime__web_validateJson` with the path to (or contents of) the generated `.ami` file. The tool parses the layout JSON against the AMI DOM schema and returns a structured diagnostics report. Treat any CRITICAL diagnostic as BLOCK and any HIGH as WARN.
 2. Read the verdict:
    - **PASS** → Proceed to Step 8.
    - **BLOCK** → Fix every CRITICAL issue listed in the validation report. Write the corrected file. Go back to step 1.

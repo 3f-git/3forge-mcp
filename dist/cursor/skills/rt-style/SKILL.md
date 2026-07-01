@@ -1,6 +1,6 @@
 ---
 name: rt-style
-description: Use when applying or changing visual styling on a live AMI panel/layout via the ami-runtime MCP — amiStyle, styleSets, column color formulas, HTML templates. Owns the styling operations against running sessions.
+description: Use when applying or changing visual styling on a live AMI panel/layout via the 3forge-runtime MCP — amiStyle, styleSets, column color formulas, HTML templates. Owns the styling operations against running sessions.
 ---
 
 # Live Styling — visual changes against a running session

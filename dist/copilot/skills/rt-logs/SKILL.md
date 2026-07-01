@@ -1,6 +1,6 @@
 ---
 name: rt-logs
-description: Use when tailing, grepping, or inspecting AMI logs via the ami-runtime MCP. Owns the log_* tool surface, sink identifiers, and the structured log line format.
+description: Use when tailing, grepping, or inspecting AMI logs via the 3forge-runtime MCP. Owns the log_* tool surface, sink identifiers, and the structured log line format.
 ---
 
 # Live Logs — log_* tools

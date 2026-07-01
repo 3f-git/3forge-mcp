@@ -12,8 +12,8 @@ Debug AMI errors systematically.
 2. **Load knowledge** — Read the `debugging` skill for error patterns, null handling, and debug logging techniques before diagnosing.
 
 3. **Verify method signatures via the live instance if needed** — Do NOT spawn a subagent:
-   - **First**, if MCP tools have not been used yet in this conversation, call `ToolSearch` with `select:mcp__ami-runtime__web_getAmiScriptClass` to load its schema before calling it.
-   - Call `mcp__ami-runtime__web_getAmiScriptClass` to confirm any method call in question.
+   - **First**, if MCP tools have not been used yet in this conversation, call `ToolSearch` with `select:mcp__3forge-runtime__web_getAmiScriptClass` to load its schema before calling it.
+   - Call `mcp__3forge-runtime__web_getAmiScriptClass` to confirm any method call in question.
 
 4. **Diagnose** using the error patterns and debug techniques from the knowledge file.
 

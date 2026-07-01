@@ -9,17 +9,17 @@ const tools = JSON.parse(readFileSync(join(ROOT, "build/tools.json"), "utf8"));
 
 const instructions = readFileSync(join(SRC, "CLAUDE.md"), "utf8");
 const mcp = JSON.parse(readFileSync(join(SRC, ".mcp.json"), "utf8"));
-const server = mcp.mcpServers["ami-runtime"];
+const server = mcp.mcpServers["3forge-runtime"];
 
 function mcpSnippet(fmt) {
   if (fmt === "toml") {
-    return `[mcp_servers.ami-runtime]\ntype = "http"\nurl = "${server.url}"\n`;
+    return `[mcp_servers.3forge-runtime]\ntype = "http"\nurl = "${server.url}"\n`;
   }
   if (fmt === "gemini-json") {
-    return JSON.stringify({ mcpServers: { "ami-runtime": server } }, null, 2) + "\n";
+    return JSON.stringify({ mcpServers: { "3forge-runtime": server } }, null, 2) + "\n";
   }
   // plain json (cursor, copilot)
-  return JSON.stringify({ mcpServers: { "ami-runtime": server } }, null, 2) + "\n";
+  return JSON.stringify({ mcpServers: { "3forge-runtime": server } }, null, 2) + "\n";
 }
 
 function writeFileEnsuring(path, content) {

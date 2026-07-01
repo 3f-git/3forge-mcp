@@ -2,5 +2,5 @@
   "codex":   { "instructionFile": "AGENTS.md",                    "mcpFile": "mcp.codex.toml",  "mcpFormat": "toml" },
   "copilot": { "instructionFile": ".github/copilot-instructions.md", "mcpFile": ".vscode/mcp.json", "mcpFormat": "json" },
   "gemini":  { "instructionFile": "GEMINI.md",                    "mcpFile": "settings.json",   "mcpFormat": "gemini-json" },
-  "cursor":  { "instructionFile": ".cursor/rules/3forge-mcp.mdc","mcpFile": ".cursor/mcp.json","mcpFormat": "json", "instructionPrefix": "---\ndescription: How to operate the ami-runtime MCP against a live 3forge instance\nalwaysApply: true\n---\n\n" }
+  "cursor":  { "instructionFile": ".cursor/rules/3forge-mcp.mdc","mcpFile": ".cursor/mcp.json","mcpFormat": "json", "instructionPrefix": "---\ndescription: How to operate the 3forge-runtime MCP against a live 3forge instance\nalwaysApply: true\n---\n\n" }
 }

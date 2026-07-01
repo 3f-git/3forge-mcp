@@ -1,6 +1,6 @@
 ---
 name: rt-panels
-description: Use when adding, updating, or persisting panels / layouts / windows / datamodels in a live AMI Web session via the ami-runtime MCP. Owns the doc → validate → apply ritual and the transient-vs-committed lifecycle for `web_*` tools.
+description: Use when adding, updating, or persisting panels / layouts / windows / datamodels in a live AMI Web session via the 3forge-runtime MCP. Owns the doc → validate → apply ritual and the transient-vs-committed lifecycle for `web_*` tools.
 ---
 
 # Live Panels — `web_*` tools

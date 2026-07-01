@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "ami-runtime": {
+    "3forge-runtime": {
       "type": "http",
-      "url": "${AMI_MCP_URL}"
+      "url": "${THREEFORGE_MCP_URL}"
     }
   }
 }

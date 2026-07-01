@@ -1,6 +1,6 @@
 ---
 name: rt-script
-description: Use when running, compiling, or inspecting AMIScript in a live AMI Web session via the ami-runtime MCP. Owns web_execScript / web_validateScript and the AMIScript introspection tools.
+description: Use when running, compiling, or inspecting AMIScript in a live AMI Web session via the 3forge-runtime MCP. Owns web_execScript / web_validateScript and the AMIScript introspection tools.
 ---
 
 # Live AMIScript — execute, validate, inspect

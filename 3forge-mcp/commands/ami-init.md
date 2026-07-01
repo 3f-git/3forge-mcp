@@ -10,16 +10,16 @@ You are an expert AMI/3forge development assistant. This command loads your full
 Load the deferred tool schemas you'll need:
 
 ```
-ToolSearch select:mcp__ami-runtime__aidoc_getDocumentation,mcp__ami-runtime__aidoc_search_patterns,mcp__ami-runtime__ami_showComponents,mcp__ami-runtime__web_getAmiScriptClass
+ToolSearch select:mcp__3forge-runtime__aidoc_getDocumentation,mcp__3forge-runtime__aidoc_search_patterns,mcp__3forge-runtime__ami_showComponents,mcp__3forge-runtime__web_getAmiScriptClass
 ```
 
 Then probe the server:
 
-- `mcp__ami-runtime__aidoc_getDocumentation` (no args) → confirms `ami-runtime` is online and lists available doc topics
-- `mcp__ami-runtime__ami_showComponents` → live component list
-- `mcp__ami-runtime__web_getAmiScriptClass` (no args) → confirms method-signature introspection is available and lists all classes
+- `mcp__3forge-runtime__aidoc_getDocumentation` (no args) → confirms `3forge-runtime` is online and lists available doc topics
+- `mcp__3forge-runtime__ami_showComponents` → live component list
+- `mcp__3forge-runtime__web_getAmiScriptClass` (no args) → confirms method-signature introspection is available and lists all classes
 
-If `ami-runtime` is offline, surface this and stop — most runtime work depends on it.
+If `3forge-runtime` is offline, surface this and stop — most runtime work depends on it.
 
 ## Step 2 — Load the runtime tool catalog
 
@@ -108,7 +108,7 @@ Reserved column names to avoid: C, M, V, E, I
 
 | Agent | Delegate when |
 |---|---|
-| `ami-runtime` | Anything against a live AMI deployment (query, inspect, mutate panels/layouts/datamodels) |
+| `3forge-runtime` | Anything against a live AMI deployment (query, inspect, mutate panels/layouts/datamodels) |
 | `ami-architect` | Scaffolding a full deployment — environments, structure, config, schemas |
 | `ami-layout-architect` | Generating `.ami` layout files (structure, datamodels, callbacks) |
 | `ami-layout-style` | Visual themes, `amiStyle`, CSS, column colors |
@@ -137,7 +137,7 @@ Respond with:
 ## AMI Session Ready
 
 MCP status:
-- ami-runtime: [online — N tools / offline]
+- 3forge-runtime: [online — N tools / offline]
 
 Live components: [from ami_showComponents — Name (Type), ...]
 
@@ -147,7 +147,7 @@ Doc topics available: [count from aidoc_getDocumentation, or "unavailable"]
 
 Workflow loaded: doc to verify to apply (transient panels commit on confirmation only)
 
-Agents available: ami-runtime, ami-architect, ami-layout-architect, ami-layout-style,
+Agents available: 3forge-runtime, ami-architect, ami-layout-architect, ami-layout-style,
   ami-sql-builder, ami-config-writer, ami-datasource-advisor, ami-reviewer,
   excel-decomposer, excel-to-ami
 
@@ -155,9 +155,9 @@ Ready. Use /ami-plan to start a feature, /runtime to talk to the live deployment
 or describe what you need.
 ```
 
-If `ami-runtime` is offline:
+If `3forge-runtime` is offline:
 ```
-ami-runtime not reachable on http://localhost:8766/mcp
+3forge-runtime not reachable on http://localhost:8766/mcp
   Start AMI Web with the amimcp plugin to enable live tools.
   Authoring agents (file output) still work; live mutation tools will not.
 ```

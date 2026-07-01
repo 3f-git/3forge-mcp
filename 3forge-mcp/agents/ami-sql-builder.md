@@ -152,7 +152,7 @@ After completing the self-review loop or receiving Live Validation results that 
 
 ## Live Validation Interpretation
 
-When `ami-runtime` executes generated SQL and passes back raw introspection output, interpret it as follows:
+When `3forge-runtime` executes generated SQL and passes back raw introspection output, interpret it as follows:
 
 **`SHOW INDEXES WHERE TableName == "..."`** output columns to check:
 

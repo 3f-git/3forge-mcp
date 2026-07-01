@@ -1,6 +1,6 @@
 {
   "name": "3forge-mcp-marketplace",
-  "description": "AI-assistant integration for driving and building on a live 3forge instance via the ami-runtime MCP.",
+  "description": "AI-assistant integration for driving and building on a live 3forge instance via the 3forge-runtime MCP.",
   "owner": {
     "name": "3forge"
   },
@@ -8,7 +8,7 @@
     {
       "name": "3forge-mcp",
       "source": "./3forge-mcp",
-      "description": "Connect your AI coding tool to a live 3forge instance via the ami-runtime MCP, with skills and agents for driving and building on it."
+      "description": "Connect your AI coding tool to a live 3forge instance via the 3forge-runtime MCP, with skills and agents for driving and building on it."
     }
   ]
 }

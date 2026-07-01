@@ -1,6 +1,6 @@
 # AMI Runtime — MCP Tool Catalog
 
-Live snapshot of tools exposed by the `ami-runtime` MCP server (in-process Java plugin on port 8766). Total: **152 tools** across 7 subdomains.
+Live snapshot of tools exposed by the `3forge-runtime` MCP server (in-process Java plugin on port 8766). Total: **152 tools** across 7 subdomains.
 
 > **Source of truth.** The MCP plugin reflects every `@Console(MCP|ALL)` method as a tool. This catalog is a snapshot — call `tools/list` against the live MCP to refresh.
 

@@ -11,7 +11,7 @@ Activate when the user wants to interact with a running AMI deployment: query da
 
 ## How interaction works now
 
-All runtime interaction goes through the **`ami-runtime` MCP server** — an in-process Java plugin (`amimcp`) loaded inside the AMI Web JVM on port 8766. It reflects every `@Console(MCP|ALL)` method as an MCP tool. There is no SSH, no paramiko, no Python sidecar.
+All runtime interaction goes through the **`3forge-runtime` MCP server** — an in-process Java plugin (`amimcp`) loaded inside the AMI Web JVM on port 8766. It reflects every `@Console(MCP|ALL)` method as an MCP tool. There is no SSH, no paramiko, no Python sidecar.
 
 - Server URL: `http://localhost:8766/mcp`
 - Tool count: **152** (snapshot — call `tools/list` to refresh)
@@ -68,7 +68,7 @@ When the user opens with a generic prompt ("what's running?"), return:
 ## AMI Deployment — localhost
 
 ### MCP status
-- ami-runtime: online (port 8766, 152 tools)
+- 3forge-runtime: online (port 8766, 152 tools)
 
 ### Components (ami_showComponents)
 | Name | Type | Status |
@@ -91,4 +91,4 @@ If you see prompts or docs referencing any of these, treat as stale:
 - Python `ai-mcp-runtime` sidecar — gone
 - `layout-builder-mcp` — gone, use `web_*` panel tools + `aidoc_getPattern`
 - SSH/paramiko on ports 3285/3290 — use `center_exec` instead
-- `ami-inspector`, `ami-builder`, `ami-ui` agents — deleted; their work is covered by `ami-runtime` directly
+- `ami-inspector`, `ami-builder`, `ami-ui` agents — deleted; their work is covered by `3forge-runtime` directly

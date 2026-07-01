@@ -1,6 +1,6 @@
 ---
 name: rt-center
-description: Use when working against a live AMI Center via the ami-runtime MCP — SQL/DDL/DML, triggers, timers, procedures, datasources, replication. Owns the AMI SQL dialect gotchas and the Center-side tool surface.
+description: Use when working against a live AMI Center via the 3forge-runtime MCP — SQL/DDL/DML, triggers, timers, procedures, datasources, replication. Owns the AMI SQL dialect gotchas and the Center-side tool surface.
 ---
 
 # Live Center — center_* tools

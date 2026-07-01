@@ -1,12 +1,12 @@
 ---
-name: using-ami-runtime
-description: "Use at the start of any AMI/3forge runtime work — how to operate the ami-runtime MCP: the doc→verify→apply loop, getting AMI knowledge from aidoc_getDocumentation (never training data), tool-naming conventions, the transient-vs-committed rule, and which agent to dispatch."
+name: using-3forge-runtime
+description: "Use at the start of any AMI/3forge runtime work — how to operate the 3forge-runtime MCP: the doc→verify→apply loop, getting AMI knowledge from aidoc_getDocumentation (never training data), tool-naming conventions, the transient-vs-committed rule, and which agent to dispatch."
 ---
 
-# ami-runtime — Live 3forge AMI MCP
+# 3forge-runtime — Live 3forge AMI MCP
 
 This plugin connects your AI coding tool to a running 3forge AMI instance through the
-`ami-runtime` MCP server. It ships the skills and agents for operating and building on
+`3forge-runtime` MCP server. It ships the skills and agents for operating and building on
 that instance. It ships **no AMI concept documentation** — the live instance is the
 source of truth.
 
@@ -38,7 +38,7 @@ user confirmation.
 
 | Intent | Agent |
 |---|---|
-| Interact with the live instance | `ami-runtime` |
+| Interact with the live instance | `3forge-runtime` |
 | Write/modify `.amisql` schema | `ami-sql-builder` |
 | Generate/design a `.ami` layout | `ami-layout-architect` |
 | Style/theme a layout | `ami-layout-style` |

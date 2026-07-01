@@ -1,7 +1,7 @@
 # 3forge-mcp
 
 Connect your AI coding tool (Claude Code, Codex, Copilot, Gemini, Cursor) to a **live
-3forge instance** through the `ami-runtime` MCP server, and give it the skills and agents
+3forge instance** through the `3forge-runtime` MCP server, and give it the skills and agents
 to drive and build on that instance.
 
 The plugin ships **no offline 3forge documentation** — all conceptual knowledge is fetched
@@ -13,7 +13,7 @@ already knows.
 
 ## Prerequisites
 
-- A running **3forge** deployment with the `ami-runtime` MCP plugin (`amimcp`) loaded in the
+- A running **3forge** deployment with the `3forge-runtime` MCP plugin (`amimcp`) loaded in the
   Web JVM, reachable over HTTP. The standard in-process port is `8766`, i.e.
   `http://<host>:8766/mcp`.
 - One of the supported AI tools: Claude Code, Codex, GitHub Copilot, Gemini CLI, or Cursor.
@@ -25,11 +25,11 @@ already knows.
 
 ### 1. Point at your instance
 
-The shipped MCP config uses the `${AMI_MCP_URL}` environment variable — there is no baked-in
+The shipped MCP config uses the `${THREEFORGE_MCP_URL}` environment variable — there is no baked-in
 default, so **set it before starting your tool**:
 
 ```bash
-export AMI_MCP_URL=http://your-3forge-host:8766/mcp
+export THREEFORGE_MCP_URL=http://your-3forge-host:8766/mcp
 ```
 
 ### 2. Install the plugin
@@ -41,7 +41,7 @@ claude plugin marketplace add <your-org>/3forge-mcp
 claude plugin install 3forge-mcp
 ```
 
-The bundled `ami-runtime` MCP server starts automatically. Alternatively: clone this repo,
+The bundled `3forge-runtime` MCP server starts automatically. Alternatively: clone this repo,
 open Claude Code in it, and accept the install prompt.
 
 #### Codex / Copilot / Gemini / Cursor
@@ -85,13 +85,13 @@ Skills for each tool are under `dist/<tool>/skills/`.
 
 - **26 skills** — runtime operation (`runtime`, `rt-*`), authoring (`sql`, `layout`,
   `datamodel`, `datasource`, `configuration`, `architecture`, …), the always-relevant
-  `using-ami-runtime` operating guide, plus bundled offline `reference/` for the topics that
+  `using-3forge-runtime` operating guide, plus bundled offline `reference/` for the topics that
   have no `aidoc` home (see below).
-- **10 agents** — `ami-runtime` (drive the instance) plus authoring agents (`ami-sql-builder`,
+- **10 agents** — `3forge-runtime` (drive the instance) plus authoring agents (`ami-sql-builder`,
   `ami-layout-architect`, `ami-layout-style`, `ami-reviewer`, `ami-architect`,
   `ami-config-writer`, `ami-datasource-advisor`, `excel-decomposer`, `excel-to-ami`).
 - **6 commands** — `ami-init`, `runtime`, `ami-plan`, `ami-query`, `ami-review`, `ami-debug`.
-- **1 MCP server** — `ami-runtime`, URL `${AMI_MCP_URL}`.
+- **1 MCP server** — `3forge-runtime`, URL `${THREEFORGE_MCP_URL}`.
 
 ### The bundled-reference exception
 
@@ -116,7 +116,7 @@ so `aidoc` cannot serve it. That content is bundled read-only under:
 ├── 3forge-mcp/                         # ← CANONICAL SOURCE (edit here)
 │   ├── .claude-plugin/plugin.json      # plugin manifest (name, version)
 │   ├── CLAUDE.md                       # canonical operating guidance (projected to mirrors)
-│   ├── .mcp.json                       # ami-runtime server, ${AMI_MCP_URL}
+│   ├── .mcp.json                       # 3forge-runtime server, ${THREEFORGE_MCP_URL}
 │   ├── skills/                         # <name>/SKILL.md (+ optional reference/)
 │   ├── agents/                         # <name>.md
 │   └── commands/                       # <name>.md
@@ -168,7 +168,7 @@ regenerated from `3forge-mcp/` by the build script and your changes there will b
 The operating rules live in **two places that must stay in sync**:
 - `3forge-mcp/CLAUDE.md` — the canonical source projected into every mirror's instruction
   file (`AGENTS.md`, `GEMINI.md`, `copilot-instructions.md`, the Cursor `.mdc`).
-- `3forge-mcp/skills/using-ami-runtime/SKILL.md` — the same guidance as a Claude Code skill
+- `3forge-mcp/skills/using-3forge-runtime/SKILL.md` — the same guidance as a Claude Code skill
   (Claude Code plugins do **not** load a plugin-root `CLAUDE.md` as context, so the guidance
   must also exist as a skill).
 
@@ -193,25 +193,25 @@ claude plugin validate --strict .          # marketplace: must pass strict
 ```
 
 The only accepted warning is "CLAUDE.md at root not loaded as context" — that file is
-intentionally the projection source, not plugin context (the `using-ami-runtime` skill
+intentionally the projection source, not plugin context (the `using-3forge-runtime` skill
 carries the guidance for Claude Code).
 
 ### Never commit
 
-- Secrets or internal hostnames. The package must contain **only** the `ami-runtime` MCP
-  server with `${AMI_MCP_URL}` — no resolved URLs, no internal hosts, no API keys, and no
+- Secrets or internal hostnames. The package must contain **only** the `3forge-runtime` MCP
+  server with `${THREEFORGE_MCP_URL}` — no resolved URLs, no internal hosts, no API keys, and no
   entries for internal-only MCP servers.
-- Quick self-check — the shipped MCP config should declare exactly one server (`ami-runtime`)
+- Quick self-check — the shipped MCP config should declare exactly one server (`3forge-runtime`)
   with the env-var URL, and nothing should reference a resolved internal host:
   ```bash
-  cat 3forge-mcp/.mcp.json          # expect only "ami-runtime": { url: "${AMI_MCP_URL}" }
-  grep -rn '://' --exclude-dir=.git 3forge-mcp | grep -v '\${AMI_MCP_URL}'   # expect no hardcoded URLs
+  cat 3forge-mcp/.mcp.json          # expect only "3forge-runtime": { url: "${THREEFORGE_MCP_URL}" }
+  grep -rn '://' --exclude-dir=.git 3forge-mcp | grep -v '\${THREEFORGE_MCP_URL}'   # expect no hardcoded URLs
   ```
 
 ### Naming conventions
 
 - **Plugin / marketplace name:** `3forge` forward-facing (the product is "3forge").
-- **MCP server key `ami-runtime` and env var `AMI_MCP_URL`:** kept as-is on purpose. They are
+- **MCP server key `3forge-runtime` and env var `THREEFORGE_MCP_URL`:** kept as-is on purpose. They are
   connection identifiers, not product branding — and an env var can't start with a digit and
   hyphens complicate the `mcp__<server>__<tool>` naming, so leave them.
 

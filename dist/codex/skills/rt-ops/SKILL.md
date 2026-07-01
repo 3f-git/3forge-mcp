@@ -1,6 +1,6 @@
 ---
 name: rt-ops
-description: Use when managing AMI component lifecycle, plugins, or the load balancer via the ami-runtime MCP — add/remove/restart components, inspect plugin bundles, and check WebBalancer state.
+description: Use when managing AMI component lifecycle, plugins, or the load balancer via the 3forge-runtime MCP — add/remove/restart components, inspect plugin bundles, and check WebBalancer state.
 ---
 
 # Live Ops — ami_* + web_balancer_* tools

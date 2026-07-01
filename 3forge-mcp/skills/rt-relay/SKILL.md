@@ -1,6 +1,6 @@
 ---
 name: rt-relay
-description: Use when configuring or operating an AMI Relay via the ami-runtime MCP — feedhandlers, routes, transforms, dictionaries. Owns the streaming data plane and its operational quirks.
+description: Use when configuring or operating an AMI Relay via the 3forge-runtime MCP — feedhandlers, routes, transforms, dictionaries. Owns the streaming data plane and its operational quirks.
 ---
 
 # Live Relay — relay_* tools

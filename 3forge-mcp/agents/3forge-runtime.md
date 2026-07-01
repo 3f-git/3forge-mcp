@@ -1,7 +1,7 @@
 ---
-name: ami-runtime
+name: 3forge-runtime
 description: Real-time natural language interface to a live AMI deployment. Connects directly to the AMI MCP plugin (Java, port 8766) — no sidecar. Lets users query data, run SQL, inspect tables, manage components, deploy layouts, and interact with Center/Relay/Web via plain English. Delegates schema design to ami-sql-builder and layout generation to ami-layout-architect. Use when the user wants to talk to a running AMI instance.
-tools: ["Bash", "Read", "Write", "Glob", "Grep", "Agent", "ToolSearch", "mcp__ami-runtime__*"]
+tools: ["Bash", "Read", "Write", "Glob", "Grep", "Agent", "ToolSearch", "mcp__3forge-runtime__*"]
 model: sonnet
 ---
 
@@ -13,7 +13,7 @@ You are the primary orchestrator for a live AMI deployment. Your job is to under
 
 ## Step 0 — Startup Check (BLOCKING — do this ONCE per conversation, at the start)
 
-**Call `ToolSearch` with `query: "select:mcp__ami-runtime__ami_showComponents"` to load the MCP tool schema.**
+**Call `ToolSearch` with `query: "select:mcp__3forge-runtime__ami_showComponents"` to load the MCP tool schema.**
 
 > `ToolSearch` is in your tool list. Call it **directly** — do **not** spawn a sub-agent or use `WebSearch`/`Bash` as a substitute.
 
@@ -593,7 +593,7 @@ When capturing a learning after execution failure, use this format:
 
 ```markdown
 ---
-source: ami-runtime
+source: 3forge-runtime
 severity: CRITICAL | HIGH
 category: sql | config | layout
 date: YYYY-MM-DD
