@@ -31,9 +31,10 @@ duplicates what your instance already knows.
 >
 > ```bash
 > git clone git@github.com:3f-git/3forge-mcp.git
+> cd 3forge-mcp
 > ```
 >
-> All commands below assume you have this local clone.
+> All commands below are run from the repository root of this local clone.
 
 ### 1. Runtime MCP connection
 
@@ -62,7 +63,7 @@ support the `${AMI_MCP_URL:-…}` substitution syntax, so the URL is the literal
 Register your **local clone** as a marketplace, then install from it:
 
 ```bash
-claude plugin marketplace add ./3forge-mcp        # path to the cloned repo root
+claude plugin marketplace add .                   # repo root holds .claude-plugin/marketplace.json
 claude plugin install 3forge-mcp@3forge-mcp-marketplace
 ```
 
