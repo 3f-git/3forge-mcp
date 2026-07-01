@@ -1,6 +1,4 @@
 {
-  "codex":   { "instructionFile": "AGENTS.md" },
-  "copilot": { "instructionFile": ".github/copilot-instructions.md" },
   "gemini":  { "instructionFile": "GEMINI.md" },
   "cursor":  { "instructionFile": ".cursor/rules/3forge-mcp.mdc", "instructionPrefix": "---\ndescription: 3forge AMI skills, agents, and workflow guidance\nalwaysApply: true\n---\n\n" }
 }

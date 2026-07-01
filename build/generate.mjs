@@ -4,7 +4,7 @@ import { dirname, join, resolve } from "node:path";
 
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname), "..");
 const SRC = join(ROOT, "3forge-mcp");
-const DIST = join(ROOT, "dist");
+const DIST = process.env.THREEFORGE_DIST || join(ROOT, "dist");
 const tools = JSON.parse(readFileSync(join(ROOT, "build/tools.json"), "utf8"));
 
 const instructions = readFileSync(join(SRC, "CLAUDE.md"), "utf8");
@@ -147,53 +147,73 @@ function syncCommandSkillReferences() {
   }
 }
 
-function syncCodexAgents() {
-  const sourceAgents = join(SRC, "agents");
-  const codexAgents = join(SRC, ".codex", "agents");
-  if (!existsSync(sourceAgents)) return;
-  rmSync(codexAgents, { recursive: true, force: true });
-  mkdirSync(codexAgents, { recursive: true });
-  for (const entry of readdirSync(sourceAgents, { withFileTypes: true })) {
-    if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
-    const source = join(sourceAgents, entry.name);
-    const target = join(codexAgents, entry.name.replace(/\.md$/, ".toml"));
-    writeFileSync(target, codexAgentToml(readFileSync(source, "utf8"), source));
-  }
-}
-
-function syncCopilotAgents() {
-  const sourceAgents = join(SRC, "agents");
-  const copilotAgents = join(SRC, ".plugin", "agents");
-  if (!existsSync(sourceAgents)) return;
-  rmSync(copilotAgents, { recursive: true, force: true });
-  mkdirSync(copilotAgents, { recursive: true });
-  for (const entry of readdirSync(sourceAgents, { withFileTypes: true })) {
-    if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
-    const source = join(sourceAgents, entry.name);
-    const target = join(copilotAgents, entry.name.replace(/\.md$/, ".agent.md"));
-    writeFileSync(target, copilotAgentMarkdown(readFileSync(source, "utf8"), source));
-  }
-}
-
 function writeFileEnsuring(path, content) {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content);
 }
 
+function readVersion() {
+  return JSON.parse(readFileSync(join(SRC, ".claude-plugin", "plugin.json"), "utf8")).version;
+}
+
+function withVersion(templatePath, version) {
+  const obj = JSON.parse(readFileSync(templatePath, "utf8"));
+  return JSON.stringify({ ...obj, version }, null, 2) + "\n";
+}
+
+function forEachAgent(callback) {
+  const sourceAgents = join(SRC, "agents");
+  if (!existsSync(sourceAgents)) return;
+  for (const entry of readdirSync(sourceAgents, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
+    const source = join(sourceAgents, entry.name);
+    callback(entry.name, readFileSync(source, "utf8"), source);
+  }
+}
+
+// Codex: standalone plugin tree — TOML agents under .codex/agents/, own manifest
+// and marketplace. AGENTS.md is the plain CLAUDE.md (as the prior build emitted).
+function writeCodexPlugin(version) {
+  const out = join(DIST, "codex");
+  writeFileEnsuring(join(out, ".codex-plugin", "plugin.json"), withVersion(join(ROOT, "build", "codex", "plugin.json"), version));
+  writeFileEnsuring(join(out, ".claude-plugin", "marketplace.json"), readFileSync(join(ROOT, "build", "codex", "marketplace.json"), "utf8"));
+  forEachAgent((name, content, source) => {
+    writeFileEnsuring(join(out, ".codex", "agents", name.replace(/\.md$/, ".toml")), codexAgentToml(content, source));
+  });
+  cpSync(join(SRC, "skills"), join(out, "skills"), { recursive: true });
+  writeFileEnsuring(join(out, "AGENTS.md"), instructions);
+  console.log("generated dist/codex (standalone Codex plugin)");
+}
+
+// Copilot: standalone plugin tree — .agent.md agents, root manifest, bundled MCP
+// (literal URL), own marketplace. copilot-instructions.md is the plain CLAUDE.md.
+function writeCopilotPlugin(version) {
+  const out = join(DIST, "copilot");
+  writeFileEnsuring(join(out, "plugin.json"), withVersion(join(ROOT, "build", "copilot", "plugin.json"), version));
+  writeFileEnsuring(join(out, ".mcp.json"), readFileSync(join(ROOT, "build", "copilot", "mcp.json"), "utf8"));
+  writeFileEnsuring(join(out, ".claude-plugin", "marketplace.json"), readFileSync(join(ROOT, "build", "copilot", "marketplace.json"), "utf8"));
+  forEachAgent((name, content, source) => {
+    writeFileEnsuring(join(out, "agents", name.replace(/\.md$/, ".agent.md")), copilotAgentMarkdown(content, source));
+  });
+  cpSync(join(SRC, "skills"), join(out, "skills"), { recursive: true });
+  writeFileEnsuring(join(out, ".github", "copilot-instructions.md"), instructions);
+  console.log("generated dist/copilot (standalone Copilot plugin)");
+}
+
+// Gemini / Cursor: not plugins — instruction-file + skills mirrors.
+function writeMirror(tool, cfg) {
+  const out = join(DIST, tool);
+  writeFileEnsuring(join(out, cfg.instructionFile), (cfg.instructionPrefix ?? "") + instructions);
+  cpSync(join(SRC, "skills"), join(out, "skills"), { recursive: true });
+  console.log(`generated dist/${tool} (mirror): ${cfg.instructionFile}, skills/`);
+}
+
 syncCommandSkillReferences();
-syncCodexAgents();
-syncCopilotAgents();
 
 if (existsSync(DIST)) rmSync(DIST, { recursive: true, force: true });
 
-for (const [tool, cfg] of Object.entries(tools)) {
-  const out = join(DIST, tool);
-  const content = (cfg.instructionPrefix ?? "") + instructions;
-  writeFileEnsuring(join(out, cfg.instructionFile), content);
-  cpSync(join(SRC, "skills"), join(out, "skills"), { recursive: true });
-  if (tool === "codex") {
-    cpSync(join(SRC, ".codex"), join(out, ".codex"), { recursive: true });
-  }
-  console.log(`generated dist/${tool}: ${cfg.instructionFile}, skills/`);
-}
+const version = readVersion();
+writeCodexPlugin(version);
+writeCopilotPlugin(version);
+for (const [tool, cfg] of Object.entries(tools)) writeMirror(tool, cfg);
 console.log("done");
