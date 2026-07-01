@@ -340,7 +340,8 @@ formulas, named ranges, inputs, and outputs, and propose an AMI migration plan.
   the configured `AMI_MCP_URL` (default `http://localhost:8766/mcp`).
 - Don't hand-edit `dist/`; edit sources under `3forge-mcp/` and run
   `node build/generate.mjs`.
-- Don't hand-edit `3forge-mcp/.codex/agents/*.toml`; edit
+- Don't hand-edit the generated trees under `dist/` (e.g.
+  `dist/codex/.codex/agents/*.toml`, `dist/copilot/agents/*.agent.md`); edit
   `3forge-mcp/agents/*.md` and regenerate.
 
 ## Verification
@@ -349,7 +350,7 @@ After changing plugin source under `3forge-mcp/`:
 
 ```bash
 node build/generate.mjs
-node build/validate.mjs
+node build/verify.mjs
 claude plugin validate ./3forge-mcp          # expect 0 frontmatter warnings
 claude plugin validate --strict .            # marketplace: must pass strict
 ```

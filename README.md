@@ -46,8 +46,8 @@ before launching Claude Code:
 export AMI_MCP_URL=http://ami-host:8766/mcp
 ```
 
-**Copilot** also bundles the connection, in its own plugin MCP config
-(`3forge-mcp/.plugin/mcp.json`), so it connects automatically on install. Copilot does not
+**Copilot** also bundles the connection, in its own generated plugin MCP config
+(`dist/copilot/.mcp.json`), so it connects automatically on install. Copilot does not
 support the `${AMI_MCP_URL:-…}` substitution syntax, so the URL is the literal default
 `http://localhost:8766/mcp`. To target another host for a single session, launch Copilot with
 `--additional-mcp-config` pointing at a config that overrides the `3forge-runtime` url.
@@ -82,7 +82,7 @@ skills, and the doc → verify → apply workflow, see
 Register your **local clone** as a Codex marketplace, then install from it:
 
 ```bash
-codex plugin marketplace add ./3forge-mcp        # path to the cloned repo root
+codex plugin marketplace add ./dist/codex        # the generated standalone Codex plugin
 codex plugin add 3forge-mcp@3forge-mcp-marketplace
 ```
 
@@ -94,12 +94,12 @@ and agent-role prompts, see [`docs/codex-usage.md`](docs/codex-usage.md).
 
 #### Copilot (first-class)
 
-GitHub Copilot CLI reads its plugin manifest from `3forge-mcp/.plugin/plugin.json` and its
-marketplace catalog from the same `.claude-plugin/marketplace.json` the other tools use, so
-install works the same way — register your **local clone** as a marketplace, then install:
+GitHub Copilot CLI installs from its own generated standalone plugin tree at `dist/copilot/`
+(root manifest, `.agent.md` agents, skills, a bundled `.mcp.json`, and a self-referencing
+marketplace). Register it as a marketplace, then install:
 
 ```bash
-copilot plugin marketplace add ./3forge-mcp        # path to the cloned repo root
+copilot plugin marketplace add ./dist/copilot     # the generated standalone Copilot plugin
 copilot plugin install 3forge-mcp@3forge-mcp-marketplace
 ```
 
@@ -155,14 +155,14 @@ Skills for each tool are under `dist/<tool>/skills/`.
   `ami-layout-architect`, `ami-layout-style`, `ami-reviewer`, `ami-architect`,
   `ami-config-writer`, `ami-datasource-advisor`, `excel-decomposer`, `excel-to-ami`).
   Claude Code reads the source `agents/*.md` files; Codex-native custom-agent TOML is generated
-  under `3forge-mcp/.codex/agents/`, and Copilot-native `.agent.md` agents are generated under
-  `3forge-mcp/.plugin/agents/`.
+  under `dist/codex/.codex/agents/`, and Copilot-native `.agent.md` agents under
+  `dist/copilot/agents/`.
 - **6 Claude Code commands** — `ami-init`, `runtime`, `ami-plan`, `ami-query`, `ami-review`,
   `ami-debug`. The generator also syncs these into the `commands` skill as command-equivalent
   workflows for harnesses that do not load Claude slash commands.
 - **Bundled MCP server config (Claude Code + Copilot)** — `3forge-mcp/.mcp.json` registers the
   `3forge-runtime` HTTP server for Claude Code (endpoint defaults to `http://localhost:8766/mcp`,
-  overridable via the `AMI_MCP_URL` env var). Copilot gets its own `3forge-mcp/.plugin/mcp.json`
+  overridable via the `AMI_MCP_URL` env var). Copilot gets its own generated `dist/copilot/.mcp.json`
   with a literal default URL (Copilot lacks the `${AMI_MCP_URL:-…}` substitution syntax). Codex,
   Gemini, and Cursor configure the runtime MCP in their own config.
 
@@ -185,23 +185,25 @@ so `aidoc` cannot serve it. That content is bundled read-only under:
 
 ```
 .
-├── .claude-plugin/marketplace.json     # marketplace catalog (one plugin entry)
-├── 3forge-mcp/                         # ← CANONICAL SOURCE (edit here)
+├── .claude-plugin/marketplace.json     # Claude marketplace (source ./3forge-mcp)
+├── 3forge-mcp/                         # ← CANONICAL SOURCE — Claude plugin + shared content
 │   ├── .claude-plugin/plugin.json      # Claude Code plugin manifest (name, version)
-│   ├── .mcp.json                       # Claude Code bundled 3forge-runtime MCP (AMI_MCP_URL)
-│   ├── .codex-plugin/plugin.json       # Codex plugin manifest
-│   ├── .codex/agents/                  # GENERATED Codex custom-agent TOML
-│   ├── .plugin/plugin.json             # Copilot plugin manifest
-│   ├── .plugin/mcp.json                # Copilot bundled 3forge-runtime MCP (literal URL)
-│   ├── .plugin/agents/                 # GENERATED Copilot .agent.md agents
-│   ├── CLAUDE.md                       # canonical operating guidance (projected to mirrors)
+│   ├── .mcp.json                       # Claude bundled 3forge-runtime MCP (AMI_MCP_URL)
+│   ├── CLAUDE.md                       # canonical operating guidance
 │   ├── skills/                         # <name>/SKILL.md (+ optional reference/)
-│   ├── agents/                         # <name>.md
-│   └── commands/                       # <name>.md
+│   ├── agents/                         # <name>.md   (canonical agent definitions)
+│   └── commands/                       # <name>.md   (Claude slash commands)
 ├── build/
-│   ├── generate.mjs                    # projects 3forge-mcp/* → dist/<tool>/
-│   └── tools.json                      # per-tool output conventions
-├── dist/{codex,copilot,gemini,cursor}/ # ← GENERATED (never hand-edit)
+│   ├── generate.mjs                    # 3forge-mcp/ → dist/*  (Claude is read-only input)
+│   ├── verify.mjs                      # regenerate to temp, diff vs dist/, validate manifests
+│   ├── tools.json                      # Gemini/Cursor mirror config
+│   ├── codex/                          # Codex scaffolding (plugin.json, marketplace.json)
+│   └── copilot/                        # Copilot scaffolding (plugin.json, mcp.json, marketplace.json)
+├── dist/                               # ← GENERATED (never hand-edit)
+│   ├── codex/                          # standalone Codex plugin (.codex-plugin, .codex/agents, skills, AGENTS.md)
+│   ├── copilot/                        # standalone Copilot plugin (plugin.json, .mcp.json, agents, skills)
+│   ├── gemini/                         # mirror (GEMINI.md + skills)
+│   └── cursor/                         # mirror (.cursor rules + skills)
 └── README.md
 ```
 
@@ -239,7 +241,7 @@ regenerated from `3forge-mcp/` by the build script and your changes there will b
 
 - Agents: `3forge-mcp/agents/<name>.md` with frontmatter (`name`, `description`, optional
   `tools`, `model`). Only reference other agents/skills that exist in this package. Do not
-  hand-edit `3forge-mcp/.codex/agents/*.toml` or `3forge-mcp/.plugin/agents/*.agent.md`; the
+  hand-edit `dist/codex/.codex/agents/*.toml` or `dist/copilot/agents/*.agent.md`; the
   generator derives those Codex custom-agent and Copilot `.agent.md` files from the Markdown
   source.
 - Commands: `3forge-mcp/commands/<name>.md`. These are Claude Code slash commands and the
@@ -257,24 +259,25 @@ The operating rules live in **two places that must stay in sync**:
 
 If you change one, change the other.
 
-### Regenerate the mirrors
+### Regenerate the generated trees
 
-After **any** change under `3forge-mcp/`, regenerate the per-tool outputs:
+After **any** change under `3forge-mcp/`, regenerate the per-tool outputs and verify:
 
 ```bash
 node build/generate.mjs
-node build/validate.mjs
+node build/verify.mjs
 ```
 
-Adding a new tool target is a config-only change in `build/tools.json` (instruction filename
-and optional `instructionPrefix` for tool-specific frontmatter).
+Adding a new **mirror** target (like Gemini/Cursor) is a config-only change in
+`build/tools.json`. Adding a new **first-class plugin** target adds a `build/<tool>/` template
+set (manifest, marketplace, optional MCP) and a writer function in `build/generate.mjs`.
 
 ### Validate before committing
 
 ```bash
-node build/validate.mjs             # generated parity, command refs, Codex agents
-claude plugin validate ./3forge-mcp        # plugin: expect 0 frontmatter warnings
-claude plugin validate --strict .          # marketplace: must pass strict
+node build/verify.mjs                      # no drift, manifests/MCP/marketplaces valid, parity
+claude plugin validate ./3forge-mcp        # Claude plugin: expect 0 frontmatter warnings
+claude plugin validate --strict .          # Claude marketplace: must pass strict
 ```
 
 The only accepted warning is "CLAUDE.md at root not loaded as context" — that file is
@@ -328,9 +331,9 @@ or `ami_showComponents`.
 
 ### Versioning & release
 
-1. Bump `version` in `3forge-mcp/.claude-plugin/plugin.json` (and keep
-   `3forge-mcp/.plugin/plugin.json` in sync for Copilot).
-2. Regenerate mirrors, validate, commit.
+1. Bump `version` in `3forge-mcp/.claude-plugin/plugin.json` — the generator stamps it into the
+   Codex and Copilot manifests automatically.
+2. Regenerate and verify, then commit: `node build/generate.mjs && node build/verify.mjs`.
 3. Tag: `git tag vX.Y.Z && git push origin main --tags`.
 
 ---

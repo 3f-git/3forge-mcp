@@ -13,8 +13,8 @@ app integrations. This plugin currently gives Codex:
 - No bundled MCP server configuration
 - 28 3forge skills under `3forge-mcp/skills`
 - A Codex command-equivalent skill named `commands`
-- Generated Codex custom-agent TOML under `3forge-mcp/.codex/agents`
-- Plugin metadata and default prompts from `3forge-mcp/.codex-plugin/plugin.json`
+- Generated Codex custom-agent TOML under `dist/codex/.codex/agents`
+- Plugin metadata and default prompts from `dist/codex/.codex-plugin/plugin.json`
 
 Claude Code also loads the files under `3forge-mcp/agents` and
 `3forge-mcp/commands` as native Claude agent and slash-command surfaces. Codex
@@ -28,7 +28,7 @@ agent Markdown source.
 From a local clone of this repository:
 
 ```bash
-codex plugin marketplace add ./3forge-mcp
+codex plugin marketplace add ./dist/codex
 codex plugin add 3forge-mcp@3forge-mcp-marketplace
 ```
 
@@ -294,7 +294,7 @@ groups.
 ## Agent Roles
 
 The repo includes Claude Code agent prompt files under `3forge-mcp/agents` and
-generated Codex custom-agent files under `3forge-mcp/.codex/agents`.
+generated Codex custom-agent files under `dist/codex/.codex/agents`.
 
 Codex custom agents are loaded from `.codex/agents/` in a project or from
 `~/.codex/agents/` globally. To enable these as native custom agents in a
@@ -303,7 +303,7 @@ target project, copy or symlink the generated TOML files into that project's
 
 ```bash
 mkdir -p .codex/agents
-cp path/to/3forge-mcp/3forge-mcp/.codex/agents/*.toml .codex/agents/
+cp path/to/3forge-mcp/dist/codex/.codex/agents/*.toml .codex/agents/
 ```
 
 After that, start a new Codex thread and ask Codex to spawn the agent by name.
@@ -401,7 +401,7 @@ Use 3forge MCP and the Excel migration workflow to analyze workbook.xlsx, identi
 - Do not commit or save transient Web changes without explicit confirmation.
 - Do not create headless sessions during `/ami-init` unless you asked for one.
 - Do not hand-edit `dist/`; edit `3forge-mcp/` and run `node build/generate.mjs`.
-- Do not hand-edit `3forge-mcp/.codex/agents/*.toml`; edit
+- Do not hand-edit `dist/codex/.codex/agents/*.toml`; edit
   `3forge-mcp/agents/*.md` and regenerate.
 - Do not assume `3forge-mcp/agents/*.md` are native Codex custom agents. Use
   the generated TOML files under a project/global `.codex/agents/` directory
@@ -415,8 +415,8 @@ After changing plugin source under `3forge-mcp/`:
 
 ```bash
 node build/generate.mjs
-node build/validate.mjs
-conda run -n forge python /home/ethan/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py 3forge-mcp
+node build/verify.mjs
+conda run -n forge python /home/ethan/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py dist/codex
 python3 /home/ethan/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py 3forge-mcp
 codex plugin add 3forge-mcp@3forge-mcp-marketplace
 ```
@@ -427,8 +427,8 @@ Then start a new Codex thread.
 
 ```bash
 codex plugin list
-node build/validate.mjs
-conda run -n forge python /home/ethan/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py 3forge-mcp
+node build/verify.mjs
+conda run -n forge python /home/ethan/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py dist/codex
 conda run -n forge python /home/ethan/.codex/skills/.system/skill-creator/scripts/quick_validate.py 3forge-mcp/skills/commands
 diff -qr 3forge-mcp/skills dist/codex/skills
 cmp -s 3forge-mcp/CLAUDE.md dist/codex/AGENTS.md

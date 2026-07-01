@@ -12,16 +12,15 @@ connection is bundled and auto-connects.
 
 ## What Copilot CLI Loads
 
-Copilot reads the plugin manifest from `3forge-mcp/.plugin/plugin.json` (Copilot
-checks `.plugin/plugin.json` before `.claude-plugin/`, so it uses a dedicated
-manifest that leaves the Claude Code plugin untouched). When the plugin is
-installed, Copilot loads:
+Copilot installs from its own generated standalone plugin tree at `dist/copilot/`
+(generated from the canonical Claude plugin; the Claude Code plugin is a separate
+tree and is left untouched). When the plugin is installed, Copilot loads:
 
-- **1 bundled MCP server** — `3forge-runtime` (HTTP), from
-  `3forge-mcp/.plugin/mcp.json`. Auto-connects on install; no manual MCP setup.
-- **10 agents** — from generated `3forge-mcp/.plugin/agents/*.agent.md`.
-- **27 skills** — from `3forge-mcp/skills/<name>/SKILL.md` (shared with the Claude
-  Code and Codex targets), invoked when a task matches or referenced explicitly.
+- **1 bundled MCP server** — `3forge-runtime` (HTTP), from `dist/copilot/.mcp.json`.
+  Auto-connects on install; no manual MCP setup.
+- **10 agents** — from generated `dist/copilot/agents/*.agent.md`.
+- **27 skills** — from `dist/copilot/skills/<name>/SKILL.md` (generated from the
+  canonical `3forge-mcp/skills/`), invoked when a task matches or referenced explicitly.
   The repo has 28 skill files, but Copilot registers one per top-level skill
   directory; the nested `workflows/excel` skill ships inside the `workflows` skill
   directory and is reached through it rather than counted separately.
@@ -38,11 +37,10 @@ the source of truth — all 3forge knowledge comes from `aidoc_*` tools.
 ## Install
 
 The repository is not yet on a hosted marketplace, so clone it and install from
-the local path. Copilot reads the same `.claude-plugin/marketplace.json` catalog
-the other tools use:
+the local path. Copilot's generated plugin tree carries its own marketplace catalog:
 
 ```bash
-copilot plugin marketplace add ./3forge-mcp        # path to the cloned repo root
+copilot plugin marketplace add ./dist/copilot      # the generated standalone Copilot plugin
 copilot plugin install 3forge-mcp@3forge-mcp-marketplace
 ```
 
@@ -62,7 +60,7 @@ skills, agents, and MCP tools are discovered.
 ## Runtime MCP Connection
 
 Copilot bundles the `3forge-runtime` MCP connection in the plugin
-(`3forge-mcp/.plugin/mcp.json`), so live tools connect automatically once the
+(`dist/copilot/.mcp.json`), so live tools connect automatically once the
 plugin is installed. It targets the literal default:
 
 ```
@@ -302,17 +300,6 @@ named ranges, inputs, and outputs, and propose an AMI migration plan.
 3. Start a fresh Copilot session so the plugin's tools are re-discovered.
 4. Confirm the plugin is installed with `copilot plugin list`.
 
-### Startup log shows `Invalid MCP config … .mcp.json: Invalid url`
-
-This is benign. The plugin ships two MCP configs: the Claude Code one at the plugin
-root (`3forge-mcp/.mcp.json`), which uses the `${AMI_MCP_URL:-…}` env-substitution
-syntax, and the Copilot one (`3forge-mcp/.plugin/mcp.json`) with a literal URL.
-Copilot auto-reads the root `.mcp.json` too and rejects its `${…}` url, logging one
-error — then connects successfully from the Copilot config. As long as the log also
-shows `MCP client for 3forge-runtime connected`, the runtime is live. (Copilot logs
-normal MCP connect/close events at `[ERROR]` level as well, so the level is not a
-reliable severity signal.)
-
 ### Tool call fails
 
 - Check the MCP server logs for errors (`log_tailRecent`, `log_grepErrors`).
@@ -327,7 +314,7 @@ reliable severity signal.)
 - Don't commit or save transient Web changes without explicit confirmation.
 - Don't assume live tools work without AMI Web running the `amimcp` plugin on the
   configured MCP endpoint (default `http://localhost:8766/mcp`).
-- Don't hand-edit `3forge-mcp/.plugin/agents/*.agent.md`; edit
+- Don't hand-edit `dist/copilot/agents/*.agent.md`; edit
   `3forge-mcp/agents/*.md` and run `node build/generate.mjs`.
 
 ## See also
