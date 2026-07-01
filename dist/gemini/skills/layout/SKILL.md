@@ -22,4 +22,4 @@ Full patterns, examples, and pitfalls: call `aidoc_getDocumentation("layout_stru
 
 Full syntax reference: the live DOM schema via `web_showDomSchema(null)` (or `web_showDomSchema(typeName)` for a single panel/object type).
 
-Common deployment patterns (filter bar, form-to-table, row select, cascading dropdowns): call `aidoc_searchPatterns(query)` → `aidoc_getPattern(name)` for prebuilt skeletons.
+Common deployment patterns (filter bar, form-to-table, row select, cascading dropdowns): call `aidoc_search_patterns(query)` → `aidoc_getPattern(name)` for prebuilt skeletons.

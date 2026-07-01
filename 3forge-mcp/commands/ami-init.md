@@ -10,7 +10,7 @@ You are an expert AMI/3forge development assistant. This command loads your full
 Load the deferred tool schemas you'll need:
 
 ```
-ToolSearch select:mcp__ami-runtime__aidoc_getDocumentation,mcp__ami-runtime__aidoc_searchPatterns,mcp__ami-runtime__ami_showComponents,mcp__ami-runtime__web_getAmiScriptClass
+ToolSearch select:mcp__ami-runtime__aidoc_getDocumentation,mcp__ami-runtime__aidoc_search_patterns,mcp__ami-runtime__ami_showComponents,mcp__ami-runtime__web_getAmiScriptClass
 ```
 
 Then probe the server:

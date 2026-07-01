@@ -12,7 +12,7 @@ Companion skill: `workflows/doc-verify-apply.md` (mandatory three-step pattern).
 ## The non-negotiable ritual
 
 ```
-1. aidoc_searchPatterns(intent) → aidoc_getPattern(name)
+1. aidoc_search_patterns(intent) → aidoc_getPattern(name)
 2. center_describeTable(t)   — confirm columns + types
 3. (build panel JSON)
 4. web_validateJson(componentId, portletType, json)   — must return "OK"
@@ -298,7 +298,7 @@ Always pass `componentId="web"` (or the actual Web component name from `ami_show
 ## Authoritative doc references
 
 - `aidoc_getPattern("tables")` — realtime vs static table patterns (the source for most of this skill)
-- `aidoc_searchPatterns(intent)` — to find the right pattern by NL query
+- `aidoc_search_patterns(intent)` — to find the right pattern by NL query
 - `aidoc_getDocumentation("panel_table")` / `panel_chart` / `panel_form` / `panel_tabs` / `panel_divider`
 - `aidoc_getDocumentation("layout_structure")` / `layout_style`
 - `aidoc_getDocumentation("datamodel")` / `data_loading` / `relationships`

@@ -14,7 +14,7 @@ Set your instance endpoint (defaults to `http://localhost:8766/mcp`):
 ## The one rule for AMI knowledge
 
 **Never answer AMI/3forge questions from training data.** Get everything from the live
-instance: call `aidoc_getDocumentation(topic)`, `aidoc_searchPatterns(query)`, and
+instance: call `aidoc_getDocumentation(topic)`, `aidoc_search_patterns(query)`, and
 `aidoc_getPattern(name)`. For the layout DOM schema, call `web_showDomSchema(null)`.
 
 ## Tool naming
@@ -26,7 +26,7 @@ instance: call `aidoc_getDocumentation(topic)`, `aidoc_searchPatterns(query)`, a
 ## Mandatory workflow: doc → verify → apply
 
 Before any mutating tool call:
-1. **Doc** — `aidoc_getDocumentation(topic)` / `aidoc_searchPatterns`.
+1. **Doc** — `aidoc_getDocumentation(topic)` / `aidoc_search_patterns`.
 2. **Verify** — a validation tool if one exists (`web_validateJson`,
    `web_validateScript`, `web_validateDatamodel`, ...).
 3. **Apply** — the mutating tool.

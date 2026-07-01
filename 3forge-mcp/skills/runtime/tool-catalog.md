@@ -13,7 +13,7 @@ Live snapshot of tools exposed by the `ami-runtime` MCP server (in-process Java 
 
 Before invoking any mutating tool:
 
-1. **Get documentation** via `aidoc_getDocumentation(topic)` and/or `aidoc_searchPatterns(query)` / `aidoc_getPattern(name)`. Available topics: `relay_routes`, `layout_style`, `panel_form`, `data_loading`, `panel_divider`, `amisql`, `custom_menus`, `callbacks`, `admin`, `feedhandlers`, `relationships`, `web`, `debugging`, `transient_objects`, `schema_design`, `layout_structure`, `panel_chart`, `sessions`, `adapters`, `datamodel`, `center`, `relay`, `amiscript`, `loadfile`, `datasource`, `troubleshooting`, `panel_tabs`, `panel_table`, `custom_html`.
+1. **Get documentation** via `aidoc_getDocumentation(topic)` and/or `aidoc_search_patterns(query)` / `aidoc_getPattern(name)`. Available topics: `relay_routes`, `layout_style`, `panel_form`, `data_loading`, `panel_divider`, `amisql`, `custom_menus`, `callbacks`, `admin`, `feedhandlers`, `relationships`, `web`, `debugging`, `transient_objects`, `schema_design`, `layout_structure`, `panel_chart`, `sessions`, `adapters`, `datamodel`, `center`, `relay`, `amiscript`, `loadfile`, `datasource`, `troubleshooting`, `panel_tabs`, `panel_table`, `custom_html`.
 2. **Verify shape** with a validation tool when one exists: `web_validateJson`, `web_validateScript`, `web_validateDatamodel`, `web_getChartSchemaWarnings`, `web_getTableSchemaWarnings`, `web_getCallbackVariables`.
 3. **Apply** with the mutating tool.
 
@@ -47,7 +47,7 @@ Reference docs and prebuilt panel/layout patterns. **Call these first** when you
 |---|---|
 | `aidoc_getDocumentation` | Return a reference document for the given topic. Omit or pass null to list all available topic names. |
 | `aidoc_getPattern` | Return a named dashboard pattern (skeleton JSON snippet for a common panel arrangement). Omit or pass null to list all available pattern names. |
-| `aidoc_searchPatterns` | Search dashboard pattern metadata by natural-language intent. Returns ranked pattern names, short descriptions, trigger keywords, and the exact get_pattern(name) call to load th... |
+| `aidoc_search_patterns` | Search dashboard pattern metadata by natural-language intent. Returns ranked pattern names, short descriptions, trigger keywords, and the exact get_pattern(name) call to load th... |
 
 ## `ami_*` — Plugin & component lifecycle
 

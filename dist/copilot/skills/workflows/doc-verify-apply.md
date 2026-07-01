@@ -11,7 +11,7 @@ Mandatory three-step pattern for every operation against a live AMI deployment v
 | Source | Use when |
 |---|---|
 | `aidoc_getDocumentation(topic)` | You know the topic. List of topics: `amisql`, `datamodel`, `center`, `web`, `relay`, `panel_table`, `panel_chart`, `panel_form`, `panel_tabs`, `panel_divider`, `callbacks`, `relationships`, `data_loading`, `schema_design`, `sessions`, `transient_objects`, `relay_routes`, `feedhandlers`, `datasource`, `adapters`, `custom_menus`, `custom_html`, `layout_structure`, `layout_style`, `loadfile`, `debugging`, `troubleshooting`, `amiscript`, `admin`. |
-| `aidoc_searchPatterns(query)` → `aidoc_getPattern(name)` | You want a prebuilt skeleton (e.g. "kafka feed", "sector heatmap", "realtime table"). |
+| `aidoc_search_patterns(query)` → `aidoc_getPattern(name)` | You want a prebuilt skeleton (e.g. "kafka feed", "sector heatmap", "realtime table"). |
 | `web_getAmiScriptClass(componentId, className)` | AMIScript method signatures — omit `className` to list all available classes. |
 
 If a topic the user is asking about isn't covered by `aidoc_*`, fall back to `web_getAmiScriptClass` for method-level questions, or ask the user for clarification.
@@ -113,7 +113,7 @@ For any generative task (new panel, new schema, new feedhandler) the user must s
 User: "Add a TablePanel for the Orders table"
 
   Step 1 → aidoc_getDocumentation("panel_table")
-           aidoc_searchPatterns("table panel orders") → aidoc_getPattern("realtime-table")
+           aidoc_search_patterns("table panel orders") → aidoc_getPattern("realtime-table")
            center_describeTable(componentId, "Orders")
   Step 2 → web_validateJson(componentId, <draft panel JSON>)
            web_getTableSchemaWarnings(componentId, <draft>)

@@ -16,8 +16,8 @@ Create a detailed implementation plan for an AMI feature.
    - `web` skill — DataModels, session, callbacks
 
 3. **Query the live instance for patterns** — Do NOT spawn a subagent:
-   - **First**, if MCP tools have not been used yet in this conversation, call `ToolSearch` with `select:mcp__ami-runtime__aidoc_getDocumentation,mcp__ami-runtime__aidoc_searchPatterns,mcp__ami-runtime__web_getAmiScriptClass` to load their schemas before calling them.
-   - For architecture/pattern questions: `aidoc_getDocumentation(topic)` (topics listed in `runtime/tool-catalog.md`) + `aidoc_searchPatterns(query)` → `aidoc_getPattern(name)`
+   - **First**, if MCP tools have not been used yet in this conversation, call `ToolSearch` with `select:mcp__ami-runtime__aidoc_getDocumentation,mcp__ami-runtime__aidoc_search_patterns,mcp__ami-runtime__web_getAmiScriptClass` to load their schemas before calling them.
+   - For architecture/pattern questions: `aidoc_getDocumentation(topic)` (topics listed in `runtime/tool-catalog.md`) + `aidoc_search_patterns(query)` → `aidoc_getPattern(name)`
    - For method signatures in the plan: `web_getAmiScriptClass`
 
 4. **Apply the 6-concern framework** from the architecture guide to classify the problem and select the right primitives.
