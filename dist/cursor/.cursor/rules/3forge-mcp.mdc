@@ -12,9 +12,14 @@ source of truth.
 
 ## Connect
 
-Set your instance endpoint (defaults to `http://localhost:8766/mcp`):
+The plugin bundle defaults to the local endpoint:
 
-    export THREEFORGE_MCP_URL=http://your-ami-host:8766/mcp
+    http://localhost:8766/mcp
+
+Codex plugin HTTP URLs are literal at startup, and Codex also auto-discovers the
+plugin-root `.mcp.json`, so both Codex MCP declarations must be absolute URLs.
+For a non-local target, edit `3forge-mcp/.mcp.json` and
+`3forge-mcp/.codex-plugin/plugin.json` before installing or reinstalling.
 
 ## The one rule for AMI knowledge
 

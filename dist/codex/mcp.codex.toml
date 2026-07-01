@@ -1,3 +1,3 @@
 [mcp_servers.3forge-runtime]
 type = "http"
-url = "${THREEFORGE_MCP_URL}"
+url = "http://localhost:8766/mcp"

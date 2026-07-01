@@ -1,3 +1,8 @@
+---
+name: excel
+description: Use when analyzing or reverse-engineering Excel workbooks (`.xls`, `.xlsx`, `.xlsm`) for 3forge/AMI migration — workbook structure, sheets, named ranges, formulas, dependencies, user workflow, and business-rule extraction.
+---
+
 # Excel Workbook Decomposition
 
 ## When to Activate

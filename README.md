@@ -35,8 +35,19 @@ already knows.
 
 ### 1. Point at your instance
 
-The shipped MCP config uses the `${THREEFORGE_MCP_URL}` environment variable — there is no baked-in
-default, so **set it before starting your tool**:
+The installable plugin bundle defaults to the local MCP endpoint:
+
+```bash
+http://localhost:8766/mcp
+```
+
+Codex plugin HTTP MCP URLs are literal at startup, and Codex also auto-discovers the
+plugin-root `.mcp.json`, so both Codex MCP declarations must be absolute URLs. If your 3forge
+instance is not local, edit both `3forge-mcp/.mcp.json` and
+`3forge-mcp/.codex-plugin/plugin.json` before installing or reinstalling the Codex plugin.
+
+The generated Copilot/Gemini/Cursor mirrors still use `${THREEFORGE_MCP_URL}`; set it before
+starting those tools:
 
 ```bash
 export THREEFORGE_MCP_URL=http://your-3forge-host:8766/mcp
@@ -53,8 +64,9 @@ claude plugin marketplace add ./3forge-mcp        # path to the cloned repo root
 claude plugin install 3forge-mcp@3forge-mcp-marketplace
 ```
 
-The bundled `3forge-runtime` MCP server starts automatically (once `THREEFORGE_MCP_URL` is
-set). Alternatively: open Claude Code inside the clone and accept the install prompt.
+The bundled `3forge-runtime` MCP server starts automatically against
+`http://localhost:8766/mcp`. Alternatively: open Claude Code inside the clone and accept the
+install prompt.
 
 > Once this is published to a hosted marketplace, `marketplace add` will instead take the
 > remote (e.g. `claude plugin marketplace add 3f-git/3forge-mcp`). Until then, use the local
@@ -69,8 +81,8 @@ codex plugin marketplace add ./3forge-mcp        # path to the cloned repo root
 codex plugin add 3forge-mcp@3forge-mcp-marketplace
 ```
 
-The bundled `3forge-runtime` MCP server starts automatically once
-`THREEFORGE_MCP_URL` is set. After installing or updating the plugin, start a new Codex thread so
+The bundled `3forge-runtime` MCP server starts automatically against
+`http://localhost:8766/mcp`. After installing or updating the plugin, start a new Codex thread so
 the plugin skills and MCP tools are loaded.
 
 #### Copilot / Gemini / Cursor
@@ -111,15 +123,20 @@ Skills for each tool are under `dist/<tool>/skills/`.
 
 ## What's inside the plugin
 
-- **26 skills** — runtime operation (`runtime`, `rt-*`), authoring (`sql`, `layout`,
+- **27 skills** — runtime operation (`runtime`, `rt-*`), authoring (`sql`, `layout`,
   `datamodel`, `datasource`, `configuration`, `architecture`, …), the always-relevant
-  `using-3forge-runtime` operating guide, plus bundled offline `reference/` for the topics that
-  have no `aidoc` home (see below).
+  `using-3forge-runtime` operating guide, command-equivalent workflows for Codex and other
+  non-Claude harnesses, plus bundled offline `reference/` for the topics that have no `aidoc`
+  home (see below).
 - **10 agents** — `3forge-runtime` (drive the instance) plus authoring agents (`ami-sql-builder`,
   `ami-layout-architect`, `ami-layout-style`, `ami-reviewer`, `ami-architect`,
   `ami-config-writer`, `ami-datasource-advisor`, `excel-decomposer`, `excel-to-ami`).
-- **6 commands** — `ami-init`, `runtime`, `ami-plan`, `ami-query`, `ami-review`, `ami-debug`.
-- **1 MCP server** — `3forge-runtime`, URL `${THREEFORGE_MCP_URL}`.
+- **6 Claude Code commands** — `ami-init`, `runtime`, `ami-plan`, `ami-query`, `ami-review`,
+  `ami-debug`. The generator also syncs these into the `commands` skill as command-equivalent
+  workflows for harnesses that do not load Claude slash commands.
+- **1 MCP server** — `3forge-runtime`; the installable plugin bundle uses the local default
+  `http://localhost:8766/mcp`, and the non-Codex generated mirror configs use
+  `${THREEFORGE_MCP_URL}`.
 
 ### The bundled-reference exception
 
@@ -145,7 +162,7 @@ so `aidoc` cannot serve it. That content is bundled read-only under:
 │   ├── .claude-plugin/plugin.json      # plugin manifest (name, version)
 │   ├── .codex-plugin/plugin.json       # Codex plugin manifest
 │   ├── CLAUDE.md                       # canonical operating guidance (projected to mirrors)
-│   ├── .mcp.json                       # 3forge-runtime server, ${THREEFORGE_MCP_URL}
+│   ├── .mcp.json                       # 3forge-runtime server, local default URL
 │   ├── skills/                         # <name>/SKILL.md (+ optional reference/)
 │   ├── agents/                         # <name>.md
 │   └── commands/                       # <name>.md
@@ -190,7 +207,9 @@ regenerated from `3forge-mcp/` by the build script and your changes there will b
 
 - Agents: `3forge-mcp/agents/<name>.md` with frontmatter (`name`, `description`, optional
   `tools`, `model`). Only reference other agents/skills that exist in this package.
-- Commands: `3forge-mcp/commands/<name>.md`.
+- Commands: `3forge-mcp/commands/<name>.md`. These are Claude Code slash commands and the
+  canonical source for the generated `3forge-mcp/skills/commands/reference/*.md` copies used by
+  Codex and other non-Claude harnesses.
 
 ### Edit the operating guidance
 
@@ -228,13 +247,15 @@ carries the guidance for Claude Code).
 ### Never commit
 
 - Secrets or internal hostnames. The package must contain **only** the `3forge-runtime` MCP
-  server with `${THREEFORGE_MCP_URL}` — no resolved URLs, no internal hosts, no API keys, and no
-  entries for internal-only MCP servers.
+  server with `${THREEFORGE_MCP_URL}` or the Codex-safe local default
+  `http://localhost:8766/mcp` — no resolved internal hosts, no API keys, and no entries for
+  internal-only MCP servers.
 - Quick self-check — the shipped MCP config should declare exactly one server (`3forge-runtime`)
-  with the env-var URL, and nothing should reference a resolved internal host:
+  with the env-var URL or Codex local default, and nothing should reference a resolved internal
+  host:
   ```bash
-  cat 3forge-mcp/.mcp.json          # expect only "3forge-runtime": { url: "${THREEFORGE_MCP_URL}" }
-  grep -rn '://' --exclude-dir=.git 3forge-mcp | grep -v '\${THREEFORGE_MCP_URL}'   # expect no hardcoded URLs
+  cat 3forge-mcp/.mcp.json          # expect only "3forge-runtime": { url: "http://localhost:8766/mcp" }
+  grep -rn '://' --exclude-dir=.git 3forge-mcp | grep -v '\${THREEFORGE_MCP_URL}' | grep -v 'http://localhost:8766/mcp'
   ```
 
 ### Naming conventions
