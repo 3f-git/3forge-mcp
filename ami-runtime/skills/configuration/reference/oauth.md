@@ -1,7 +1,7 @@
 # OAuth 2.0 Configuration
 
 > Recipe file — minimal property blocks for OAuth 2.0 SSO setup.
-> For the full property reference, Okta setup, and custom plugin guide, call `aidoc_getDocumentation("admin")` on the live instance.
+> See [`authentication/oauth.md`](authentication/oauth.md) for the full property reference, Okta setup, and custom plugin guide.
 
 ---
 
@@ -65,5 +65,5 @@ oauth.debug=true
 
 ## See Also
 
-- `aidoc_getDocumentation("admin")` — full property reference, custom plugin guide, and auth method overview
+- [`authentication/oauth.md`](authentication/oauth.md) — full property reference, custom plugin guide, and auth method overview
 - [`ldap.md`](ldap.md) / [`saml.md`](saml.md) — other authentication methods

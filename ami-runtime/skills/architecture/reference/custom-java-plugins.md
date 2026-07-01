@@ -64,9 +64,9 @@ AMI discovers plugins from `amione/lib/` automatically — no additional classpa
 | Custom AmiScript class (Center) | — | `ami.center.amiscript.custom.classes` | — |
 | Feed Handler | `AmiFH` / `AmiFHBase` | `ami.relay.fh.active`, `ami.relay.fh.<name>.class` | `aidoc_getDocumentation("datasource")` |
 | Datasource Adapter | `AmiDatasourceAdapter` | `ami.datasource.adapters` | `aidoc_getDocumentation("datasource")` |
-| SSO / Federated Auth | `AmiWebSSOPlugin` | `sso.plugin.class` | `aidoc_getDocumentation("admin")` |
-| Custom Credentials Auth | `AmiAuthenticatorPlugin` | `ami.auth.plugin.class` | `aidoc_getDocumentation("admin")` |
-| Row-level Data Filter | `AmiWebDataFilterPlugin` | `ami.web.data.filter.plugin.class` | `aidoc_getDocumentation("admin")` |
+| SSO / Federated Auth | `AmiWebSSOPlugin` | `sso.plugin.class` | [`../../configuration/reference/authentication/guide.md`](../../configuration/reference/authentication/guide.md) |
+| Custom Credentials Auth | `AmiAuthenticatorPlugin` | `ami.auth.plugin.class` | [`../../configuration/reference/authentication/entitlements.md`](../../configuration/reference/authentication/entitlements.md) |
+| Row-level Data Filter | `AmiWebDataFilterPlugin` | `ami.web.data.filter.plugin.class` | [`../../configuration/reference/authentication/data-filter.md`](../../configuration/reference/authentication/data-filter.md) |
 | Custom Center Object | — | per-object registration | — |
 | Custom DNS / naming | — | `custom_java_plugins/dns/` | — |
 | Properties Decrypter | `Decrypter` | `-Df1.properties.decrypters` (JVM arg) | — (implement the `Decrypter` interface) |
@@ -97,11 +97,11 @@ ami.web.amiscript.custom.classes=com.example.ClassA,com.example.ClassB
 
 When upgrading AMI, rebuild all custom plugins against the new `autocode.jar` and `out.jar` from the updated `amione/lib/`. The old `.jar` file must be removed from `amione/lib/` — AMI does not auto-replace it.
 
-Rebuild all custom plugins against the new `autocode.jar` and `out.jar` when upgrading AMI (see the upgrade procedure in the AMI release notes).
+Rebuild all custom plugins against the new `autocode.jar` and `out.jar` when upgrading AMI. See [`deployment/upgrading.md`](deployment/upgrading.md) for the full upgrade procedure.
 
 ---
 
 ## See Also
 
 - [`custom-relay-plugin.md`](custom-relay-plugin.md) — `AmiRelayPlugin` for relay-level message interception
-- `aidoc_getDocumentation("admin")` — `AmiWebSSOPlugin` and `AmiAuthenticatorPlugin` auth plugins
+- [`../../configuration/reference/authentication/guide.md`](../../configuration/reference/authentication/guide.md) — `AmiWebSSOPlugin` and `AmiAuthenticatorPlugin` auth plugins

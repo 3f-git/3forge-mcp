@@ -1,7 +1,7 @@
 # SAML 2.0 Configuration
 
 > Recipe file — minimal property blocks for SAML 2.0 SSO setup.
-> For the full property reference and pitfalls guide, call `aidoc_getDocumentation("admin")` on the live instance.
+> See [`authentication/saml.md`](authentication/saml.md) for the full property reference and pitfalls guide.
 
 ---
 
@@ -57,5 +57,5 @@ saml.debug=true
 
 ## See Also
 
-- `aidoc_getDocumentation("admin")` — full property reference, pitfalls guide, and auth method overview
+- [`authentication/saml.md`](authentication/saml.md) — full property reference, pitfalls guide, and auth method overview
 - [`ldap.md`](ldap.md) / [`oauth.md`](oauth.md) — other authentication methods

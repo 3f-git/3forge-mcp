@@ -22,7 +22,7 @@ ami.db.jdbc.port.whitelist=*.internal.example.com
 ami.jdbc.auth.plugin.class=com.example.MyJdbcAuthPlugin
 ```
 
-The `ami.jdbc.auth.plugin.class` property defaults to `${ami.db.auth.plugin.class}`. If this line is missing or misconfigured, JDBC authentication will fail. Call `aidoc_getDocumentation("admin")` for details on the auth plugin interface.
+The `ami.jdbc.auth.plugin.class` property defaults to `${ami.db.auth.plugin.class}`. If this line is missing or misconfigured, JDBC authentication will fail. See [`../../configuration/reference/authentication/entitlements.md`](../../configuration/reference/authentication/entitlements.md) for details on the auth plugin interface.
 
 ---
 

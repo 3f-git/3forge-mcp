@@ -51,7 +51,7 @@ ami.port=3299
 ami.db.console.port=3300
 ```
 
-Call `aidoc_getDocumentation("admin")` for the full default port table.
+See [`deployment/guide.md`](deployment/guide.md) for the full default port table.
 
 ---
 
@@ -142,4 +142,4 @@ This pattern allows horizontal partitioning of computationally intensive aggrega
 
 - [`guide.md`](guide.md) — installation layout, multi-environment config
 - [`../../configuration/reference/webbalancer.md`](../../configuration/reference/webbalancer.md) / [`../../configuration/reference/webmanager.md`](../../configuration/reference/webmanager.md) — WebBalancer and WebManager configuration
-- `aidoc_getDocumentation("admin")` — port reference and component split properties
+- [`deployment/guide.md`](deployment/guide.md) — port reference and component split properties
