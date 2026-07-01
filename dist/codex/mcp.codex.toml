@@ -1,0 +1,3 @@
+[mcp_servers.ami-runtime]
+type = "http"
+url = "${AMI_MCP_URL}"

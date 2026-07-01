@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "ami-runtime": {
+      "type": "http",
+      "url": "${AMI_MCP_URL}"
+    }
+  }
+}
