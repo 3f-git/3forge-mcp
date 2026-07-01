@@ -1,16 +1,16 @@
 # Using the 3forge MCP Plugin with Codex
 
 This guide explains how to use the `3forge-mcp` plugin from Codex: what it
-installs, how to invoke it, which MCP tools it exposes, how the command
-workflows map from Claude Code slash commands, and how to ask for the bundled
-agent roles.
+installs, how to invoke it, how live MCP workflows behave when configured
+separately, how the command workflows map from Claude Code slash commands, and
+how to ask for the bundled agent roles.
 
 ## What Codex Loads
 
-Codex plugins bundle reusable skills, MCP server configuration, and optional app
-integrations. This plugin currently gives Codex:
+Codex plugins can bundle reusable skills, MCP server configuration, and optional
+app integrations. This plugin currently gives Codex:
 
-- One MCP server: `3forge-runtime`
+- No bundled MCP server configuration
 - 28 3forge skills under `3forge-mcp/skills`
 - A Codex command-equivalent skill named `commands`
 - Generated Codex custom-agent TOML under `3forge-mcp/.codex/agents`
@@ -32,8 +32,8 @@ codex plugin marketplace add ./3forge-mcp
 codex plugin add 3forge-mcp@3forge-mcp-marketplace
 ```
 
-After installing or updating, start a new Codex thread so the plugin skills and
-MCP tools are loaded.
+After installing or updating, start a new Codex thread so the plugin skills are
+loaded. Live MCP tools only appear when configured separately in Codex.
 
 Verify install state:
 
@@ -48,27 +48,14 @@ Expected:
 - The current local cachebuster version, for example
   `0.1.2+codex.20260701183612` or newer.
 
-## MCP Endpoint
+## Runtime MCP Configuration
 
-The Codex plugin manifest and plugin-root `.mcp.json` both point at:
+The plugin no longer bundles a `3forge-runtime` MCP endpoint. The old
+plugin-root `.mcp.json` and Codex manifest `mcpServers` entries are intentionally
+absent.
 
-```text
-http://localhost:8766/mcp
-```
-
-Start AMI Web with the in-process `amimcp` plugin reachable at that URL before
-asking Codex to inspect or mutate a live deployment.
-
-If the AMI instance is remote, edit both files before reinstalling:
-
-- `3forge-mcp/.mcp.json`
-- `3forge-mcp/.codex-plugin/plugin.json`
-
-Then reinstall and open a new Codex thread:
-
-```bash
-codex plugin add 3forge-mcp@3forge-mcp-marketplace
-```
+For live instance work, configure `3forge-runtime` in your Codex MCP settings or
+project-level config outside this plugin, then open a new Codex thread.
 
 ## First Prompt
 
@@ -82,9 +69,11 @@ Expected behavior:
 
 - Codex activates `3forge-mcp:commands`.
 - The skill dispatches to `reference/ami-init.md`.
-- Codex probes `aidoc_getDocumentation`, `ami_showComponents`, Web sessions,
-  and AMIScript class introspection when a Web session is available.
-- Codex loads the runtime catalog and doc -> verify -> apply workflow.
+- If `3forge-runtime` is configured separately, Codex probes
+  `aidoc_getDocumentation`, `ami_showComponents`, Web sessions, and AMIScript
+  class introspection when a Web session is available.
+- Codex loads the runtime catalog and doc -> verify -> apply workflow when live
+  tools are available.
 
 If there is no active Web session, `web_getAmiScriptClass` can return
 `Session not found: null`. That is not a plugin failure. It means Web-context
@@ -191,9 +180,9 @@ Use 3forge MCP to review this .ami layout before I commit it.
 
 ## MCP Tool Families
 
-The `3forge-runtime` MCP server reflects live AMI console methods. Use
-`ami_showComponents()` first to find valid component IDs such as `center`,
-`web`, or `relay`.
+When configured separately, the `3forge-runtime` MCP server reflects live AMI
+console methods. Use `ami_showComponents()` first to find valid component IDs
+such as `center`, `web`, or `relay`.
 
 | Prefix | Scope | Typical use |
 |---|---|---|
@@ -417,6 +406,8 @@ Use 3forge MCP and the Excel migration workflow to analyze workbook.xlsx, identi
 - Do not assume `3forge-mcp/agents/*.md` are native Codex custom agents. Use
   the generated TOML files under a project/global `.codex/agents/` directory
   when you want native custom-agent spawning.
+- Do not expect plugin installation to add runtime MCP server config. Configure
+  `3forge-runtime` outside this package when live tools are needed.
 
 ## Updating The Local Plugin During Development
 

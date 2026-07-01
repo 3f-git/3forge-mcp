@@ -10,8 +10,6 @@ import { dirname, join, relative, resolve } from "node:path";
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname), "..");
 const SRC = join(ROOT, "3forge-mcp");
 const DIST = join(ROOT, "dist");
-const LOCAL_MCP_URL = "http://localhost:8766/mcp";
-const ENV_MCP_URL = "${THREEFORGE_MCP_URL}";
 
 const failures = [];
 
@@ -166,27 +164,26 @@ function codexAgentToml(content, path) {
   ].join("\n");
 }
 
-function mcpSnippet(fmt, tool, server) {
-  const selectedServer = tool === "codex"
-    ? { ...server, url: LOCAL_MCP_URL }
-    : { ...server, url: ENV_MCP_URL };
-  if (fmt === "toml") {
-    return `[mcp_servers.3forge-runtime]\ntype = "http"\nurl = "${selectedServer.url}"\n`;
-  }
-  return JSON.stringify({ mcpServers: { "3forge-runtime": selectedServer } }, null, 2) + "\n";
-}
-
-function validateMcpDefaults() {
-  const mcp = readJson(join(SRC, ".mcp.json"));
-  const servers = mcp.mcpServers ?? {};
-  expect(Object.keys(servers).join(",") === "3forge-runtime", "3forge-mcp/.mcp.json must declare only 3forge-runtime");
-  expect(servers["3forge-runtime"]?.url === LOCAL_MCP_URL, "3forge-mcp/.mcp.json must use the local Codex-safe URL");
-
+function validateNoBundledMcpConfig() {
+  expect(!existsSync(join(SRC, ".mcp.json")), "3forge-mcp/.mcp.json should not be bundled");
   const manifest = readJson(join(SRC, ".codex-plugin", "plugin.json"));
-  const manifestServers = manifest.mcpServers ?? {};
-  expect(Object.keys(manifestServers).join(",") === "3forge-runtime", "Codex manifest must declare only 3forge-runtime");
-  expect(manifestServers["3forge-runtime"]?.url === LOCAL_MCP_URL, "Codex manifest MCP URL must be local default");
+  expect(!("mcpServers" in manifest), "Codex manifest should not declare mcpServers");
   expect(manifest.skills === "./skills/", "Codex manifest skills path must be ./skills/");
+
+  const tools = readJson(join(ROOT, "build", "tools.json"));
+  for (const [tool, cfg] of Object.entries(tools)) {
+    expect(!("mcpFile" in cfg), `build/tools.json ${tool} should not declare mcpFile`);
+    expect(!("mcpFormat" in cfg), `build/tools.json ${tool} should not declare mcpFormat`);
+  }
+
+  for (const path of [
+    join(DIST, "codex", "mcp.codex.toml"),
+    join(DIST, "copilot", ".vscode", "mcp.json"),
+    join(DIST, "gemini", "settings.json"),
+    join(DIST, "cursor", ".cursor", "mcp.json"),
+  ]) {
+    expect(!existsSync(path), `${relativePath(path)} should not be generated`);
+  }
 }
 
 function validateCommands() {
@@ -227,13 +224,9 @@ function validateCodexAgents() {
 function validateDist() {
   const tools = readJson(join(ROOT, "build", "tools.json"));
   const instructions = read(join(SRC, "CLAUDE.md"));
-  const mcp = readJson(join(SRC, ".mcp.json"));
-  const server = mcp.mcpServers?.["3forge-runtime"];
-  expect(server, "3forge-runtime server is missing from source .mcp.json");
 
   for (const [tool, cfg] of Object.entries(tools)) {
     expectFile(join(DIST, tool, cfg.instructionFile), (cfg.instructionPrefix ?? "") + instructions);
-    expectFile(join(DIST, tool, cfg.mcpFile), mcpSnippet(cfg.mcpFormat, tool, server));
     compareDirs(join(SRC, "skills"), join(DIST, tool, "skills"), `dist/${tool}/skills`);
   }
 }
@@ -304,7 +297,7 @@ function validateGeneratedPathsExist() {
 }
 
 validateGeneratedPathsExist();
-validateMcpDefaults();
+validateNoBundledMcpConfig();
 validateCommands();
 validateCodexAgents();
 validateDist();

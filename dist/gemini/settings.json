@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "3forge-runtime": {
-      "type": "http",
-      "url": "${THREEFORGE_MCP_URL}"
-    }
-  }
-}

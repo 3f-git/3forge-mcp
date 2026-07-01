@@ -5,10 +5,10 @@ description: "Use at the start of any AMI/3forge runtime work — how to operate
 
 # 3forge-runtime — Live 3forge AMI MCP
 
-This plugin connects your AI coding tool to a running 3forge AMI instance through the
-`3forge-runtime` MCP server. It ships the skills and agents for operating and building on
-that instance. It ships **no AMI concept documentation** — the live instance is the
-source of truth.
+This plugin gives your AI coding tool the skills and agents for operating and building on
+3forge AMI. Live instance work still uses the `3forge-runtime` MCP server, but the MCP
+connection is configured outside this plugin. It ships **no AMI concept documentation** -
+the live instance is the source of truth.
 
 ## The one rule for AMI knowledge
 

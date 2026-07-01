@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "3forge-runtime": {
-      "type": "http",
-      "url": "http://localhost:8766/mcp"
-    }
-  }
-}

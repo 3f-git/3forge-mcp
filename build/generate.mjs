@@ -8,10 +8,6 @@ const DIST = join(ROOT, "dist");
 const tools = JSON.parse(readFileSync(join(ROOT, "build/tools.json"), "utf8"));
 
 const instructions = readFileSync(join(SRC, "CLAUDE.md"), "utf8");
-const mcp = JSON.parse(readFileSync(join(SRC, ".mcp.json"), "utf8"));
-const server = mcp.mcpServers["3forge-runtime"];
-const CODEX_DEFAULT_MCP_URL = "http://localhost:8766/mcp";
-const ENV_MCP_URL = "${THREEFORGE_MCP_URL}";
 
 function commandSkillContent(content) {
   return content
@@ -120,20 +116,6 @@ function syncCodexAgents() {
   }
 }
 
-function mcpSnippet(fmt, tool) {
-  const selectedServer = tool === "codex"
-    ? { ...server, url: CODEX_DEFAULT_MCP_URL }
-    : { ...server, url: ENV_MCP_URL };
-  if (fmt === "toml") {
-    return `[mcp_servers.3forge-runtime]\ntype = "http"\nurl = "${selectedServer.url}"\n`;
-  }
-  if (fmt === "gemini-json") {
-    return JSON.stringify({ mcpServers: { "3forge-runtime": selectedServer } }, null, 2) + "\n";
-  }
-  // plain json (cursor, copilot)
-  return JSON.stringify({ mcpServers: { "3forge-runtime": selectedServer } }, null, 2) + "\n";
-}
-
 function writeFileEnsuring(path, content) {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content);
@@ -148,11 +130,10 @@ for (const [tool, cfg] of Object.entries(tools)) {
   const out = join(DIST, tool);
   const content = (cfg.instructionPrefix ?? "") + instructions;
   writeFileEnsuring(join(out, cfg.instructionFile), content);
-  writeFileEnsuring(join(out, cfg.mcpFile), mcpSnippet(cfg.mcpFormat, tool));
   cpSync(join(SRC, "skills"), join(out, "skills"), { recursive: true });
   if (tool === "codex") {
     cpSync(join(SRC, ".codex"), join(out, ".codex"), { recursive: true });
   }
-  console.log(`generated dist/${tool}: ${cfg.instructionFile}, ${cfg.mcpFile}, skills/`);
+  console.log(`generated dist/${tool}: ${cfg.instructionFile}, skills/`);
 }
 console.log("done");

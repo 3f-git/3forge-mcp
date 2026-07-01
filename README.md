@@ -1,21 +1,21 @@
 # 3forge-mcp
 
-Connect your AI coding tool (Claude Code, Codex, Copilot, Gemini, Cursor) to a **live
-3forge instance** through the `3forge-runtime` MCP server, and give it the skills and agents
-to drive and build on that instance.
+Give your AI coding tool (Claude Code, Codex, Copilot, Gemini, Cursor) the skills and
+agents for 3forge AMI authoring and, when you configure a runtime MCP server separately,
+live instance workflows.
 
 The plugin ships **no offline 3forge documentation** — all conceptual knowledge is fetched
-at runtime from the live instance via `aidoc_getDocumentation`. It ships the MCP connection,
-the operating skills, and the authoring agents. Nothing here duplicates what your instance
-already knows.
+at runtime from the live instance via `aidoc_getDocumentation`. It ships the operating
+skills and authoring agents, but no bundled runtime MCP server configuration. Nothing here
+duplicates what your instance already knows.
 
 ---
 
 ## Prerequisites
 
-- A running **3forge** deployment with the `3forge-runtime` MCP plugin (`amimcp`) loaded in the
-  Web JVM, reachable over HTTP. The standard in-process port is `8766`, i.e.
-  `http://<host>:8766/mcp`.
+- Optional for live-runtime workflows: a running **3forge** deployment with the
+  `3forge-runtime` MCP plugin (`amimcp`) loaded in the Web JVM, reachable over HTTP.
+  The standard in-process port is `8766`, i.e. `http://<host>:8766/mcp`.
 - One of the supported AI tools: Claude Code, Codex, GitHub Copilot, Gemini CLI, or Cursor.
 - For contributors only: **Node.js** (the build script is plain ESM, no dependencies).
 
@@ -33,25 +33,11 @@ already knows.
 >
 > All commands below assume you have this local clone.
 
-### 1. Point at your instance
+### 1. Configure runtime MCP separately, if needed
 
-The installable plugin bundle defaults to the local MCP endpoint:
-
-```bash
-http://localhost:8766/mcp
-```
-
-Codex plugin HTTP MCP URLs are literal at startup, and Codex also auto-discovers the
-plugin-root `.mcp.json`, so both Codex MCP declarations must be absolute URLs. If your 3forge
-instance is not local, edit both `3forge-mcp/.mcp.json` and
-`3forge-mcp/.codex-plugin/plugin.json` before installing or reinstalling the Codex plugin.
-
-The generated Copilot/Gemini/Cursor mirrors still use `${THREEFORGE_MCP_URL}`; set it before
-starting those tools:
-
-```bash
-export THREEFORGE_MCP_URL=http://your-3forge-host:8766/mcp
-```
+This package no longer bundles `3forge-runtime` MCP configuration. Install it for skills and
+agents. If you need live runtime tools, configure the MCP server in the consuming tool or
+project outside this package.
 
 ### 2. Install the plugin
 
@@ -64,9 +50,8 @@ claude plugin marketplace add ./3forge-mcp        # path to the cloned repo root
 claude plugin install 3forge-mcp@3forge-mcp-marketplace
 ```
 
-The bundled `3forge-runtime` MCP server starts automatically against
-`http://localhost:8766/mcp`. Alternatively: open Claude Code inside the clone and accept the
-install prompt.
+Open Claude Code inside the clone and accept the install prompt if you prefer the local
+install flow.
 
 > Once this is published to a hosted marketplace, `marketplace add` will instead take the
 > remote (e.g. `claude plugin marketplace add 3f-git/3forge-mcp`). Until then, use the local
@@ -81,9 +66,8 @@ codex plugin marketplace add ./3forge-mcp        # path to the cloned repo root
 codex plugin add 3forge-mcp@3forge-mcp-marketplace
 ```
 
-The bundled `3forge-runtime` MCP server starts automatically against
-`http://localhost:8766/mcp`. After installing or updating the plugin, start a new Codex thread so
-the plugin skills and MCP tools are loaded.
+After installing or updating the plugin, start a new Codex thread so the plugin skills are
+loaded. Live MCP tools only appear when configured separately in Codex.
 
 For day-to-day Codex usage, including command-equivalent prompts, MCP tool families, skills,
 and agent-role prompts, see [`docs/codex-usage.md`](docs/codex-usage.md).
@@ -93,17 +77,16 @@ and agent-role prompts, see [`docs/codex-usage.md`](docs/codex-usage.md).
 These tools have no equivalent one-command plugin install in this repo, so the repo ships
 **generated mirrors** under `dist/<tool>/`. Copy the pieces your tool expects:
 
-| Tool | Instruction file | MCP config |
-|---|---|---|
-| Copilot | `dist/copilot/.github/copilot-instructions.md` | `dist/copilot/.vscode/mcp.json` |
-| Gemini | `dist/gemini/GEMINI.md` | `dist/gemini/settings.json` → merge into your Gemini settings |
-| Cursor | `dist/cursor/.cursor/rules/3forge-mcp.mdc` | `dist/cursor/.cursor/mcp.json` |
+| Tool | Instruction file |
+|---|---|
+| Copilot | `dist/copilot/.github/copilot-instructions.md` |
+| Gemini | `dist/gemini/GEMINI.md` |
+| Cursor | `dist/cursor/.cursor/rules/3forge-mcp.mdc` |
 
 Skills for each tool are under `dist/<tool>/skills/`.
 
-> **Mirrors are best-effort.** Verify each tool's MCP config snippet against that tool's
-> current MCP-config schema before relying on it — external tool config formats drift, and
-> only the Claude Code path is exercised in CI.
+> **Mirrors are best-effort.** External tool formats drift, and only the Claude Code path is
+> exercised in CI.
 
 ---
 
@@ -139,9 +122,8 @@ Skills for each tool are under `dist/<tool>/skills/`.
 - **6 Claude Code commands** — `ami-init`, `runtime`, `ami-plan`, `ami-query`, `ami-review`,
   `ami-debug`. The generator also syncs these into the `commands` skill as command-equivalent
   workflows for harnesses that do not load Claude slash commands.
-- **1 MCP server** — `3forge-runtime`; the installable plugin bundle uses the local default
-  `http://localhost:8766/mcp`, and the non-Codex generated mirror configs use
-  `${THREEFORGE_MCP_URL}`.
+- **No bundled MCP server config** - runtime connections are environment-specific and should
+  be configured in the consuming tool or project.
 
 ### The bundled-reference exception
 
@@ -168,7 +150,6 @@ so `aidoc` cannot serve it. That content is bundled read-only under:
 │   ├── .codex-plugin/plugin.json       # Codex plugin manifest
 │   ├── .codex/agents/                  # GENERATED Codex custom-agent TOML
 │   ├── CLAUDE.md                       # canonical operating guidance (projected to mirrors)
-│   ├── .mcp.json                       # 3forge-runtime server, local default URL
 │   ├── skills/                         # <name>/SKILL.md (+ optional reference/)
 │   ├── agents/                         # <name>.md
 │   └── commands/                       # <name>.md
@@ -239,13 +220,13 @@ node build/generate.mjs
 node build/validate.mjs
 ```
 
-Adding a new tool target is a config-only change in `build/tools.json` (instruction filename,
-MCP file, format; optional `instructionPrefix` for tool-specific frontmatter).
+Adding a new tool target is a config-only change in `build/tools.json` (instruction filename
+and optional `instructionPrefix` for tool-specific frontmatter).
 
 ### Validate before committing
 
 ```bash
-node build/validate.mjs             # generated parity, MCP defaults, command refs, Codex agents
+node build/validate.mjs             # generated parity, command refs, Codex agents
 claude plugin validate ./3forge-mcp        # plugin: expect 0 frontmatter warnings
 claude plugin validate --strict .          # marketplace: must pass strict
 ```
@@ -256,24 +237,14 @@ carries the guidance for Claude Code).
 
 ### Never commit
 
-- Secrets or internal hostnames. The package must contain **only** the `3forge-runtime` MCP
-  server with `${THREEFORGE_MCP_URL}` or the Codex-safe local default
-  `http://localhost:8766/mcp` — no resolved internal hosts, no API keys, and no entries for
-  internal-only MCP servers.
-- Quick self-check — the shipped MCP config should declare exactly one server (`3forge-runtime`)
-  with the env-var URL or Codex local default, and nothing should reference a resolved internal
-  host:
-  ```bash
-  cat 3forge-mcp/.mcp.json          # expect only "3forge-runtime": { url: "http://localhost:8766/mcp" }
-  grep -rn '://' --exclude-dir=.git 3forge-mcp | grep -v '\${THREEFORGE_MCP_URL}' | grep -v 'http://localhost:8766/mcp'
-  ```
+- Secrets, internal hostnames, or runtime MCP endpoint config. Runtime connections are
+  environment-specific and should stay outside the plugin package.
 
 ### Naming conventions
 
 - **Plugin / marketplace name:** `3forge` forward-facing (the product is "3forge").
-- **MCP server key `3forge-runtime` and env var `THREEFORGE_MCP_URL`:** kept as-is on purpose. They are
-  connection identifiers, not product branding — and an env var can't start with a digit and
-  hyphens complicate the `mcp__<server>__<tool>` naming, so leave them.
+- **Runtime MCP server key `3forge-runtime`:** use this name in external client config when
+  you want generated tool namespaces to match the bundled runtime guidance.
 
 ### Tool names are a snapshot — verify against the live server
 

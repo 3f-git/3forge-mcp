@@ -1,20 +1,15 @@
 # 3forge-runtime — Live 3forge AMI MCP
 
-This plugin connects your AI coding tool to a running 3forge AMI instance through the
-`3forge-runtime` MCP server. It ships the skills and agents for operating and building on
-that instance. It ships **no AMI concept documentation** — the live instance is the
-source of truth.
+This plugin gives your AI coding tool the skills and agents for operating and building on
+3forge AMI. Live instance work still uses the `3forge-runtime` MCP server, but the MCP
+connection is configured outside this plugin. It ships **no AMI concept documentation** -
+the live instance is the source of truth.
 
-## Connect
+## Runtime MCP Connection
 
-The plugin bundle defaults to the local endpoint:
-
-    http://localhost:8766/mcp
-
-Codex plugin HTTP URLs are literal at startup, and Codex also auto-discovers the
-plugin-root `.mcp.json`, so both Codex MCP declarations must be absolute URLs.
-For a non-local target, edit `3forge-mcp/.mcp.json` and
-`3forge-mcp/.codex-plugin/plugin.json` before installing or reinstalling.
+This package no longer bundles runtime MCP configuration. Configure
+`3forge-runtime` in the consuming tool or project when live tools are needed,
+then start a fresh assistant thread so the MCP tools are discovered.
 
 ## The one rule for AMI knowledge
 
