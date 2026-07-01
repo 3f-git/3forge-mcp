@@ -42,7 +42,7 @@ Always extract and read actual XML content before producing the report. Do not g
 
 ## Execution
 
-Follow the `knowledge/workflows/excel` skill step-by-step:
+Follow the methodology in `../skills/workflows/excel/reference/guide.md` step-by-step:
 1. **Structural Discovery** — unzip the file, read `workbook.xml` for sheet names and named ranges
 2. **UI/UX Analysis** — read sheet XMLs, identify entry points, form controls, and drawing objects
 3. **Dependency Mapping** — grep `<f>` elements across sheets to trace formula dependencies
