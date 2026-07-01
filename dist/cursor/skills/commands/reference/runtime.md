@@ -8,7 +8,7 @@ Show the AMI runtime reference: the live MCP tool catalog, the mandatory doc-ver
 ## Steps
 
 1. Load `skills/runtime/SKILL.md` (entry point, subdomain summary, output-target rules)
-2. Load `skills/runtime/tool-catalog.md` (full grouped list of all 152 tools)
+2. Load `skills/runtime/tool-catalog.md` (full grouped list of all 173 tools)
 3. Load `skills/workflows/doc-verify-apply.md` (the three-step workflow + transient-vs-committed)
 4. If the user asked for live state ("what's running?", "status"), probe the MCP:
    - `ami_showComponents` — components and their status

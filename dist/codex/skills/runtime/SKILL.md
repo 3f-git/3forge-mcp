@@ -14,12 +14,12 @@ Activate when the user wants to interact with a running AMI deployment: query da
 All runtime interaction goes through the **`3forge-runtime` MCP server** — an in-process Java plugin (`amimcp`) loaded inside the AMI Web JVM on port 8766. It reflects every `@Console(MCP|ALL)` method as an MCP tool. There is no SSH, no paramiko, no Python sidecar.
 
 - Server URL: `http://localhost:8766/mcp`
-- Tool count: **152** (snapshot — call `tools/list` to refresh)
+- Tool count: **173** (snapshot — call `tools/list` to refresh)
 - Self-documented: `aidoc_getDocumentation("admin")` — Admin console (port 3285): connection protocol, MCP tool conventions, componentId rules, and the `ami`-object method reference
 
 ## Two skill files you must consult
 
-1. **`.claude/skills/runtime/tool-catalog.md`** — the full grouped tool catalog (152 tools across 7 subdomains, with descriptions, the doc-verify-apply workflow, and the transient-vs-committed rule).
+1. **`.claude/skills/runtime/tool-catalog.md`** — the full grouped tool catalog (173 tools across 6 subdomains, with descriptions, the doc-verify-apply workflow, and the transient-vs-committed rule).
 2. **`.claude/skills/workflows/doc-verify-apply.md`** — the mandatory workflow for every runtime mutation.
 
 > **New in 2026-06:** live AMIScript editor tools (`web_getCallbackEditor`, `web_getDatamodelEditor`, `web_editor*`, `web_editorDm*`, `web_editorDebugInspectAt`) let you change the AMIScript inside an existing callback or DataModel **without killing the session or patching disk**. See `rt-script` for the editor lifecycle and `rt-debug` for `editorDebugInspectAt`.
@@ -68,7 +68,7 @@ When the user opens with a generic prompt ("what's running?"), return:
 ## AMI Deployment — localhost
 
 ### MCP status
-- 3forge-runtime: online (port 8766, 152 tools)
+- 3forge-runtime: online (port 8766, 173 tools)
 
 ### Components (ami_showComponents)
 | Name | Type | Status |

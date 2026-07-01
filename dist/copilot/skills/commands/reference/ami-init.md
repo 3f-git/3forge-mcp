@@ -28,7 +28,7 @@ If `3forge-runtime` is offline, surface this and stop — most runtime work depe
 
 ## Step 2 — Load the runtime tool catalog
 
-Read `skills/runtime/tool-catalog.md` and `skills/workflows/doc-verify-apply.md`. These are the source of truth for the 152 live MCP tools and the mandatory doc to verify to apply workflow.
+Read `skills/runtime/tool-catalog.md` and `skills/workflows/doc-verify-apply.md`. These are the source of truth for the 173 live MCP tools and the mandatory doc to verify to apply workflow.
 
 ## Step 3 — Internalize your role
 
