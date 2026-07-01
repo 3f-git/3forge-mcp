@@ -70,7 +70,7 @@ The WebBalancer is optional — it sits in front of one or more Web components f
 
 ## Authoritative doc references
 
-- `aidoc_getDocumentation("admin")` — MCP tool conventions, `componentId` rules, the manager frame
+- `aidoc_getDocumentation("admin")` — Admin console (port 3285): connection protocol, MCP tool conventions, componentId rules, and the `ami`-object method reference
 - `aidoc_getDocumentation("center")` — Center component startup specifics
 - `aidoc_getDocumentation("relay")` — Relay component startup specifics
 - `aidoc_getDocumentation("web")` — Web component startup specifics

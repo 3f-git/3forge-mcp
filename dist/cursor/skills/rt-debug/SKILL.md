@@ -138,4 +138,5 @@ Each layout-mutating MCP tool tags its autosave with a reason — search by subs
 
 - `aidoc_getDocumentation("debugging")` — debug workflows
 - `aidoc_getDocumentation("troubleshooting")` — known issues catalog
-- `aidoc_getDocumentation("admin")` — log sink IDs, MCP conventions
+- `aidoc_getDocumentation("admin")` — Admin console (port 3285): connection protocol, MCP tool conventions, componentId rules, and the `ami`-object method reference
+- See the `log_*` tool descriptions in `tool-catalog.md` for sink identifiers — no `aidoc_*` topic covers this

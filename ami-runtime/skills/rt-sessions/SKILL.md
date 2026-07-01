@@ -111,5 +111,4 @@ Always pass `componentId="web"` (or the actual Web component name from `ami_show
 
 ## Authoritative doc references
 
-- `aidoc_getDocumentation("sessions")` — session model + lifecycle reference
-- `aidoc_getDocumentation("admin")` — `web_showLogins` / `web_showSessions` output column reference
+- `aidoc_getDocumentation("sessions")` — session model + lifecycle reference, including `web_showLogins` / `web_showSessions` output columns

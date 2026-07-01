@@ -15,7 +15,7 @@ All runtime interaction goes through the **`ami-runtime` MCP server** — an in-
 
 - Server URL: `http://localhost:8766/mcp`
 - Tool count: **152** (snapshot — call `tools/list` to refresh)
-- Self-documented: `aidoc_getDocumentation("admin")` returns the canonical MCP reference
+- Self-documented: `aidoc_getDocumentation("admin")` — Admin console (port 3285): connection protocol, MCP tool conventions, componentId rules, and the `ami`-object method reference
 
 ## Two skill files you must consult
 

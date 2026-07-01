@@ -31,7 +31,8 @@ if (existsSync(DIST)) rmSync(DIST, { recursive: true, force: true });
 
 for (const [tool, cfg] of Object.entries(tools)) {
   const out = join(DIST, tool);
-  writeFileEnsuring(join(out, cfg.instructionFile), instructions);
+  const content = (cfg.instructionPrefix ?? "") + instructions;
+  writeFileEnsuring(join(out, cfg.instructionFile), content);
   writeFileEnsuring(join(out, cfg.mcpFile), mcpSnippet(cfg.mcpFormat));
   cpSync(join(SRC, "skills"), join(out, "skills"), { recursive: true });
   console.log(`generated dist/${tool}: ${cfg.instructionFile}, ${cfg.mcpFile}, skills/`);
