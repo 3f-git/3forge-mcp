@@ -178,20 +178,19 @@ and agent-role prompts, see [`docs/codex-usage.md`](docs/codex-usage.md).
 
 #### Copilot (first-class)
 
-GitHub Copilot CLI can install directly from a dedicated marketplace repo/branch that contains the
-generated standalone Copilot plugin tree (`plugin.json`, `.agent.md` agents, skills, and `.mcp.json`)
-at repository root:
-
-```bash
-copilot plugin marketplace add <owner>/<copilot-marketplace-repo>
-copilot plugin install 3forge-mcp@3forge-mcp-copilot
-```
-
-If you are developing locally, install from the generated local tree instead:
+Local install (recommended for now):
 
 ```bash
 node build/generate.mjs copilot
 copilot plugin marketplace add ./dist/copilot
+copilot plugin install 3forge-mcp@3forge-mcp-copilot
+```
+
+You can also install from a dedicated marketplace repo/branch that contains the generated standalone
+Copilot plugin tree (`plugin.json`, `.agent.md` agents, skills, and `.mcp.json`) at repository root:
+
+```bash
+copilot plugin marketplace add <owner>/<copilot-marketplace-repo>
 copilot plugin install 3forge-mcp@3forge-mcp-copilot
 ```
 
