@@ -26,16 +26,21 @@ your instance already knows.
 
 ## Install
 
-> **⚠️ Not published to any marketplace yet.** There is no hosted/public marketplace for this
-> plugin, so you can't `marketplace add` it by org name. **Clone the repo and install from the
-> local path:**
+> **This plugin is hosted on GitHub at [`3f-git/3forge-mcp`](https://github.com/3f-git/3forge-mcp).**
+> Claude Code installs plugins directly from a git repo, so for Claude Code **no clone is needed** —
+> jump to [Claude Code (first-class)](#claude-code-first-class).
+>
+> The other tools (Codex, Copilot, Gemini, Cursor) install from the generated `dist/` trees, so for
+> those you still clone the repo first and run the commands from its root:
 >
 > ```bash
 > git clone git@github.com:3f-git/3forge-mcp.git
 > cd 3forge-mcp
 > ```
 >
-> All commands below are run from the repository root of this local clone.
+> Because the repo is currently **private**, the git-based install needs access to it — an SSH key on
+> your GitHub account or `gh auth login`; for Claude Code's background auto-updates, also set a
+> `GITHUB_TOKEN` / `GH_TOKEN`. If the repo is made public, no auth is required.
 
 ### 1. Runtime MCP connection
 
@@ -75,20 +80,35 @@ support the `${AMI_MCP_URL:-…}` substitution syntax, so the URL is the literal
 
 #### Claude Code (first-class)
 
-Register your **local clone** as a marketplace, then install from it:
+Add the GitHub repo as a marketplace, then install — no clone required:
 
 ```bash
-# from the repo root — name the directory explicitly ("." is not accepted)
-claude plugin marketplace add ../3forge-mcp        # repo root holds .claude-plugin/marketplace.json
+claude plugin marketplace add 3f-git/3forge-mcp     # clones the repo; reads .claude-plugin/marketplace.json at its root
 claude plugin install 3forge-mcp@3forge-mcp-marketplace
 ```
 
-Open Claude Code inside the clone and accept the install prompt if you prefer the local
-install flow.
+Claude Code tracks the repo's default branch (`main`). Pull later releases with:
 
-> Once this is published to a hosted marketplace, `marketplace add` will instead take the
-> remote (e.g. `claude plugin marketplace add 3f-git/3forge-mcp`). Until then, use the local
-> path above.
+```bash
+claude plugin marketplace update 3forge-mcp-marketplace
+claude plugin update 3forge-mcp@3forge-mcp-marketplace
+```
+
+Manage the plugin any time with `/plugin`, and start a fresh session after installing so its
+skills, commands, agents, and MCP tools are discovered.
+
+<details>
+<summary><b>Local-clone install</b> (plugin development / offline)</summary>
+
+To work on the plugin itself, register your local clone as the marketplace instead of the remote:
+
+```bash
+git clone git@github.com:3f-git/3forge-mcp.git
+cd 3forge-mcp
+claude plugin marketplace add ../3forge-mcp        # name the directory explicitly ("." is not accepted)
+claude plugin install 3forge-mcp@3forge-mcp-marketplace
+```
+</details>
 
 For day-to-day Claude Code usage, including slash commands, subagents, MCP tool families,
 skills, and the doc → verify → apply workflow, see

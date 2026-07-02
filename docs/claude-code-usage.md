@@ -29,18 +29,23 @@ is the source of truth — all 3forge knowledge comes from `aidoc_*` tools.
 
 ## Install
 
-The repository is not yet on a hosted marketplace, so clone it and install from
-the local path:
+The plugin is hosted on GitHub at [`3f-git/3forge-mcp`](https://github.com/3f-git/3forge-mcp),
+and Claude Code installs plugins directly from a git repo — no clone required:
 
 ```bash
-# from the repo root — name the directory explicitly ("." is not accepted)
-claude plugin marketplace add ../3forge-mcp        # repo root holds .claude-plugin/marketplace.json
+claude plugin marketplace add 3f-git/3forge-mcp     # clones the repo; reads .claude-plugin/marketplace.json at its root
 claude plugin install 3forge-mcp@3forge-mcp-marketplace
 ```
 
-Open Claude Code inside the clone and accept the install prompt if you prefer the
-interactive flow. Once published to a hosted marketplace, `marketplace add` will
-instead take the remote (e.g. `3f-git/3forge-mcp`).
+Claude Code tracks the repo's default branch (`main`); pull later releases with
+`claude plugin marketplace update 3forge-mcp-marketplace` then
+`claude plugin update 3forge-mcp@3forge-mcp-marketplace`.
+
+The repo is currently **private**, so the git install needs access to it (an SSH key
+on your GitHub account or `gh auth login`; set `GITHUB_TOKEN`/`GH_TOKEN` for
+background auto-updates). If it is made public, no auth is required. To hack on the
+plugin itself, clone it and register the local clone instead:
+`claude plugin marketplace add ../3forge-mcp` from the repo root.
 
 After installing or updating, **start a fresh session** so the plugin's skills,
 commands, agents, and MCP tools are discovered.
