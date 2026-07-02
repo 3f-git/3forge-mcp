@@ -11,7 +11,7 @@ Loaded when the user wants to:
 - Look up class methods or callback parameter variables to write valid code
 - Browse the AMI SQL aggregator/window registry to pick the right function
 
-This skill is for **live execution**. For session lifecycle (creating headless sessions, killing logins) see `rt-sessions`. For static `.ami` file authoring with embedded AMIScript see the `ami-layout-architect` agent.
+This skill is for **live execution**. For session lifecycle (creating headless sessions, killing logins) see `rt-sessions`. For static `.ami` file authoring with embedded AMIScript see the `3forge-layout-architect` agent.
 
 ## The non-negotiable order
 

@@ -1,6 +1,6 @@
 # Workflow — Doc → Verify → Apply
 
-Mandatory three-step pattern for every operation against a live AMI deployment via the `3forge-runtime` MCP. Authoring agents (`ami-sql-builder`, `ami-layout-architect`, etc.) that write static files into `outputs/` may skip step 2 if no validation tool applies, but they should still consult docs (step 1).
+Mandatory three-step pattern for every operation against a live AMI deployment via the `3forge-runtime` MCP. Authoring agents (`3forge-sql-builder`, `3forge-layout-architect`, etc.) that write static files into `outputs/` may skip step 2 if no validation tool applies, but they should still consult docs (step 1).
 
 ---
 

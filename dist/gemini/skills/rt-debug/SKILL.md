@@ -5,7 +5,7 @@ description: Use when diagnosing a live AMI failure — bad trigger, broken time
 
 # Live Debugging — cross-cutting flow
 
-Loaded when something is broken **at runtime** and you need to localize the failure. For static code review use the `ami-reviewer` agent. For SQL-only dialect issues use `rt-center`.
+Loaded when something is broken **at runtime** and you need to localize the failure. For static code review use the `3forge-reviewer` agent. For SQL-only dialect issues use `rt-center`.
 
 ## Decision tree
 

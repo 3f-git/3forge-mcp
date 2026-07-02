@@ -338,7 +338,7 @@ DEV  →  QA  →  UAT  →  PROD
 ```
 
 1. **Export from source env**: Download `.ami` file from `data/cloud/dev/`
-2. **Review**: Run `ami-reviewer` to check for CRITICAL/HIGH issues
+2. **Review**: Run `3forge-reviewer` to check for CRITICAL/HIGH issues
 3. **Test**: Smoke-test the layout in the target environment after copy
 4. **Copy to target env**: Place the `.ami` file in `data/cloud/<target-env>/`
 5. **Verify**: Confirm the layout loads in the target AMI instance
