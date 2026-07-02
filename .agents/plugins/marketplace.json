@@ -1,0 +1,20 @@
+{
+  "name": "3forge-mcp-codex",
+  "interface": {
+    "displayName": "3forge MCP for Codex"
+  },
+  "plugins": [
+    {
+      "name": "3forge-mcp",
+      "source": {
+        "source": "local",
+        "path": "./dist/codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

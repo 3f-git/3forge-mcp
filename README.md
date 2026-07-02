@@ -116,19 +116,28 @@ skills, and the doc → verify → apply workflow, see
 
 #### Codex
 
-Codex installs from the generated standalone plugin tree under `dist/codex/`.
-From the repository root, register that tree as a local marketplace, then install
-the `3forge-mcp` plugin from it:
+Add the GitHub repo as a marketplace, then install the generated standalone
+Codex plugin from it:
+
+```bash
+codex plugin marketplace add 3f-git/3forge-mcp --ref main
+codex plugin add 3forge-mcp@3forge-mcp-codex
+```
+
+Codex reads the repo-level marketplace at `.agents/plugins/marketplace.json`,
+which points to the generated standalone plugin tree under `dist/codex/`.
+
+For local plugin development or offline testing, register the generated tree
+directly instead:
 
 ```bash
 codex plugin marketplace add ./dist/codex        # the generated standalone Codex plugin
 codex plugin add 3forge-mcp@3forge-mcp-codex
 ```
 
-The generated Codex marketplace file lives at `dist/codex/.agents/plugins/marketplace.json`
-and points back to the standalone `dist/codex` plugin tree. The installed plugin
-contains the Codex manifest, bundled `3forge-runtime` MCP config, 28 skills,
-`AGENTS.md`, and generated custom-agent TOML under `dist/codex/.codex/agents/`.
+The installed plugin contains the Codex manifest, bundled `3forge-runtime` MCP
+config, 28 skills, `AGENTS.md`, and generated custom-agent TOML under
+`dist/codex/.codex/agents/`.
 
 Verify install state:
 
@@ -263,6 +272,7 @@ so `aidoc` cannot serve it. That content is bundled read-only under:
 ```
 .
 ├── .claude-plugin/marketplace.json     # Claude marketplace (source ./3forge-mcp)
+├── .agents/plugins/marketplace.json    # Codex marketplace (source ./dist/codex)
 ├── 3forge-mcp/                         # ← CANONICAL SOURCE — Claude plugin + shared content
 │   ├── .claude-plugin/plugin.json      # Claude Code plugin manifest (name, version)
 │   ├── .mcp.json                       # Claude bundled 3forge-runtime MCP (AMI_MCP_URL)

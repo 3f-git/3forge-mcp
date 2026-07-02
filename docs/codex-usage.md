@@ -26,15 +26,28 @@ agent Markdown source.
 
 ## Install
 
-From a local clone of this repository:
+From the GitHub repository:
+
+```bash
+codex plugin marketplace add 3f-git/3forge-mcp --ref main
+codex plugin add 3forge-mcp@3forge-mcp-codex
+```
+
+This uses the repo-level marketplace file at
+`.agents/plugins/marketplace.json`, which points to the generated standalone
+Codex plugin tree under `dist/codex`.
+
+For local plugin development or offline testing, register the generated tree
+directly from a local clone:
 
 ```bash
 codex plugin marketplace add ./dist/codex
 codex plugin add 3forge-mcp@3forge-mcp-codex
 ```
 
-The generated marketplace file is `dist/codex/.agents/plugins/marketplace.json`
-and it points back to the standalone `dist/codex` plugin tree.
+The generated marketplace file at `dist/codex/.agents/plugins/marketplace.json`
+points back to the standalone `dist/codex` plugin tree when that tree is used
+as the marketplace root.
 
 After installing or updating, start a new Codex thread so the plugin skills and
 bundled MCP tools are loaded.
