@@ -17,7 +17,7 @@ When the plugin is enabled, Claude Code loads all of these as native surfaces:
 - **1 bundled MCP server** — `3forge-runtime` (HTTP), from `3forge-mcp/.mcp.json`.
   Auto-connects on install; no `claude mcp add` needed.
 - **6 slash commands** — from `3forge-mcp/commands/*.md`, exposed as
-  `/3forge-mcp:ami-init`, `/3forge-mcp:runtime`, etc.
+  `/3forge-mcp:3forge-init`, `/3forge-mcp:runtime`, etc.
 - **10 subagents** — from `3forge-mcp/agents/*.md`, spawnable via the Task tool.
 - **28 skills** — from `3forge-mcp/skills/*/SKILL.md`, invoked automatically when
   a task matches, or explicitly with the Skill tool.
@@ -73,7 +73,7 @@ mutation tools will not.
 Prime a new session by running the init command:
 
 ```text
-/3forge-mcp:ami-init
+/3forge-mcp:3forge-init
 ```
 
 This one-time primer:
@@ -85,7 +85,7 @@ This one-time primer:
 
 If there is no active Web session, `web_getAmiScriptClass` can return
 `Session not found: null`. That is expected — Web-context method introspection
-needs an active session ID. `/ami-init` does **not** create a headless session
+needs an active session ID. `/3forge-init` does **not** create a headless session
 just to satisfy this unless you explicitly ask for one.
 
 ## Slash Commands
@@ -95,38 +95,38 @@ will list them; the `3forge-mcp:` prefix disambiguates them from other plugins.
 
 | Command | Use when |
 |---|---|
-| `/3forge-mcp:ami-init` | Prime a session: verify MCP connectivity, list live components, load operating rules. Run once at session start. |
+| `/3forge-mcp:3forge-init` | Prime a session: verify MCP connectivity, list live components, load operating rules. Run once at session start. |
 | `/3forge-mcp:runtime` | Show the live deployment reference — MCP tool catalog, doc → verify → apply workflow, and live component status. |
-| `/3forge-mcp:ami-plan` | Plan an AMI feature with table design, datamodel architecture, and a step-by-step implementation guide. |
-| `/3forge-mcp:ami-query` | Write, fix, or optimize AMI SQL; convert standard SQL to AMI dialect; troubleshoot query errors. |
-| `/3forge-mcp:ami-review` | Review AMIScript for syntax, best practices, and context-specific patterns (Center vs Web). |
-| `/3forge-mcp:ami-debug` | Diagnose AMI errors step-by-step — null pointers, SQL failures, datamodel issues. |
+| `/3forge-mcp:3forge-plan` | Plan an AMI feature with table design, datamodel architecture, and a step-by-step implementation guide. |
+| `/3forge-mcp:3forge-query` | Write, fix, or optimize AMI SQL; convert standard SQL to AMI dialect; troubleshoot query errors. |
+| `/3forge-mcp:3forge-review` | Review AMIScript for syntax, best practices, and context-specific patterns (Center vs Web). |
+| `/3forge-mcp:3forge-debug` | Diagnose AMI errors step-by-step — null pointers, SQL failures, datamodel issues. |
 
 ## Subagents
 
 The plugin ships 10 subagents, spawnable with the Task tool. Ask Claude to
-delegate ("use the ami-sql-builder agent to …"), or Claude will dispatch them
+delegate ("use the 3forge-sql-builder agent to …"), or Claude will dispatch them
 automatically when a task matches. Each agent has a scoped toolset and model.
 
 | Agent | Model | Delegate when |
 |---|---|---|
 | `3forge-runtime` | sonnet | Anything against a **live** AMI deployment — query data, run SQL, inspect tables, manage components, deploy/inspect panels & layouts. |
-| `ami-architect` | sonnet | Scaffolding a full deployment — folder structure, environments, property files; orchestrates the schema/layout/review agents. |
-| `ami-sql-builder` | sonnet | Writing `.amisql` schema — tables, indexes, triggers, timers, stored procedures, datasource management. |
-| `ami-layout-architect` | sonnet | Generating `.ami` layout files — divider tree, datamodels, panel logic, callbacks, AMIScript (structure, not style). |
-| `ami-layout-style` | sonnet | Visual design of a layout — color themes, `amiStyle`, `styleSets`, custom CSS, column color formulas, HTML panel design. |
-| `ami-config-writer` | sonnet | Writing/updating `.properties` files for any component (Center, Web, Relay, WebBalancer, WebManager). |
-| `ami-datasource-advisor` | sonnet | Choosing an integration pattern; `CALL __ADD_DATASOURCE` stubs, Relay feedhandler config, custom Java `AmiFH` skeletons. |
-| `ami-reviewer` | haiku | Reviewing any generated or user-supplied AMI artifact — AMIScript, `.ami` JSON, `.amisql`, config — by severity. Use proactively after generating code. |
+| `3forge-architect` | sonnet | Scaffolding a full deployment — folder structure, environments, property files; orchestrates the schema/layout/review agents. |
+| `3forge-sql-builder` | sonnet | Writing `.amisql` schema — tables, indexes, triggers, timers, stored procedures, datasource management. |
+| `3forge-layout-architect` | sonnet | Generating `.ami` layout files — divider tree, datamodels, panel logic, callbacks, AMIScript (structure, not style). |
+| `3forge-layout-style` | sonnet | Visual design of a layout — color themes, `amiStyle`, `styleSets`, custom CSS, column color formulas, HTML panel design. |
+| `3forge-config-writer` | sonnet | Writing/updating `.properties` files for any component (Center, Web, Relay, WebBalancer, WebManager). |
+| `3forge-datasource-advisor` | sonnet | Choosing an integration pattern; `CALL __ADD_DATASOURCE` stubs, Relay feedhandler config, custom Java `AmiFH` skeletons. |
+| `3forge-reviewer` | haiku | Reviewing any generated or user-supplied AMI artifact — AMIScript, `.ami` JSON, `.amisql`, config — by severity. Use proactively after generating code. |
 | `excel-decomposer` | sonnet | Reverse-engineering an `.xls`/`.xlsx`/`.xlsm` workbook into business logic and data architecture. |
-| `excel-to-ami` | sonnet | Migrating an Excel workbook into a full AMI deployment (forms → FormPanels, sheets → datamodels, formulas → blenders). |
+| `excel-to-3forge` | sonnet | Migrating an Excel workbook into a full AMI deployment (forms → FormPanels, sheets → datamodels, formulas → blenders). |
 
 Parallel review example:
 
 ```text
 Review data/cloud/Orders.ami and schema/orders.amisql. Spawn parallel agents:
-ami-reviewer for AMIScript correctness, ami-layout-style for UI/style issues,
-and ami-sql-builder for schema risks. Wait for all three and summarize.
+3forge-reviewer for AMIScript correctness, 3forge-layout-style for UI/style issues,
+and 3forge-sql-builder for schema risks. Wait for all three and summarize.
 ```
 
 ## Skills
@@ -141,7 +141,7 @@ fall into four groups.
 |---|---|
 | `using-3forge-runtime` | Start of any live runtime work — loads the doc → verify → apply loop, tool naming, transient-vs-committed rule, and which agent to dispatch. |
 | `runtime` | General live-instance interaction; routes to the matching `rt-*` subdomain skill. |
-| `commands` | Slash-command-equivalent execution of `/ami-init`, `/runtime`, `/ami-plan`, `/ami-query`, `/ami-review`, `/ami-debug`. |
+| `commands` | Slash-command-equivalent execution of `/3forge-init`, `/runtime`, `/3forge-plan`, `/3forge-query`, `/3forge-review`, `/3forge-debug`. |
 | `workflows` | Cross-cutting routing for the required doc → verify → apply workflow and Excel migration. |
 | `excel` (`workflows/excel`) | Analyzing or reverse-engineering Excel workbooks for AMI migration. |
 
@@ -271,7 +271,7 @@ If you don't say, Claude will ask once and remember for the session.
 Initialize a session:
 
 ```text
-/3forge-mcp:ami-init
+/3forge-mcp:3forge-init
 ```
 
 Runtime status:
@@ -290,14 +290,14 @@ subscriptions, replications, timezone, and recent errors.
 Write AMI SQL:
 
 ```text
-/3forge-mcp:ami-query — write a query for Orders grouped by status. Confirm the
+/3forge-mcp:3forge-query — write a query for Orders grouped by status. Confirm the
 AMI SQL dialect from the live docs first.
 ```
 
 Plan a dashboard:
 
 ```text
-/3forge-mcp:ami-plan for a dashboard with a live Orders table, a selected-order
+/3forge-mcp:3forge-plan for a dashboard with a live Orders table, a selected-order
 detail panel, and an order-status summary.
 ```
 
@@ -311,14 +311,14 @@ first. Do not commit or save until I confirm.
 Review files:
 
 ```text
-/3forge-mcp:ami-review on schema/orders.amisql and data/cloud/Orders.ami. Focus
+/3forge-mcp:3forge-review on schema/orders.amisql and data/cloud/Orders.ami. Focus
 on AMI SQL dialect, Center-vs-Web context, and persistence risks.
 ```
 
 Debug a live error:
 
 ```text
-/3forge-mcp:ami-debug — the Orders detail panel is blank after row selection.
+/3forge-mcp:3forge-debug — the Orders detail panel is blank after row selection.
 Inspect relationships, the target DataModel's WHERE substitution, session
 errors, and recent logs.
 ```
@@ -336,7 +336,7 @@ formulas, named ranges, inputs, and outputs, and propose an AMI migration plan.
   use `aidoc_getDocumentation(...)` from the live instance.
 - Don't mutate live layouts without the doc → verify → apply workflow.
 - Don't commit or save transient Web changes without explicit confirmation.
-- Don't create headless sessions during `/ami-init` unless you asked for one.
+- Don't create headless sessions during `/3forge-init` unless you asked for one.
 - Don't assume live tools work without AMI Web running the `amimcp` plugin on
   the configured `AMI_MCP_URL` (default `http://localhost:8766/mcp`).
 - Don't hand-edit `dist/`; edit sources under `3forge-mcp/` and run

@@ -1,6 +1,6 @@
 ---
 name: commands
-description: "Use when the user asks for a 3forge command workflow or Claude slash-command equivalent: /ami-init, /runtime, /ami-plan, /ami-query, /ami-review, or /ami-debug. Provides Codex-compatible execution of the command prompts bundled from `3forge-mcp/commands`."
+description: "Use when the user asks for a 3forge command workflow or Claude slash-command equivalent: /3forge-init, /runtime, /3forge-plan, /3forge-query, /3forge-review, or /3forge-debug. Provides Codex-compatible execution of the command prompts bundled from `3forge-mcp/commands`."
 ---
 
 # 3forge Command Workflows
@@ -15,12 +15,12 @@ its instructions as the active task:
 
 | User intent | Command reference |
 |---|---|
-| `/ami-init`, initialize or prime a 3forge session | `reference/ami-init.md` |
+| `/3forge-init`, initialize or prime a 3forge session | `reference/3forge-init.md` |
 | `/runtime`, show runtime status or live reference | `reference/runtime.md` |
-| `/ami-plan`, plan an AMI feature | `reference/ami-plan.md` |
-| `/ami-query`, write or fix AMI SQL | `reference/ami-query.md` |
-| `/ami-review`, review AMI code or layout artifacts | `reference/ami-review.md` |
-| `/ami-debug`, diagnose AMI errors | `reference/ami-debug.md` |
+| `/3forge-plan`, plan an AMI feature | `reference/3forge-plan.md` |
+| `/3forge-query`, write or fix AMI SQL | `reference/3forge-query.md` |
+| `/3forge-review`, review AMI code or layout artifacts | `reference/3forge-review.md` |
+| `/3forge-debug`, diagnose AMI errors | `reference/3forge-debug.md` |
 
 Replace `$ARGUMENTS` with the user's trailing text or current request context. If a command
 reference says to load `skills/...`, resolve that path from the plugin root and prefer loading the

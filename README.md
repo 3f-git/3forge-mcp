@@ -125,7 +125,7 @@ skills are loaded. Use the bundled command-equivalent skill rather than bare
 Claude-style slash commands:
 
 ```text
-Use 3forge MCP /ami-init.
+Use 3forge MCP /3forge-init.
 Use 3forge MCP /runtime status.
 Use 3forge MCP to write an AMI SQL query for live Orders rows.
 ```
@@ -206,14 +206,14 @@ Skills for each tool are under `dist/<tool>/skills/`.
   `using-3forge-runtime` operating guide, command-equivalent workflows for Codex and other
   non-Claude harnesses, plus bundled offline `reference/` for the topics that have no `aidoc`
   home (see below).
-- **10 agents** — `3forge-runtime` (drive the instance) plus authoring agents (`ami-sql-builder`,
-  `ami-layout-architect`, `ami-layout-style`, `ami-reviewer`, `ami-architect`,
-  `ami-config-writer`, `ami-datasource-advisor`, `excel-decomposer`, `excel-to-ami`).
+- **10 agents** — `3forge-runtime` (drive the instance) plus authoring agents (`3forge-sql-builder`,
+  `3forge-layout-architect`, `3forge-layout-style`, `3forge-reviewer`, `3forge-architect`,
+  `3forge-config-writer`, `3forge-datasource-advisor`, `excel-decomposer`, `excel-to-3forge`).
   Claude Code reads the source `agents/*.md` files; Codex-native custom-agent TOML is generated
   under `dist/codex/.codex/agents/`, and Copilot-native `.agent.md` agents under
   `dist/copilot/agents/`.
-- **6 Claude Code commands** — `ami-init`, `runtime`, `ami-plan`, `ami-query`, `ami-review`,
-  `ami-debug`. The generator also syncs these into the `commands` skill as command-equivalent
+- **6 Claude Code commands** — `3forge-init`, `runtime`, `3forge-plan`, `3forge-query`, `3forge-review`,
+  `3forge-debug`. The generator also syncs these into the `commands` skill as command-equivalent
   workflows for harnesses that do not load Claude slash commands.
 - **Bundled MCP server config (Claude Code + Codex + Copilot)** — `3forge-mcp/.mcp.json` registers the
   `3forge-runtime` HTTP server for Claude Code (endpoint defaults to `http://localhost:8766/mcp`,

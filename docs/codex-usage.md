@@ -95,13 +95,13 @@ still hangs after the clients exit, restart the AMI Web JVM that hosts `amimcp`.
 Use this at the start of a Codex session:
 
 ```text
-Use 3forge MCP /ami-init.
+Use 3forge MCP /3forge-init.
 ```
 
 Expected behavior:
 
 - Codex activates `3forge-mcp:commands`.
-- The skill dispatches to `reference/ami-init.md`.
+- The skill dispatches to `reference/3forge-init.md`.
 - If `3forge-runtime` is reachable, Codex probes `aidoc_getDocumentation`,
   `ami_showComponents`, Web sessions, and AMIScript class introspection when a
   Web session is available.
@@ -111,7 +111,7 @@ Expected behavior:
 If there is no active Web session, `web_getAmiScriptClass` can return
 `Session not found: null`. That is not a plugin failure. It means Web-context
 method introspection needs an active session ID. Do not create a headless
-session just for `/ami-init` unless you explicitly want one.
+session just for `/3forge-init` unless you explicitly want one.
 
 ## Command Workflows
 
@@ -120,22 +120,22 @@ Claude Code exposes these as slash commands. In Codex, invoke them through the
 
 | Claude-style command | Codex prompt | Use when |
 |---|---|---|
-| `/ami-init` | `Use 3forge MCP /ami-init.` | Prime a session, verify MCP connectivity, list live components, load operating rules. |
+| `/3forge-init` | `Use 3forge MCP /3forge-init.` | Prime a session, verify MCP connectivity, list live components, load operating rules. |
 | `/runtime` | `Use 3forge MCP /runtime status.` | Show live deployment status, sessions, component state, and recent errors. |
-| `/ami-plan` | `Use 3forge MCP /ami-plan for ...` | Plan an AMI feature with data, Center, Web, and governance concerns. |
-| `/ami-query` | `Use 3forge MCP /ami-query to ...` | Write, fix, or optimize AMI SQL with live syntax docs. |
-| `/ami-review` | `Use 3forge MCP /ami-review ...` | Review AMI Script, `.ami`, `.amisql`, config, or layout artifacts. |
-| `/ami-debug` | `Use 3forge MCP /ami-debug ...` | Diagnose live errors, bad triggers, timers, sessions, or layout issues. |
+| `/3forge-plan` | `Use 3forge MCP /3forge-plan for ...` | Plan an AMI feature with data, Center, Web, and governance concerns. |
+| `/3forge-query` | `Use 3forge MCP /3forge-query to ...` | Write, fix, or optimize AMI SQL with live syntax docs. |
+| `/3forge-review` | `Use 3forge MCP /3forge-review ...` | Review AMI Script, `.ami`, `.amisql`, config, or layout artifacts. |
+| `/3forge-debug` | `Use 3forge MCP /3forge-debug ...` | Diagnose live errors, bad triggers, timers, sessions, or layout issues. |
 
-Bare `/ami-init` is not a native Codex CLI slash command. Use one of these
+Bare `/3forge-init` is not a native Codex CLI slash command. Use one of these
 forms instead:
 
 ```text
-Use 3forge MCP /ami-init.
+Use 3forge MCP /3forge-init.
 ```
 
 ```text
-Use the 3forge-mcp commands skill for /ami-init.
+Use the 3forge-mcp commands skill for /3forge-init.
 ```
 
 You can also use Codex's skill picker:
@@ -177,7 +177,7 @@ These are native Codex commands, not 3forge commands:
 ## Prompt Aliases
 
 Codex custom prompts can create local slash-like aliases such as
-`/prompts:ami-init`, but they are local to `~/.codex/prompts` and are not shared
+`/prompts:3forge-init`, but they are local to `~/.codex/prompts` and are not shared
 through this plugin. Codex docs mark custom prompts as deprecated and recommend
 skills for reusable workflows. For this plugin, prefer the bundled `commands`
 skill instead of maintaining separate local prompt aliases.
@@ -287,7 +287,7 @@ groups.
 |---|---|
 | `using-3forge-runtime` | Any live runtime work; loads the doc -> verify -> apply rule, tool naming, transient object rules. |
 | `runtime` | General live instance interaction; routes to `rt-*` skills. |
-| `commands` | Codex equivalent for `/ami-init`, `/runtime`, `/ami-plan`, `/ami-query`, `/ami-review`, `/ami-debug`. |
+| `commands` | Codex equivalent for `/3forge-init`, `/runtime`, `/3forge-plan`, `/3forge-query`, `/3forge-review`, `/3forge-debug`. |
 | `workflows` | Cross-cutting workflow routing, including doc -> verify -> apply and Excel migration. |
 | `workflows/excel` (`excel`) | Analyze or migrate Excel workbooks. |
 
@@ -346,26 +346,26 @@ names as role prompts or rely on the matching skill/workflow.
 | Agent role | How to ask in Codex | Use when |
 |---|---|---|
 | `3forge-runtime` | `Use 3forge MCP runtime to ...` | Talk to a running AMI instance, inspect live state, run SQL, manage live panels/layouts. |
-| `ami-architect` | `Use the AMI architect role to ...` | Plan or scaffold a full deployment with environments and folder structure. |
-| `ami-config-writer` | `Use the config writer role to ...` | Generate/update `.properties` overrides for Center, Web, Relay, SSL, auth, ports, persistence. |
-| `ami-datasource-advisor` | `Use the datasource advisor role to ...` | Choose datasource vs feedhandler, write `CALL __ADD_DATASOURCE`, configure Relay feeds. |
-| `ami-layout-architect` | `Use the layout architect role to ...` | Design/generate `.ami` layout structure, panels, DataModels, callbacks. |
-| `ami-layout-style` | `Use the layout style role to ...` | Apply themes, `amiStyle`, `styleSets`, CSS, column color formulas. |
-| `ami-reviewer` | `Use the AMI reviewer role to ...` | Review AMI SQL, AMIScript, `.ami`, layout JSON, and config artifacts. |
-| `ami-sql-builder` | `Use the SQL builder role to ...` | Write `.amisql` schema, tables, indexes, triggers, timers, procedures. |
+| `3forge-architect` | `Use the AMI architect role to ...` | Plan or scaffold a full deployment with environments and folder structure. |
+| `3forge-config-writer` | `Use the config writer role to ...` | Generate/update `.properties` overrides for Center, Web, Relay, SSL, auth, ports, persistence. |
+| `3forge-datasource-advisor` | `Use the datasource advisor role to ...` | Choose datasource vs feedhandler, write `CALL __ADD_DATASOURCE`, configure Relay feeds. |
+| `3forge-layout-architect` | `Use the layout architect role to ...` | Design/generate `.ami` layout structure, panels, DataModels, callbacks. |
+| `3forge-layout-style` | `Use the layout style role to ...` | Apply themes, `amiStyle`, `styleSets`, CSS, column color formulas. |
+| `3forge-reviewer` | `Use the AMI reviewer role to ...` | Review AMI SQL, AMIScript, `.ami`, layout JSON, and config artifacts. |
+| `3forge-sql-builder` | `Use the SQL builder role to ...` | Write `.amisql` schema, tables, indexes, triggers, timers, procedures. |
 | `excel-decomposer` | `Use the Excel decomposer role to ...` | Reverse-engineer `.xls`, `.xlsx`, or `.xlsm` workbook logic. |
-| `excel-to-ami` | `Use the Excel to AMI role to ...` | Convert an Excel workbook into an AMI deployment plan/files. |
+| `excel-to-3forge` | `Use the Excel to AMI role to ...` | Convert an Excel workbook into an AMI deployment plan/files. |
 
 Parallel review example:
 
 ```text
-Use 3forge MCP and spawn parallel Codex subagents: one as ami-reviewer for AMIScript correctness, one as ami-layout-style for UI/style issues, and one as ami-sql-builder for schema risks. Wait for all three and summarize findings.
+Use 3forge MCP and spawn parallel Codex subagents: one as 3forge-reviewer for AMIScript correctness, one as 3forge-layout-style for UI/style issues, and one as 3forge-sql-builder for schema risks. Wait for all three and summarize findings.
 ```
 
 Native custom-agent example after installing the TOML files:
 
 ```text
-Use the ami-reviewer custom agent to review data/cloud/Orders.ami, and use the ami-sql-builder custom agent to review schema/orders.amisql. Wait for both and summarize blocking findings.
+Use the 3forge-reviewer custom agent to review data/cloud/Orders.ami, and use the 3forge-sql-builder custom agent to review schema/orders.amisql. Wait for both and summarize blocking findings.
 ```
 
 ## Prompt Cookbook
@@ -373,7 +373,7 @@ Use the ami-reviewer custom agent to review data/cloud/Orders.ami, and use the a
 ### Initialize
 
 ```text
-Use 3forge MCP /ami-init.
+Use 3forge MCP /3forge-init.
 ```
 
 ### Runtime Status
@@ -391,13 +391,13 @@ Use 3forge MCP to inspect the Center: show tables, datasources, triggers, timers
 ### Write AMI SQL
 
 ```text
-Use 3forge MCP /ami-query to write a query for Orders grouped by status. Confirm AMI SQL syntax from the live docs first.
+Use 3forge MCP /3forge-query to write a query for Orders grouped by status. Confirm AMI SQL syntax from the live docs first.
 ```
 
 ### Plan A Dashboard
 
 ```text
-Use 3forge MCP /ami-plan for a dashboard with a live Orders table, selected-order detail panel, and order-status summary.
+Use 3forge MCP /3forge-plan for a dashboard with a live Orders table, selected-order detail panel, and order-status summary.
 ```
 
 ### Apply A Live Panel Safely
@@ -409,13 +409,13 @@ Use 3forge MCP to add a transient live table panel for Orders in the active Web 
 ### Review Files
 
 ```text
-Use 3forge MCP /ami-review on schema/orders.amisql and data/cloud/Orders.ami. Focus on AMI SQL dialect, Center vs Web context, and persistence risks.
+Use 3forge MCP /3forge-review on schema/orders.amisql and data/cloud/Orders.ami. Focus on AMI SQL dialect, Center vs Web context, and persistence risks.
 ```
 
 ### Debug A Live Error
 
 ```text
-Use 3forge MCP /ami-debug. The Orders detail panel is blank after row selection. Inspect relationships, target DataModel WHERE substitution, session errors, and recent logs.
+Use 3forge MCP /3forge-debug. The Orders detail panel is blank after row selection. Inspect relationships, target DataModel WHERE substitution, session errors, and recent logs.
 ```
 
 ### Excel Migration
@@ -426,13 +426,13 @@ Use 3forge MCP and the Excel migration workflow to analyze workbook.xlsx, identi
 
 ## Common Pitfalls
 
-- Do not type bare `/ami-init` and expect a native Codex slash command. Use
-  `Use 3forge MCP /ami-init`.
+- Do not type bare `/3forge-init` and expect a native Codex slash command. Use
+  `Use 3forge MCP /3forge-init`.
 - Do not let Codex answer 3forge syntax questions from model memory. It should
   use `aidoc_getDocumentation(...)` from the live instance.
 - Do not mutate live layouts without the doc -> verify -> apply workflow.
 - Do not commit or save transient Web changes without explicit confirmation.
-- Do not create headless sessions during `/ami-init` unless you asked for one.
+- Do not create headless sessions during `/3forge-init` unless you asked for one.
 - Do not hand-edit `dist/`; edit `3forge-mcp/` and run `node build/generate.mjs`.
 - Do not hand-edit `dist/codex/.codex/agents/*.toml`; edit
   `3forge-mcp/agents/*.md` and regenerate.

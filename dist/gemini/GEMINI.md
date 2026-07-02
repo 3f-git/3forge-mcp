@@ -48,12 +48,12 @@ user confirmation.
 | Intent | Agent |
 |---|---|
 | Interact with the live instance | `3forge-runtime` |
-| Write/modify `.amisql` schema | `ami-sql-builder` |
-| Generate/design a `.ami` layout | `ami-layout-architect` |
-| Style/theme a layout | `ami-layout-style` |
-| Review AMI code/layouts | `ami-reviewer` |
-| Scaffold a deployment | `ami-architect` |
-| Write `.properties` config | `ami-config-writer` |
-| Connect a datasource / feedhandler | `ami-datasource-advisor` |
+| Write/modify `.amisql` schema | `3forge-sql-builder` |
+| Generate/design a `.ami` layout | `3forge-layout-architect` |
+| Style/theme a layout | `3forge-layout-style` |
+| Review AMI code/layouts | `3forge-reviewer` |
+| Scaffold a deployment | `3forge-architect` |
+| Write `.properties` config | `3forge-config-writer` |
+| Connect a datasource / feedhandler | `3forge-datasource-advisor` |
 | Decompose an Excel workbook | `excel-decomposer` |
-| Migrate Excel → AMI deployment | `excel-to-ami` |
+| Migrate Excel → AMI deployment | `excel-to-3forge` |

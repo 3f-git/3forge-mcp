@@ -28,11 +28,11 @@ tree and is left untouched). When the plugin is installed, Copilot loads:
 The plugin ships **no AMI concept documentation of its own**. The live instance is
 the source of truth — all 3forge knowledge comes from `aidoc_*` tools.
 
-> **Slash commands:** the six Claude Code slash commands (`/ami-init`, `/runtime`,
-> `/ami-plan`, `/ami-query`, `/ami-review`, `/ami-debug`) are **not** native Copilot
+> **Slash commands:** the six Claude Code slash commands (`/3forge-init`, `/runtime`,
+> `/3forge-plan`, `/3forge-query`, `/3forge-review`, `/3forge-debug`) are **not** native Copilot
 > commands. Their content is shipped inside the `commands` skill as
 > command-equivalent workflows, so you get the same guidance by asking Copilot in
-> plain language (e.g. "run the ami-init primer" or "plan an AMI feature").
+> plain language (e.g. "run the 3forge-init primer" or "plan an AMI feature").
 
 ## Install
 
@@ -95,7 +95,7 @@ mutation tools will not.
 Prime a new session by asking Copilot to run the init workflow:
 
 ```text
-Run the 3forge ami-init primer: verify 3forge-runtime connectivity, list live
+Run the 3forge 3forge-init primer: verify 3forge-runtime connectivity, list live
 components, and load the doc → verify → apply workflow.
 ```
 
@@ -110,21 +110,21 @@ unless you explicitly ask for one.
 ## Agents
 
 The plugin ships 10 agents as Copilot `.agent.md` files. Ask Copilot to delegate
-to one by name ("use the ami-sql-builder agent to …"), and it will hand the task
+to one by name ("use the 3forge-sql-builder agent to …"), and it will hand the task
 to that agent and return its summary.
 
 | Agent | Delegate when |
 |---|---|
 | `3forge-runtime` | Anything against a **live** AMI deployment — query data, run SQL, inspect tables, manage components, deploy/inspect panels & layouts. |
-| `ami-architect` | Scaffolding a full deployment — folder structure, environments, property files; orchestrates the schema/layout/review agents. |
-| `ami-sql-builder` | Writing `.amisql` schema — tables, indexes, triggers, timers, stored procedures, datasource management. |
-| `ami-layout-architect` | Generating `.ami` layout files — divider tree, datamodels, panel logic, callbacks, AMIScript (structure, not style). |
-| `ami-layout-style` | Visual design of a layout — color themes, `amiStyle`, `styleSets`, custom CSS, column color formulas, HTML panel design. |
-| `ami-config-writer` | Writing/updating `.properties` files for any component (Center, Web, Relay, WebBalancer, WebManager). |
-| `ami-datasource-advisor` | Choosing an integration pattern; `CALL __ADD_DATASOURCE` stubs, Relay feedhandler config, custom Java `AmiFH` skeletons. |
-| `ami-reviewer` | Reviewing any generated or user-supplied AMI artifact — AMIScript, `.ami` JSON, `.amisql`, config — by severity. Use proactively after generating code. |
+| `3forge-architect` | Scaffolding a full deployment — folder structure, environments, property files; orchestrates the schema/layout/review agents. |
+| `3forge-sql-builder` | Writing `.amisql` schema — tables, indexes, triggers, timers, stored procedures, datasource management. |
+| `3forge-layout-architect` | Generating `.ami` layout files — divider tree, datamodels, panel logic, callbacks, AMIScript (structure, not style). |
+| `3forge-layout-style` | Visual design of a layout — color themes, `amiStyle`, `styleSets`, custom CSS, column color formulas, HTML panel design. |
+| `3forge-config-writer` | Writing/updating `.properties` files for any component (Center, Web, Relay, WebBalancer, WebManager). |
+| `3forge-datasource-advisor` | Choosing an integration pattern; `CALL __ADD_DATASOURCE` stubs, Relay feedhandler config, custom Java `AmiFH` skeletons. |
+| `3forge-reviewer` | Reviewing any generated or user-supplied AMI artifact — AMIScript, `.ami` JSON, `.amisql`, config — by severity. Use proactively after generating code. |
 | `excel-decomposer` | Reverse-engineering an `.xls`/`.xlsx`/`.xlsm` workbook into business logic and data architecture. |
-| `excel-to-ami` | Migrating an Excel workbook into a full AMI deployment (forms → FormPanels, sheets → datamodels, formulas → blenders). |
+| `excel-to-3forge` | Migrating an Excel workbook into a full AMI deployment (forms → FormPanels, sheets → datamodels, formulas → blenders). |
 
 ## Skills
 
@@ -137,7 +137,7 @@ description, or that you can reference explicitly. They fall into four groups.
 |---|---|
 | `using-3forge-runtime` | Start of any live runtime work — loads the doc → verify → apply loop, tool naming, transient-vs-committed rule, and which agent to dispatch. |
 | `runtime` | General live-instance interaction; routes to the matching `rt-*` subdomain skill. |
-| `commands` | Command-equivalent execution of `ami-init`, `runtime`, `ami-plan`, `ami-query`, `ami-review`, `ami-debug`. |
+| `commands` | Command-equivalent execution of `3forge-init`, `runtime`, `3forge-plan`, `3forge-query`, `3forge-review`, `3forge-debug`. |
 | `workflows` | Cross-cutting routing for the required doc → verify → apply workflow and Excel migration. |
 | `excel` (`workflows/excel`) | Analyzing or reverse-engineering Excel workbooks for AMI migration. |
 
@@ -244,7 +244,7 @@ If you don't say, Copilot will ask once and remember for the session.
 Initialize a session:
 
 ```text
-Run the ami-init primer against my 3forge instance.
+Run the 3forge-init primer against my 3forge instance.
 ```
 
 Center inventory:
@@ -257,7 +257,7 @@ subscriptions, replications, timezone, and recent errors.
 Write AMI SQL:
 
 ```text
-Use the ami-sql-builder agent to write a query for Orders grouped by status.
+Use the 3forge-sql-builder agent to write a query for Orders grouped by status.
 Confirm the AMI SQL dialect from the live docs first.
 ```
 
@@ -278,14 +278,14 @@ first. Do not commit or save until I confirm.
 Review files:
 
 ```text
-Use the ami-reviewer agent on schema/orders.amisql and data/cloud/Orders.ami.
+Use the 3forge-reviewer agent on schema/orders.amisql and data/cloud/Orders.ami.
 Focus on AMI SQL dialect, Center-vs-Web context, and persistence risks.
 ```
 
 Excel migration:
 
 ```text
-Use the excel-to-ami agent to analyze workbook.xlsx: identify sheets, formulas,
+Use the excel-to-3forge agent to analyze workbook.xlsx: identify sheets, formulas,
 named ranges, inputs, and outputs, and propose an AMI migration plan.
 ```
 

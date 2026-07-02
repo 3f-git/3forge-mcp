@@ -7,7 +7,7 @@ description: Use when applying or changing visual styling on a live AMI panel/la
 
 Loaded when the user wants to change the look of something that's already in a live session: panel colors, fonts, borders, column cell colors, HTML panel templates, layout-wide themes.
 
-For visual design on a **static `.ami` file** (artifact in `outputs/`), use the `ami-layout-style` agent instead. For panel structure changes (adding panels, columns) use `rt-panels`. This skill is purely about appearance on the live instance.
+For visual design on a **static `.ami` file** (artifact in `outputs/`), use the `3forge-layout-style` agent instead. For panel structure changes (adding panels, columns) use `rt-panels`. This skill is purely about appearance on the live instance.
 
 ## The non-negotiable order
 
