@@ -352,12 +352,12 @@ carries the guidance for Claude Code).
 - **Runtime MCP server key `3forge-runtime`:** use this name in external client config when
   you want generated tool namespaces to match the bundled runtime guidance.
 
-### Tool names are a snapshot — verify against the live server
+### Tool names come from the live server — there is no static catalog
 
-`3forge-mcp/skills/runtime/tool-catalog.md` is a point-in-time snapshot of the MCP tool
-surface. Exact tool names vary by 3forge build. Agents are instructed to call `tools/list`
-and `aidoc_getDocumentation` for authoritative names — but if you hardcode a tool name in a
-skill, confirm it against a live server first.
+The running `3forge-runtime` server is the authoritative tool catalog; the plugin ships no
+snapshot of it. Exact tool names vary by 3forge build. Agents and skills are instructed to
+discover tools via `tools/list` / ToolSearch and to call `aidoc_getDocumentation` for topics —
+if you hardcode a tool name in a skill, confirm it against a live server first.
 
 ### Smoke-testing against a live instance
 

@@ -11,7 +11,7 @@ Loaded when the user wants to:
 - Inspect connections, dictionaries, or peer Center registrations
 - Toggle debug for routes / transforms
 
-Follow the doc → verify → apply workflow in `.claude/skills/workflows/doc-verify-apply.md`. There are no JSON validators on the Relay surface — read the relevant doc topic, dry-run by listing first (`relay_showFeedhandlers`, `relay_showRoutes`, etc.), then apply.
+Follow the doc → verify → apply workflow in [`../workflows/doc-verify-apply.md`](../workflows/doc-verify-apply.md). There are no JSON validators on the Relay surface — read the relevant doc topic, dry-run by listing first (`relay_showFeedhandlers`, `relay_showRoutes`, etc.), then apply.
 
 ## Mental model
 

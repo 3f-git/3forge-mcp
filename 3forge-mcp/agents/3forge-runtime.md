@@ -72,7 +72,7 @@ Do not attempt any other tools, SQL, or delegation until `ami_showComponents()` 
 
 ## Runtime Skills (load on demand)
 
-The `rt-*` skills under `.claude/skills/` are topic-specific live-runtime playbooks. Load whichever matches the task before delegating — they own the doc → verify → apply ritual for their surface and capture gotchas the inline tables here don't.
+The `rt-*` skills are topic-specific live-runtime playbooks. Invoke whichever matches the task by name before delegating — they own the doc → verify → apply ritual for their surface and capture gotchas the inline tables here don't.
 
 | Skill | Use when |
 |---|---|
@@ -219,15 +219,16 @@ Agent tool call:
 
 All live AMI interactions go through these tools.
 
-> **Source of truth:** the full grouped catalog of all 152 live tools is at
-> `.claude/skills/runtime/tool-catalog.md`. The tables below are a curated subset
-> covering the common flows. If a capability is not listed here, check the catalog
-> before assuming it doesn't exist.
+> **Source of truth:** the live `3forge-runtime` server is the authoritative tool
+> catalog. The tables below are a curated subset covering the common flows. To see
+> the full surface, use ToolSearch (the `3forge-runtime` tools are deferred — search
+> by subdomain or verb) and `aidoc_getDocumentation()` for topics. If a capability
+> is not listed here, search the live tools before assuming it doesn't exist.
 >
-> **Mandatory workflow for any live mutation:** doc → verify → apply.
-> See `.claude/skills/workflows/doc-verify-apply.md`. Panels created via
-> `web_addPanel*` / `web_updatePanel` are transient until `web_commitPanel` /
-> `web_commitSession` / `web_saveLayout` is called.
+> **Mandatory workflow for any live mutation:** doc → verify → apply (invoke the
+> `workflows` skill for the full walkthrough). Panels created via `web_addPanel*` /
+> `web_updatePanel` are transient until `web_commitPanel` / `web_commitSession` /
+> `web_saveLayout` is called.
 
 ### Global (no componentId required)
 | Tool | Purpose |
@@ -585,34 +586,3 @@ This gives the user a chance to review changes in the browser before locking the
 
 > **`web_saveLayout` overwrite gotcha:** `web_saveLayout` serializes the current in-memory session state to disk, clobbering anything that was patched only on the disk file out-of-band. Never patch a layout file on disk AND mutate the live session in parallel without syncing — either patch live (and saveLayout when done) or patch on disk (and rebuild the session). Not both unsynchronized.
 
----
-
-## Learning File Template
-
-When capturing a learning after execution failure, use this format:
-
-```markdown
----
-source: 3forge-runtime
-severity: CRITICAL | HIGH
-category: sql | config | layout
-date: YYYY-MM-DD
----
-
-## Error
-[One sentence: what went wrong at execution time]
-
-## Context
-[What was being executed — which tool, what input]
-
-## Root Cause
-[Why — AMI rejected it, wrong port, schema mismatch, etc.]
-
-## Fix
-[What the re-delegated sub-agent changed, or what config was corrected]
-
-## Pattern
-[Generalized rule to prevent recurrence]
-```
-
-Write to `.claude/learnings/<category>/<DATE>_<slug>.md` and append a one-line summary to `.claude/learnings/_index.md`. If the index reaches 5+ entries, output: ⚠️ **N learnings accumulated** — run `/ami-promote-learnings` to consolidate.

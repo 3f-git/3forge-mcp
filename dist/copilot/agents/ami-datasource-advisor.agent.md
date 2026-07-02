@@ -24,14 +24,6 @@ Before advising on anything, call `aidoc_getDocumentation(topic)` on the live in
 | `relay` | Relay wire protocol (port 3289) — instruction format, message types, data type encoding, connection lifecycle; also covers custom script object registration |
 | `schema_design` | `CALL __ADD_DATASOURCE` syntax and rules — never hardcode credentials |
 
-## Step 1.5 — Load Config Learnings
-
-Check if `.copilot/learnings/_index.md` exists. If it does, read it and review the **Config** section. If any entry matches the integration type you are about to advise on (e.g. Kafka feedhandler, relay dictionary), read the full learning file before proceeding.
-
-Do not read full learning files unless the one-line summary directly matches the current task.
-
----
-
 ## Step 2 — Clarify the Integration Requirements
 
 Ask the user (or infer from context) before generating anything:
@@ -150,7 +142,7 @@ If the exact config keys are uncertain, include TODO stubs with clear descriptio
 
 Generate a complete Java class skeleton that:
 
-1. Extends `AmiFHBase` (package `com.f1.ami.relay.fh`) — see `datasource/guide.md` for the full interface and `AmiRelayIn` endpoint API
+1. Extends `AmiFHBase` (package `com.f1.ami.relay.fh`) — call `aidoc_getDocumentation("feedhandlers")` and `aidoc_getDocumentation("adapters")` for the full interface and `AmiRelayIn` endpoint API
 2. Has a working `init()`, `start()`, and `stop()` structure
 3. Includes a `publishRow()` helper stub with TODO comment for the exact context API
 4. Is annotated with clear comments explaining what the implementer must supply

@@ -186,48 +186,6 @@ Work through the checklist below. If you find any issue, fix it in the file imme
 
 If you cannot produce a clean pass after 3 attempts, report the remaining issues to the caller and do not deliver.
 
-## Step 6.5 — Capture Learnings
-
-After completing the self-review loop, check if any CRITICAL or HIGH issues were found and fixed. If yes, write a learning file for each distinct error pattern:
-
-1. **File path:** `.copilot/learnings/config/<DATE>_<slug>.md` (e.g. `2026-03-25_ssl-keystore-missing-password.md`)
-
-2. **File format:**
-   ```markdown
-   ---
-   source: self-review
-   severity: CRITICAL | HIGH
-   category: config
-   date: <DATE>
-   ---
-
-   ## Error
-   [One sentence: what was wrong]
-
-   ## Context
-   [What was being configured — which component, which environment]
-
-   ## Root Cause
-   [Why — wrong property name, unnecessary override, incorrect assumption about AMI defaults]
-
-   ## Fix
-   [What was changed]
-
-   ## Pattern
-   [Generalized rule to prevent recurrence]
-   ```
-
-3. **Update `_index.md`:** append a one-line summary under `## Config`:
-   ```
-   - **<slug>**: [Pattern sentence]
-   ```
-   Then count the total bullet-point entries across **all** sections. If the total is **5 or more**, output:
-   > ⚠️ **N learnings accumulated** — run `/ami-promote-learnings` to consolidate into the knowledge base.
-
-**Skip this step if:**
-- Self-review passed on the first attempt
-- The issue was a requirement clarification, not a config knowledge gap
-
 ## Output Format
 
 After writing files, report:

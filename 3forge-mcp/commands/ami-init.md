@@ -26,9 +26,9 @@ If `web_getAmiScriptClass` returns `Session not found: null`, use `web_showSessi
 
 If `3forge-runtime` is offline, surface this and stop — most runtime work depends on it.
 
-## Step 2 — Load the runtime tool catalog
+## Step 2 — The live MCP is your tool catalog
 
-Read `.claude/skills/runtime/tool-catalog.md` and `.claude/skills/workflows/doc-verify-apply.md`. These are the source of truth for the 152 live MCP tools and the mandatory doc to verify to apply workflow.
+There is no static tool list to load — the running `3forge-runtime` server is the source of truth. Discover tools on demand with ToolSearch (the `3forge-runtime` tools are deferred; search by subdomain or verb) and list doc topics with `aidoc_getDocumentation()` (no args). For the mandatory mutation workflow (also summarized below), read `${CLAUDE_PLUGIN_ROOT}/skills/workflows/doc-verify-apply.md`.
 
 ## Step 3 — Internalize your role
 
@@ -121,8 +121,8 @@ Reserved column names to avoid: C, M, V, E, I
 | `ami-config-writer` | AMI `.properties` configuration files |
 | `ami-datasource-advisor` | Integration pattern selection; datasource stubs and feedhandler skeletons |
 | `ami-reviewer` | Reviewing any generated or user-supplied AMI artifact |
-| `excel-decomposer-agent` | Reverse-engineering Excel workbooks into business logic |
-| `excel-to-ami-agent` | Migrating Excel workbooks into full AMI deployments |
+| `excel-decomposer` | Reverse-engineering Excel workbooks into business logic |
+| `excel-to-ami` | Migrating Excel workbooks into full AMI deployments |
 
 ## Step 9 — Available Commands
 

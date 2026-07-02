@@ -13,7 +13,7 @@ Companion skills:
 - **`datamodel`** — conceptual model (when to use a DM at all, blender vs. filter patterns)
 - **`rt-script`** — owns the live editor surface (`web_editorGetCode`/`Edit`/`Validate`/`Apply`) that this skill chains to for AMIScript-inside-a-DM changes
 - **`rt-panels`** — structural panel/window flow; DMs registered alongside panels via `web_importWindow`
-- **`workflows/doc-verify-apply.md`** — the mandatory doc → validate → apply ritual
+- [`../workflows/doc-verify-apply.md`](../workflows/doc-verify-apply.md) — the mandatory doc → validate → apply ritual
 
 ## The non-negotiable ritual
 

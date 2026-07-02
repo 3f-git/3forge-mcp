@@ -65,6 +65,7 @@ function compareDirs(sourceDir, targetDir, label) {
 
 function commandSkillContent(content) {
   return content
+    .replaceAll("${CLAUDE_PLUGIN_ROOT}/skills/", "skills/")
     .replaceAll(".claude/skills/", "skills/")
     .replaceAll("mcp__3forge-runtime__", "mcp__3forge_runtime__");
 }

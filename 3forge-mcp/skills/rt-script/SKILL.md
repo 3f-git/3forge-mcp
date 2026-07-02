@@ -82,9 +82,6 @@ The same logical column is keyed by **three different names** across AMI's APIs.
 | Relationship `wheres[].clause` (RT target) | column `title` | `Source_Symbol == Target_Symbol` (see `rt-relations`) |
 
 Re-export the panel via `web_exportPanel` whenever you're about to write code that touches columns — never assume which name to use, even minutes after setting up the panel.
-
-Captured 2026-05-20 in `.claude/learnings/_index.md`.
-
 ## Common pitfalls
 
 | Mistake | Consequence |

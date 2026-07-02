@@ -7,7 +7,7 @@ description: Use when adding, updating, or persisting panels / layouts / windows
 
 Loaded when the user wants to add, update, or commit panels, datamodels, layouts, or windows in a live Web session.
 
-Companion skill: `workflows/doc-verify-apply.md` (mandatory three-step pattern).
+Companion skill: [`../workflows/doc-verify-apply.md`](../workflows/doc-verify-apply.md) (mandatory three-step pattern).
 
 ## The non-negotiable ritual
 
@@ -65,9 +65,6 @@ A column with `"title": ""` is **silently dropped** by `realtimetable` import �
 { "id": "qty", "pos": 2, "title": " ", "type": "numeric", "value": "qty", "width": 80 }
 // (and on the panel: "amiStyle": {"headerHt": 0})
 ```
-
-Captured 2026-05-20 in `.claude/learnings/_index.md`.
-
 ## ⚠️ `varTypes` are silently pruned on import for `realtimetable`
 
 When a `realtimetable` panel is imported via `web_addPanelNextTo` or `web_importWindow`, AMI **prunes its `varTypes` to only the fields referenced by visible columns**. Fields you declared but don't use in any visible column disappear from `varTypes` after import — and any hidden column whose `value` references one of those pruned fields will fail to bind silently.
@@ -76,9 +73,6 @@ If you need a field available to a hidden column, a callback, or a relationship 
 - Make at least one column visibly use it (give it `pos`), or
 - Patch the layout on disk after import to restore the full `varTypes`, or
 - Include the full schema via the disk path (import the full layout via `web_importLayout` rather than incremental `addPanelNextTo`).
-
-Captured 2026-05-20 in `.claude/learnings/_index.md`.
-
 ## DOM type names for `web_validateJson`
 
 The portletType for validation is NOT the AmiWeb*Portlet class name. Use:

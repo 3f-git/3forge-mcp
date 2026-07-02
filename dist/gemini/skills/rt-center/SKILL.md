@@ -10,7 +10,7 @@ Loaded when the user wants to do anything against a running AMI Center:
 - Inspect / create / drop tables, triggers, timers, procedures
 - Manage datasources and replication
 
-Before any mutating call, follow the doc → verify → apply workflow in `.claude/skills/workflows/doc-verify-apply.md`.
+Before any mutating call, follow the doc → verify → apply workflow in [`../workflows/doc-verify-apply.md`](../workflows/doc-verify-apply.md).
 
 ## AMI SQL dialect quick rules
 

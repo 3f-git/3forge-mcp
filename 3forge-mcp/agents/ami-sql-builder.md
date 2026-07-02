@@ -20,12 +20,6 @@ Call `aidoc_getDocumentation(topic)` on the live instance before writing anythin
 | `center` | Always — comment syntax, common pitfalls, deferred execution rules; also covers `CREATE PUBLIC TABLE`, indexes, triggers, timers, procedures, custom methods, and historical tables |
 | `amiscript` | When complex logic is needed — full AMI Script (interchangeable with AMI SQL) syntax |
 
-## Step 1.5 — Load Learnings
-
-Check if `.claude/learnings/_index.md` exists. If it does, read it. Review the **SQL** section for any entries relevant to the current task. If an entry matches what you are about to generate (e.g. you are creating a realtime table and there is a realtime-table learning), read the full learning file at `.claude/learnings/sql/<filename>.md` to avoid repeating the mistake.
-
-Do not read full files unless the summary line is directly relevant. This keeps token cost minimal.
-
 ## Step 2 — Understand the Consumer Context
 
 Before designing any table, resolve the following from the caller's spec or by asking:
@@ -107,48 +101,6 @@ Work through the checklist below. If you find any issue, fix it in the file imme
 - [ ] Timer scripts that process multiple rows use set-based `UPDATE`/`DELETE WHERE` statements — no per-row iteration with `USE DS EXECUTE` called inside a loop (causes one round-trip per row per tick, blocks the queue)
 
 If you cannot produce a clean pass after 3 attempts, report the remaining issues to the caller and do not deliver.
-
-## Step 5.5 — Capture Learnings
-
-After completing the self-review loop or receiving Live Validation results that required fixes, check if any issues surfaced that represent an AMI knowledge gap (not a simple typo). If yes, write a learning file:
-
-1. **File path:** `.claude/learnings/sql/<DATE>_<slug>.md` (e.g. `2026-03-25_autogen-on-user-key.md`)
-
-2. **File format:**
-   ```markdown
-   ---
-   source: self-review | live-validation
-   severity: CRITICAL | HIGH
-   category: sql
-   date: <DATE>
-   ---
-
-   ## Error
-   [One sentence: what was wrong]
-
-   ## Context
-   [What was being generated]
-
-   ## Root Cause
-   [Why — wrong syntax, missing constraint, incorrect assumption about AMI behavior]
-
-   ## Fix
-   [What was changed]
-
-   ## Pattern
-   [Generalized rule to prevent recurrence]
-   ```
-
-3. **Update `_index.md`:** append a one-line summary under `## SQL`:
-   ```
-   - **<slug>**: [Pattern sentence]
-   ```
-   Then count the total bullet-point entries across **all** sections. If the total is **5 or more**, output:
-   > ⚠️ **N learnings accumulated** — run `/ami-promote-learnings` to consolidate into the knowledge base.
-
-**Skip this step if:**
-- Self-review passed on the first attempt
-- The issue was a requirement clarification, not an AMI knowledge gap
 
 ## Live Validation Interpretation
 
