@@ -97,7 +97,8 @@ wipes and rewrites `dist/` on every run (as today).
 
 ### Codex plugin (`dist/codex/`)
 - `.codex-plugin/plugin.json` — copied/derived from the current Codex manifest
-  (name, version, `skills: ./skills/`, interface metadata).
+  (name, version, `skills: ./skills/`, `mcpServers: ./.mcp.json`, interface metadata).
+- `.mcp.json` — `3forge-runtime` HTTP server with the literal URL `http://localhost:8766/mcp`.
 - `.agents/plugins/marketplace.json` — repo-style Codex marketplace entry with
   `source: { "source": "local", "path": "./" }`.
 - `.codex/agents/*.toml` — from `3forge-mcp/agents/*.md` via the existing
@@ -106,7 +107,8 @@ wipes and rewrites `dist/` on every run (as today).
 - `skills/**` — copied from `3forge-mcp/skills/`, including the generated
   `commands/reference/*.md` (command-equivalent workflows).
 - `AGENTS.md` — `CLAUDE.md` projected through the Codex instruction transform.
-- MCP: **not bundled** (Codex configures the runtime MCP separately, as today).
+- MCP: bundled with a literal localhost default. Codex does not expand `${...}`
+  in plugin-provided HTTP URLs.
 
 ### Copilot plugin (`dist/copilot/`)
 - `plugin.json` at the **tree root** — `name`, `skills: skills/`,
@@ -136,8 +138,8 @@ Renamed from the current `validate.mjs`. It must:
 2. **Manifest validity** — each plugin manifest is valid JSON with required
    fields (Claude `.claude-plugin/plugin.json`, Codex `.codex-plugin/plugin.json`,
    Copilot root `plugin.json`).
-3. **MCP config validity** — Claude `.mcp.json` uses `${AMI_MCP_URL:-…}`; Copilot
-   `dist/copilot/.mcp.json` uses a literal http URL with no `${…}`.
+3. **MCP config validity** — Claude `.mcp.json` uses `${AMI_MCP_URL:-…}`; Codex
+   and Copilot generated `.mcp.json` files use literal http URLs with no `${…}`.
 4. **Marketplace validity** — each `marketplace.json` is valid and its plugin
    `source` resolves to a real plugin manifest.
 5. **Coverage parity** — skills present in the Claude source appear in every

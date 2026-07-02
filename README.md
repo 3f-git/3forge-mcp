@@ -4,12 +4,13 @@ Give your AI coding tool (Claude Code, Codex, Copilot, Gemini, Cursor) the skill
 agents for 3forge AMI authoring and live instance workflows.
 
 The plugin ships **no offline 3forge documentation** — all conceptual knowledge is fetched
-at runtime from the live instance via `aidoc_getDocumentation`. **Claude Code** and **Copilot**
-are first-class plugin targets and bundle the `3forge-runtime` MCP connection, so live tools
-connect automatically on install (Claude Code defaults to `http://localhost:8766/mcp` and
-overrides the endpoint with the `AMI_MCP_URL` env var; Copilot connects to the same default
-literal URL). Codex, Gemini, and Cursor configure the runtime MCP separately. Nothing here
-duplicates what your instance already knows.
+at runtime from the live instance via `aidoc_getDocumentation`. **Claude Code, Codex, and
+Copilot** are first-class plugin targets and bundle the `3forge-runtime` MCP connection,
+so live tools connect automatically on install when AMI Web is reachable. Claude Code
+defaults to `http://localhost:8766/mcp` and overrides the endpoint with the
+`AMI_MCP_URL` env var; Codex and Copilot connect to the same default literal URL.
+Gemini and Cursor configure the runtime MCP separately. Nothing here duplicates what
+your instance already knows.
 
 ---
 
@@ -47,14 +48,28 @@ before launching Claude Code:
 export AMI_MCP_URL=http://ami-host:8766/mcp
 ```
 
+**Codex** bundles the same `3forge-runtime` connection in its generated plugin MCP config
+(`dist/codex/.mcp.json`). It defaults to `http://localhost:8766/mcp`. Codex does not
+expand Claude-style `${AMI_MCP_URL:-...}` syntax in plugin-provided HTTP URLs; to target
+another host/port, disable the plugin-provided server and add your own Codex MCP config:
+
+```toml
+[plugins."3forge-mcp@3forge-mcp-codex".mcp_servers.3forge-runtime]
+enabled = false
+
+[mcp_servers.3forge-runtime]
+url = "http://ami-host:8766/mcp"
+startup_timeout_sec = 60
+```
+
 **Copilot** also bundles the connection, in its own generated plugin MCP config
 (`dist/copilot/.mcp.json`), so it connects automatically on install. Copilot does not
 support the `${AMI_MCP_URL:-…}` substitution syntax, so the URL is the literal default
 `http://localhost:8766/mcp`. To target another host for a single session, launch Copilot with
 `--additional-mcp-config` pointing at a config that overrides the `3forge-runtime` url.
 
-**Codex, Gemini, and Cursor** don't consume a bundled `.mcp.json` — configure the
-`3forge-runtime` MCP server in that tool's own config if you need live tools.
+**Gemini and Cursor** don't consume a bundled `.mcp.json` — configure the
+`3forge-runtime` MCP server in those tools' own configs if you need live tools.
 
 ### 2. Install the plugin
 
@@ -63,7 +78,8 @@ support the `${AMI_MCP_URL:-…}` substitution syntax, so the URL is the literal
 Register your **local clone** as a marketplace, then install from it:
 
 ```bash
-claude plugin marketplace add .                   # repo root holds .claude-plugin/marketplace.json
+# from the repo root — name the directory explicitly ("." is not accepted)
+claude plugin marketplace add ../3forge-mcp        # repo root holds .claude-plugin/marketplace.json
 claude plugin install 3forge-mcp@3forge-mcp-marketplace
 ```
 
@@ -91,8 +107,8 @@ codex plugin add 3forge-mcp@3forge-mcp-codex
 
 The generated Codex marketplace file lives at `dist/codex/.agents/plugins/marketplace.json`
 and points back to the standalone `dist/codex` plugin tree. The installed plugin
-contains the Codex manifest, 28 skills, `AGENTS.md`, and generated custom-agent
-TOML under `dist/codex/.codex/agents/`.
+contains the Codex manifest, bundled `3forge-runtime` MCP config, 28 skills,
+`AGENTS.md`, and generated custom-agent TOML under `dist/codex/.codex/agents/`.
 
 Verify install state:
 
@@ -114,10 +130,19 @@ Use 3forge MCP /runtime status.
 Use 3forge MCP to write an AMI SQL query for live Orders rows.
 ```
 
-Codex does not get a bundled `3forge-runtime` MCP server from this package. For
-live AMI instance work, configure `3forge-runtime` in your Codex MCP config
-separately, then use `/mcp` in a new Codex thread to confirm the tools are
-available.
+The bundled Codex MCP server key is `3forge-runtime`. If `/mcp` shows an old
+server such as `ami-runtime` timing out, disable that stale config entry so
+Codex uses the plugin-provided `3forge-runtime` server:
+
+```toml
+[mcp_servers.ami-runtime]
+enabled = false
+```
+
+After changing MCP config, close old Codex/Claude sessions and start a new
+Codex thread. Existing sessions can keep old HTTP connections open against
+`localhost:8766` until they exit; if the AMI MCP endpoint still hangs, restart
+the AMI Web JVM that hosts `amimcp`.
 
 For day-to-day Codex usage, including command-equivalent prompts, MCP tool families, skills,
 and agent-role prompts, see [`docs/codex-usage.md`](docs/codex-usage.md).
@@ -190,11 +215,13 @@ Skills for each tool are under `dist/<tool>/skills/`.
 - **6 Claude Code commands** — `ami-init`, `runtime`, `ami-plan`, `ami-query`, `ami-review`,
   `ami-debug`. The generator also syncs these into the `commands` skill as command-equivalent
   workflows for harnesses that do not load Claude slash commands.
-- **Bundled MCP server config (Claude Code + Copilot)** — `3forge-mcp/.mcp.json` registers the
+- **Bundled MCP server config (Claude Code + Codex + Copilot)** — `3forge-mcp/.mcp.json` registers the
   `3forge-runtime` HTTP server for Claude Code (endpoint defaults to `http://localhost:8766/mcp`,
-  overridable via the `AMI_MCP_URL` env var). Copilot gets its own generated `dist/copilot/.mcp.json`
-  with a literal default URL (Copilot lacks the `${AMI_MCP_URL:-…}` substitution syntax). Codex,
-  Gemini, and Cursor configure the runtime MCP in their own config.
+  overridable via the `AMI_MCP_URL` env var). Codex gets its own generated `dist/codex/.mcp.json`
+  with a literal localhost default because Codex does not expand `${...}` in plugin-provided HTTP
+  URLs. Copilot gets its own generated `dist/copilot/.mcp.json` with a literal default URL
+  (Copilot lacks the `${AMI_MCP_URL:-…}` substitution syntax). Gemini and Cursor configure the
+  runtime MCP in their own config.
 
 ### The bundled-reference exception
 
@@ -227,10 +254,10 @@ so `aidoc` cannot serve it. That content is bundled read-only under:
 │   ├── generate.mjs                    # 3forge-mcp/ → dist/*  (Claude is read-only input)
 │   ├── verify.mjs                      # regenerate to temp, diff vs dist/, validate manifests
 │   ├── tools.json                      # Gemini/Cursor mirror config
-│   ├── codex/                          # Codex scaffolding (plugin.json, marketplace.json)
+│   ├── codex/                          # Codex scaffolding (plugin.json, mcp.json, marketplace.json)
 │   └── copilot/                        # Copilot scaffolding (plugin.json, mcp.json, marketplace.json)
 ├── dist/                               # ← GENERATED (never hand-edit)
-│   ├── codex/                          # standalone Codex plugin (.codex-plugin, .agents/plugins, .codex/agents, skills, AGENTS.md)
+│   ├── codex/                          # standalone Codex plugin (.codex-plugin, .mcp.json, .agents/plugins, .codex/agents, skills, AGENTS.md)
 │   ├── copilot/                        # standalone Copilot plugin (plugin.json, .mcp.json, agents, skills)
 │   ├── gemini/                         # mirror (GEMINI.md + skills)
 │   └── cursor/                         # mirror (.cursor rules + skills)

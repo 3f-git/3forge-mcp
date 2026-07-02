@@ -129,8 +129,16 @@ function verifyManifests() {
   const codex = readJson(join(DIST, "codex", ".codex-plugin", "plugin.json"));
   expect(codex.name === "3forge-mcp", "Codex plugin.json name must be 3forge-mcp");
   expect(codex.skills === "./skills/", "Codex plugin.json skills must be ./skills/");
-  expect(!("mcpServers" in codex), "Codex plugin.json must not declare mcpServers");
+  expect(codex.mcpServers === "./.mcp.json", "Codex plugin.json mcpServers must be ./.mcp.json");
   expect(typeof codex.version === "string", "Codex plugin.json must have a version");
+
+  // Codex bundled MCP: literal default URL. Codex does not expand ${...} in HTTP URLs.
+  const codexMcp = readJson(join(DIST, "codex", ".mcp.json")).mcpServers?.["3forge-runtime"];
+  expect(!!codexMcp, "dist/codex/.mcp.json must define 3forge-runtime");
+  expect(codexMcp?.type === "http", "Codex 3forge-runtime must use http transport");
+  expect(codexMcp?.url === "http://localhost:8766/mcp",
+    "Codex 3forge-runtime url must be the literal localhost default");
+  expect(codexMcp?.startup_timeout_sec === 60, "Codex 3forge-runtime startup_timeout_sec must be 60");
 
   // Copilot standalone plugin.
   const copilot = readJson(join(DIST, "copilot", "plugin.json"));

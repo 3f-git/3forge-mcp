@@ -6,15 +6,18 @@ concept documentation** - the live instance is the source of truth.
 
 ## Runtime MCP Connection
 
-**Claude Code:** the plugin bundles the `3forge-runtime` MCP connection (see `.mcp.json`
-at the plugin root). It connects automatically when the plugin is enabled — no manual
-`claude mcp add`. It defaults to `http://localhost:8766/mcp`; point it at another host or
-port by setting the `AMI_MCP_URL` environment variable before launching Claude Code
-(e.g. `AMI_MCP_URL=http://ami-host:8766/mcp`). Tools are discovered in a fresh session.
+**Claude Code and Codex:** the plugin bundles the `3forge-runtime` MCP connection
+(see `.mcp.json` at the plugin root). It connects automatically when the plugin is
+enabled. Claude Code can point at another host or port by setting `AMI_MCP_URL`
+before launch. Codex uses the literal default `http://localhost:8766/mcp` because
+it does not expand `${...}` in plugin-provided HTTP URLs.
 
-**Other tools (Codex, Copilot, Gemini, Cursor):** these do not consume the Claude
-`.mcp.json`. Configure `3forge-runtime` in the consuming tool's own MCP config when live
-tools are needed, then start a fresh thread so the MCP tools are discovered.
+**Copilot:** the generated Copilot plugin also bundles `3forge-runtime`, but Copilot
+uses a literal default URL because it does not support `${AMI_MCP_URL:-...}` syntax.
+
+**Gemini and Cursor:** configure `3forge-runtime` in the consuming tool's own MCP
+config when live tools are needed, then start a fresh thread so the MCP tools are
+discovered.
 
 ## The one rule for AMI knowledge
 

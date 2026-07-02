@@ -176,6 +176,7 @@ function forEachAgent(callback) {
 function writeCodexPlugin(version) {
   const out = join(DIST, "codex");
   writeFileEnsuring(join(out, ".codex-plugin", "plugin.json"), withVersion(join(ROOT, "build", "codex", "plugin.json"), version));
+  writeFileEnsuring(join(out, ".mcp.json"), readFileSync(join(ROOT, "build", "codex", "mcp.json"), "utf8"));
   writeFileEnsuring(join(out, ".agents", "plugins", "marketplace.json"), readFileSync(join(ROOT, "build", "codex", "marketplace.json"), "utf8"));
   forEachAgent((name, content, source) => {
     writeFileEnsuring(join(out, ".codex", "agents", name.replace(/\.md$/, ".toml")), codexAgentToml(content, source));

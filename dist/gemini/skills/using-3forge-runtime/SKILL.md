@@ -6,9 +6,16 @@ description: "Use at the start of any AMI/3forge runtime work — how to operate
 # 3forge-runtime — Live 3forge AMI MCP
 
 This plugin gives your AI coding tool the skills and agents for operating and building on
-3forge AMI. Live instance work still uses the `3forge-runtime` MCP server, but the MCP
-connection is configured outside this plugin. It ships **no AMI concept documentation** -
-the live instance is the source of truth.
+3forge AMI. Live instance work uses the `3forge-runtime` MCP server. Claude Code,
+Codex, and Copilot package that MCP connection with the plugin; Gemini and Cursor
+configure it outside this plugin. It ships **no AMI concept documentation** - the live
+instance is the source of truth.
+
+## Runtime MCP Connection
+
+Claude Code defaults to `http://localhost:8766/mcp` and can be pointed at another
+endpoint by setting `AMI_MCP_URL` before launching the tool. Codex and Copilot use
+the literal default `http://localhost:8766/mcp`.
 
 ## The one rule for AMI knowledge
 

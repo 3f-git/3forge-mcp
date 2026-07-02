@@ -33,7 +33,8 @@ The repository is not yet on a hosted marketplace, so clone it and install from
 the local path:
 
 ```bash
-claude plugin marketplace add ./3forge-mcp        # path to the cloned repo root
+# from the repo root — name the directory explicitly ("." is not accepted)
+claude plugin marketplace add ../3forge-mcp        # repo root holds .claude-plugin/marketplace.json
 claude plugin install 3forge-mcp@3forge-mcp-marketplace
 ```
 
