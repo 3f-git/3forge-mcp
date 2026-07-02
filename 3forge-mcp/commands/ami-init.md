@@ -121,8 +121,8 @@ Reserved column names to avoid: C, M, V, E, I
 | `ami-config-writer` | AMI `.properties` configuration files |
 | `ami-datasource-advisor` | Integration pattern selection; datasource stubs and feedhandler skeletons |
 | `ami-reviewer` | Reviewing any generated or user-supplied AMI artifact |
-| `excel-decomposer-agent` | Reverse-engineering Excel workbooks into business logic |
-| `excel-to-ami-agent` | Migrating Excel workbooks into full AMI deployments |
+| `excel-decomposer` | Reverse-engineering Excel workbooks into business logic |
+| `excel-to-ami` | Migrating Excel workbooks into full AMI deployments |
 
 ## Step 9 — Available Commands
 

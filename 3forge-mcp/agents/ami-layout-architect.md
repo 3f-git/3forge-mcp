@@ -49,7 +49,7 @@ Proceed to Step 2.5 after loading the schema (or immediately if skipped).
 
 ## Step 2.5 — Load Learnings
 
-Check if [Learnings](../learnings/_index.md) exists. If it does, read it. Review the **Layout** section for any entries relevant to the current task — these are known pitfalls captured from previous errors. If an entry is directly relevant (e.g. you are about to create a tree panel and there is a tree-panel learning), read the full learning file to understand the root cause and required fix.
+Check if `.claude/learnings/_index.md` exists. If it does, read it. Review the **Layout** section for any entries relevant to the current task — these are known pitfalls captured from previous errors. If an entry is directly relevant (e.g. you are about to create a tree panel and there is a tree-panel learning), read the full learning file to understand the root cause and required fix.
 
 Do not read the full files unless the summary line matches what you are about to generate. This keeps token cost minimal.
 
@@ -176,7 +176,7 @@ Only proceed to Step 8 after the validator returns PASS.
 
 After completing the review loop (whether it ended in PASS or was stopped after 3 passes), check if any CRITICAL or HIGH issues were found and fixed during the loop. If yes, write a learning file for each distinct error pattern:
 
-1. `../learnings/layout/<DATE>_<slug>.md` where `<DATE>` is `YYYY-MM-DD` and `<slug>` is a short kebab-case description (e.g. `tree-panel-missing-grouping`).
+1. `.claude/learnings/layout/<DATE>_<slug>.md` where `<DATE>` is `YYYY-MM-DD` and `<slug>` is a short kebab-case description (e.g. `tree-panel-missing-grouping`).
 
 2. **File format:**
    ```markdown

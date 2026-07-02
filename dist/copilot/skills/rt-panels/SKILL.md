@@ -7,7 +7,7 @@ description: Use when adding, updating, or persisting panels / layouts / windows
 
 Loaded when the user wants to add, update, or commit panels, datamodels, layouts, or windows in a live Web session.
 
-Companion skill: `workflows/doc-verify-apply.md` (mandatory three-step pattern).
+Companion skill: [`../workflows/doc-verify-apply.md`](../workflows/doc-verify-apply.md) (mandatory three-step pattern).
 
 ## The non-negotiable ritual
 

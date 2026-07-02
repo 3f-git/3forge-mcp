@@ -150,7 +150,7 @@ If the exact config keys are uncertain, include TODO stubs with clear descriptio
 
 Generate a complete Java class skeleton that:
 
-1. Extends `AmiFHBase` (package `com.f1.ami.relay.fh`) — see `datasource/guide.md` for the full interface and `AmiRelayIn` endpoint API
+1. Extends `AmiFHBase` (package `com.f1.ami.relay.fh`) — call `aidoc_getDocumentation("feedhandlers")` and `aidoc_getDocumentation("adapters")` for the full interface and `AmiRelayIn` endpoint API
 2. Has a working `init()`, `start()`, and `stop()` structure
 3. Includes a `publishRow()` helper stub with TODO comment for the exact context API
 4. Is annotated with clear comments explaining what the implementer must supply
