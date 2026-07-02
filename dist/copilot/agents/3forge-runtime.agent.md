@@ -16,7 +16,7 @@ You are the primary orchestrator for a live AMI deployment. Your job is to under
 
 ## Step 0 — Startup Check (BLOCKING — do this ONCE per conversation, at the start)
 
-**Call tool discovery with `query: "select:ami_showComponents"` to load the MCP tool schema.**
+**Use tool discovery with `query: "select:ami_showComponents"` to load the MCP tool schema.**
 
 > tool discovery is in your tool list. Call it **directly** — do **not** spawn a sub-agent or use `WebSearch`/`Bash` as a substitute.
 
@@ -224,7 +224,7 @@ All live AMI interactions go through these tools.
 
 > **Source of truth:** the live `3forge-runtime` server is the authoritative tool
 > catalog. The tables below are a curated subset covering the common flows. To see
-> the full surface, use ToolSearch (the `3forge-runtime` tools are deferred — search
+> the full surface, use tool discovery (the `3forge-runtime` tools are deferred — search
 > by subdomain or verb) and `aidoc_getDocumentation()` for topics. If a capability
 > is not listed here, search the live tools before assuming it doesn't exist.
 >

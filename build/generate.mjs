@@ -6,6 +6,8 @@ const ROOT = resolve(dirname(new URL(import.meta.url).pathname), "..");
 const SRC = join(ROOT, "3forge-mcp");
 const DIST = process.env.THREEFORGE_DIST || join(ROOT, "dist");
 const tools = JSON.parse(readFileSync(join(ROOT, "build/tools.json"), "utf8"));
+const mirrorTargets = Object.keys(tools);
+const allTargets = ["codex", "copilot", ...mirrorTargets];
 
 const instructions = readFileSync(join(SRC, "CLAUDE.md"), "utf8");
 
@@ -55,18 +57,23 @@ function codexAgentInstructions(content) {
     .replaceAll("You have `Agent` in your tool list.", "Use Codex subagent workflows when delegation is required.");
 }
 
-function copilotAgentInstructions(content) {
+function copilotToolDiscovery(content) {
   return content
+    .replaceAll("`ToolSearch`", "tool discovery")
+    .replace(/\bToolSearch\b/g, "tool discovery");
+}
+
+function copilotAgentInstructions(content) {
+  return copilotToolDiscovery(content)
     .replaceAll(".claude/skills/", "skills/")
     .replaceAll("mcp__3forge-runtime__", "")
     .replaceAll("select:mcp__3forge_runtime__", "")
     .replaceAll("select:mcp__3forge-runtime__", "")
-    .replaceAll("`ToolSearch`", "tool discovery")
-    .replaceAll("Call `ToolSearch`", "Use tool discovery")
+    .replaceAll("Call tool discovery", "Use tool discovery")
     .replaceAll("**Delegation method: always the `Agent` tool.** You have `Agent` in your tool list. **Never run `claude` as a Bash command** — it fails. Go straight to Agent.",
-      "**Delegation method: delegate to the named Copilot agent.** Do not run a CLI command to delegate; use Copilot's agent/subagent workflow.")
+     "**Delegation method: delegate to the named Copilot agent.** Do not run a CLI command to delegate; use Copilot's agent/subagent workflow.")
     .replaceAll("**Always use the `Agent` tool — never invoke `claude` as a shell command.**",
-      "**Always delegate through Copilot's agent workflow. Never invoke a CLI command as a delegation fallback.**")
+     "**Always delegate through Copilot's agent workflow. Never invoke a CLI command as a delegation fallback.**")
     .replaceAll("Use the Agent tool:", "Delegate to the named Copilot agent:")
     .replaceAll("Use the Agent tool", "Delegate to the named Copilot agent")
     .replaceAll("use the Agent tool to invoke", "delegate to")
@@ -168,6 +175,56 @@ function forEachAgent(callback) {
   }
 }
 
+function rewriteMarkdownTree(root, transform) {
+  if (!existsSync(root)) return;
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    const path = join(root, entry.name);
+    if (entry.isDirectory()) {
+      rewriteMarkdownTree(path, transform);
+      continue;
+    }
+    if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
+    writeFileSync(path, transform(readFileSync(path, "utf8")));
+  }
+}
+
+function parseTargets(argv) {
+  const args = argv.slice(2);
+  if (args.length === 0) return allTargets;
+
+  const requested = new Set();
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === "all") return allTargets;
+    if (arg === "--target") {
+      const value = args[i + 1];
+      if (!value) throw new Error("Missing value after --target");
+      for (const target of value.split(",").map((item) => item.trim()).filter(Boolean)) {
+        requested.add(target);
+      }
+      i += 1;
+      continue;
+    }
+    if (arg.startsWith("--target=")) {
+      for (const target of arg.slice("--target=".length).split(",").map((item) => item.trim()).filter(Boolean)) {
+        requested.add(target);
+      }
+      continue;
+    }
+    if (arg.startsWith("-")) {
+      throw new Error(`Unknown option: ${arg}`);
+    }
+    requested.add(arg);
+  }
+
+  for (const target of requested) {
+    if (!allTargets.includes(target)) {
+      throw new Error(`Unknown target "${target}". Valid targets: ${allTargets.join(", ")}`);
+    }
+  }
+  return [...requested];
+}
+
 // Codex: standalone plugin tree — TOML agents under .codex/agents/, own manifest
 // and repo-style marketplace. AGENTS.md is the plain CLAUDE.md.
 function writeCodexPlugin(version) {
@@ -194,6 +251,7 @@ function writeCopilotPlugin(version) {
     writeFileEnsuring(join(out, "agents", name.replace(/\.md$/, ".agent.md")), copilotAgentMarkdown(content, source));
   });
   cpSync(join(SRC, "skills"), join(out, "skills"), { recursive: true });
+  rewriteMarkdownTree(join(out, "skills"), copilotToolDiscovery);
   writeFileEnsuring(join(out, ".github", "copilot-instructions.md"), instructions);
   console.log("generated dist/copilot (standalone Copilot plugin)");
 }
@@ -211,10 +269,20 @@ function writeMirror(tool, cfg) {
 // when verify.mjs regenerates into a temp DIST it must not mutate the source.
 if (!process.env.THREEFORGE_DIST) syncCommandSkillReferences();
 
-if (existsSync(DIST)) rmSync(DIST, { recursive: true, force: true });
+const targets = parseTargets(process.argv);
+const generatingAll = targets.length === allTargets.length;
+
+if (generatingAll) {
+  if (existsSync(DIST)) rmSync(DIST, { recursive: true, force: true });
+} else {
+  for (const target of targets) rmSync(join(DIST, target), { recursive: true, force: true });
+}
 
 const version = readVersion();
-writeCodexPlugin(version);
-writeCopilotPlugin(version);
-for (const [tool, cfg] of Object.entries(tools)) writeMirror(tool, cfg);
+if (targets.includes("codex")) writeCodexPlugin(version);
+if (targets.includes("copilot")) writeCopilotPlugin(version);
+for (const [tool, cfg] of Object.entries(tools)) {
+  if (!targets.includes(tool)) continue;
+  writeMirror(tool, cfg);
+}
 console.log("done");

@@ -12,7 +12,7 @@ Debug AMI errors systematically.
 2. **Load knowledge** — Read the `debugging` skill for error patterns, null handling, and debug logging techniques before diagnosing.
 
 3. **Verify method signatures via the live instance if needed** — Do NOT spawn a subagent:
-   - **First**, if MCP tools have not been used yet in this conversation, use ToolSearch to find/load the `3forge-runtime` `web_showSessions` and `web_getAmiScriptClass` tool schemas before calling them.
+   - **First**, if MCP tools have not been used yet in this conversation, use tool discovery to find/load the `3forge-runtime` `web_showSessions` and `web_getAmiScriptClass` tool schemas before calling them.
    - Call `web_getAmiScriptClass` with an active `__SESSIONID` from `web_showSessions` to confirm any method call in question.
    - If no Web session is active, state that method-signature introspection is unavailable and avoid guessing method signatures.
 

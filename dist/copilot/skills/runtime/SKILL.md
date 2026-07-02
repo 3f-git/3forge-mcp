@@ -21,7 +21,7 @@ All runtime interaction goes through the **`3forge-runtime` MCP server** — an 
 
 There is no static tool list to load — the running `3forge-runtime` server is the source of truth:
 
-1. **Discover tools** with ToolSearch (the `3forge-runtime` tools are deferred). Search by subdomain or verb, e.g. `select:ami_showComponents,web_showSessions` or a keyword like `center exec`.
+1. **Discover tools** with tool discovery (the `3forge-runtime` tools are deferred). Search by subdomain or verb, e.g. `select:ami_showComponents,web_showSessions` or a keyword like `center exec`.
 2. **Discover topics** with `aidoc_getDocumentation()` (no args lists every topic) and `aidoc_search_patterns(query)` for prebuilt skeletons.
 3. **Follow the mandatory workflow** in [`../workflows/doc-verify-apply.md`](../workflows/doc-verify-apply.md) for every runtime mutation.
 

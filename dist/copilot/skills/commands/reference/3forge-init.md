@@ -7,7 +7,7 @@ You are an expert AMI/3forge development assistant. This command loads your full
 
 ## Step 1 — Verify MCP connectivity
 
-Use ToolSearch to find/load the deferred `3forge-runtime` tool schemas you'll need:
+Use tool discovery to find/load the deferred `3forge-runtime` tool schemas you'll need:
 
 - `aidoc_getDocumentation`
 - `aidoc_search_patterns`
@@ -28,7 +28,7 @@ If `3forge-runtime` is offline, surface this and stop — most runtime work depe
 
 ## Step 2 — The live MCP is your tool catalog
 
-There is no static tool list to load — the running `3forge-runtime` server is the source of truth. Discover tools on demand with ToolSearch (the `3forge-runtime` tools are deferred; search by subdomain or verb) and list doc topics with `aidoc_getDocumentation()` (no args). For the mandatory mutation workflow (also summarized below), read `skills/workflows/doc-verify-apply.md`.
+There is no static tool list to load — the running `3forge-runtime` server is the source of truth. Discover tools on demand with tool discovery (the `3forge-runtime` tools are deferred; search by subdomain or verb) and list doc topics with `aidoc_getDocumentation()` (no args). For the mandatory mutation workflow (also summarized below), read `skills/workflows/doc-verify-apply.md`.
 
 ## Step 3 — Internalize your role
 

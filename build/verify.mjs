@@ -63,11 +63,32 @@ function compareDirs(sourceDir, targetDir, label) {
   }
 }
 
+function compareDirsWithTransform(sourceDir, targetDir, label, transform) {
+  const sourceFiles = listFiles(sourceDir).map((path) => relative(sourceDir, path));
+  const targetFiles = listFiles(targetDir).map((path) => relative(targetDir, path));
+  const sourceSet = new Set(sourceFiles);
+  const targetSet = new Set(targetFiles);
+  for (const file of sourceFiles) if (!targetSet.has(file)) fail(`${label}: missing ${file}`);
+  for (const file of targetFiles) if (!sourceSet.has(file)) fail(`${label}: unexpected ${file}`);
+  for (const file of sourceFiles) {
+    if (!targetSet.has(file)) continue;
+    if (transform(read(join(sourceDir, file))) !== read(join(targetDir, file))) {
+      fail(`${label}: ${file} differs`);
+    }
+  }
+}
+
 function commandSkillContent(content) {
   return content
     .replaceAll("${CLAUDE_PLUGIN_ROOT}/skills/", "skills/")
     .replaceAll(".claude/skills/", "skills/")
     .replaceAll("mcp__3forge-runtime__", "mcp__3forge_runtime__");
+}
+
+function copilotToolDiscovery(content) {
+  return content
+    .replaceAll("`ToolSearch`", "tool discovery")
+    .replace(/\bToolSearch\b/g, "tool discovery");
 }
 
 function parseFrontmatter(content, path) {
@@ -196,7 +217,7 @@ function verifyManifests() {
 function verifyParity() {
   const skills = join(SRC, "skills");
   compareDirs(skills, join(DIST, "codex", "skills"), "dist/codex/skills");
-  compareDirs(skills, join(DIST, "copilot", "skills"), "dist/copilot/skills");
+  compareDirsWithTransform(skills, join(DIST, "copilot", "skills"), "dist/copilot/skills", copilotToolDiscovery);
   compareDirs(skills, join(DIST, "gemini", "skills"), "dist/gemini/skills");
   compareDirs(skills, join(DIST, "cursor", "skills"), "dist/cursor/skills");
 

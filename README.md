@@ -30,8 +30,8 @@ your instance already knows.
 > Claude Code installs plugins directly from a git repo, so for Claude Code **no clone is needed** —
 > jump to [Claude Code (first-class)](#claude-code-first-class).
 >
-> The other tools (Codex, Copilot, Gemini, Cursor) install from the generated `dist/` trees, so for
-> those you still clone the repo first and run the commands from its root:
+> Codex, Gemini, and Cursor install from generated `dist/` trees, so for those you clone the repo and
+> run commands from its root:
 >
 > ```bash
 > git clone git@github.com:3f-git/3forge-mcp.git
@@ -178,18 +178,26 @@ and agent-role prompts, see [`docs/codex-usage.md`](docs/codex-usage.md).
 
 #### Copilot (first-class)
 
-GitHub Copilot CLI installs from its own generated standalone plugin tree at `dist/copilot/`
-(root manifest, `.agent.md` agents, skills, a bundled `.mcp.json`, and a self-referencing
-marketplace). Register it as a marketplace, then install:
+GitHub Copilot CLI can install directly from a dedicated marketplace repo/branch that contains the
+generated standalone Copilot plugin tree (`plugin.json`, `.agent.md` agents, skills, and `.mcp.json`)
+at repository root:
 
 ```bash
-copilot plugin marketplace add ./dist/copilot     # the generated standalone Copilot plugin
+copilot plugin marketplace add <owner>/<copilot-marketplace-repo>
 copilot plugin install 3forge-mcp@3forge-mcp-copilot
 ```
 
-This installs the skills, the 10 agents (as Copilot `.agent.md` files), and the bundled
-`3forge-runtime` MCP connection (auto-connects to `http://localhost:8766/mcp`). Start a fresh
-Copilot session so the plugin is discovered.
+If you are developing locally, install from the generated local tree instead:
+
+```bash
+node build/generate.mjs copilot
+copilot plugin marketplace add ./dist/copilot
+copilot plugin install 3forge-mcp@3forge-mcp-copilot
+```
+
+This installs the skills, the 10 agents, and the bundled `3forge-runtime` MCP connection
+(auto-connects to `http://localhost:8766/mcp`). Start a fresh Copilot session so the plugin is
+discovered.
 
 For day-to-day Copilot usage — skills, agents, MCP tool families, and the doc → verify →
 apply workflow — see [`docs/copilot-usage.md`](docs/copilot-usage.md).
@@ -354,6 +362,24 @@ After **any** change under `3forge-mcp/`, regenerate the per-tool outputs and ve
 node build/generate.mjs
 node build/verify.mjs
 ```
+
+To regenerate only selected outputs (without rewriting the other `dist/*` trees):
+
+```bash
+node build/generate.mjs copilot
+node build/generate.mjs codex
+node build/generate.mjs --target=copilot,codex
+```
+
+To publish the generated Copilot plugin to a dedicated marketplace repo/branch (so end users can
+install via `copilot plugin marketplace add <owner>/<repo>` with no local generate step):
+
+```bash
+node build/publish-copilot-marketplace.mjs --remote <owner>/<copilot-marketplace-repo> --branch main
+```
+
+The publish script generates `dist/copilot` (unless `--skip-generate` is set), copies that tree to
+the target repo root, commits, and force-pushes the branch.
 
 Adding a new **mirror** target (like Gemini/Cursor) is a config-only change in
 `build/tools.json`. Adding a new **first-class plugin** target adds a `build/<tool>/` template

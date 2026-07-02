@@ -36,11 +36,19 @@ the source of truth — all 3forge knowledge comes from `aidoc_*` tools.
 
 ## Install
 
-The repository is not yet on a hosted marketplace, so clone it and install from
-the local path. Copilot's generated plugin tree carries its own marketplace catalog:
+Preferred: install from a dedicated Copilot marketplace repo/branch that publishes
+the generated standalone Copilot plugin tree at repository root:
 
 ```bash
-copilot plugin marketplace add ./dist/copilot      # the generated standalone Copilot plugin
+copilot plugin marketplace add <owner>/<copilot-marketplace-repo>
+copilot plugin install 3forge-mcp@3forge-mcp-copilot
+```
+
+Local development fallback (from this repo root):
+
+```bash
+node build/generate.mjs copilot
+copilot plugin marketplace add ./dist/copilot
 copilot plugin install 3forge-mcp@3forge-mcp-copilot
 ```
 
@@ -56,6 +64,17 @@ You can also manage plugins from inside a session with the `/plugin` slash comma
 
 After installing or updating, **start a fresh Copilot session** so the plugin's
 skills, agents, and MCP tools are discovered.
+
+### Maintainers: publish the Copilot marketplace repo/branch
+
+From this repository root:
+
+```bash
+node build/publish-copilot-marketplace.mjs --remote <owner>/<copilot-marketplace-repo> --branch main
+```
+
+This command regenerates `dist/copilot` (unless `--skip-generate` is passed), copies that
+standalone plugin tree to the target branch root, commits, and pushes.
 
 ## Runtime MCP Connection
 

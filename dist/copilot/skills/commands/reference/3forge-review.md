@@ -15,7 +15,7 @@ Review AMI Script code for correctness and best practices.
    - `web` skill — if Web code
 
 3. **Verify method signatures via the live instance** — Do NOT spawn a subagent:
-   - **First**, if MCP tools have not been used yet in this conversation, use ToolSearch to find/load the `3forge-runtime` `web_showSessions` and `web_getAmiScriptClass` tool schemas before calling them.
+   - **First**, if MCP tools have not been used yet in this conversation, use tool discovery to find/load the `3forge-runtime` `web_showSessions` and `web_getAmiScriptClass` tool schemas before calling them.
    - Call `web_getAmiScriptClass` with an active `__SESSIONID` from `web_showSessions` before flagging any method as incorrect.
    - If no Web session is active, state that method-signature introspection is unavailable and avoid method-existence findings that depend on it.
 
