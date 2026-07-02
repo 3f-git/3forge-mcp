@@ -588,35 +588,3 @@ After importing, adding, or updating a panel or layout:
 This gives the user a chance to review changes in the browser before locking them in.
 
 > **`web_saveLayout` overwrite gotcha:** `web_saveLayout` serializes the current in-memory session state to disk, clobbering anything that was patched only on the disk file out-of-band. Never patch a layout file on disk AND mutate the live session in parallel without syncing — either patch live (and saveLayout when done) or patch on disk (and rebuild the session). Not both unsynchronized.
-
----
-
-## Learning File Template
-
-When capturing a learning after execution failure, use this format:
-
-```markdown
----
-source: 3forge-runtime
-severity: CRITICAL | HIGH
-category: sql | config | layout
-date: YYYY-MM-DD
----
-
-## Error
-[One sentence: what went wrong at execution time]
-
-## Context
-[What was being executed — which tool, what input]
-
-## Root Cause
-[Why — AMI rejected it, wrong port, schema mismatch, etc.]
-
-## Fix
-[What the re-delegated sub-agent changed, or what config was corrected]
-
-## Pattern
-[Generalized rule to prevent recurrence]
-```
-
-Write to `.copilot/learnings/<category>/<DATE>_<slug>.md` and append a one-line summary to `.copilot/learnings/_index.md`. If the index reaches 5+ entries, output: ⚠️ **N learnings accumulated** — run `/ami-promote-learnings` to consolidate.

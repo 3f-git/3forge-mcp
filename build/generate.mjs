@@ -39,8 +39,6 @@ function parseMarkdownFrontmatter(content, path) {
 function codexAgentInstructions(content) {
   return content
     .replaceAll(".claude/skills/", "skills/")
-    .replaceAll(".claude/learnings/", ".codex/learnings/")
-    .replaceAll(".claude/learnings", ".codex/learnings")
     .replaceAll("mcp__3forge-runtime__", "mcp__3forge_runtime__")
     .replaceAll("select:mcp__3forge_runtime__", "mcp__3forge_runtime__")
     .replaceAll("`ToolSearch`", "`tool_search`")
@@ -60,8 +58,6 @@ function codexAgentInstructions(content) {
 function copilotAgentInstructions(content) {
   return content
     .replaceAll(".claude/skills/", "skills/")
-    .replaceAll(".claude/learnings/", ".copilot/learnings/")
-    .replaceAll(".claude/learnings", ".copilot/learnings")
     .replaceAll("mcp__3forge-runtime__", "")
     .replaceAll("select:mcp__3forge_runtime__", "")
     .replaceAll("select:mcp__3forge-runtime__", "")

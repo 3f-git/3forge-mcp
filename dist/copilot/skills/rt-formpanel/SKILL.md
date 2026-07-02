@@ -38,9 +38,6 @@ The `*Pct` form-field properties are **fractions in `[0, 1]`**, NOT percentages 
 ```
 
 If you'd rather think in pixels, use the absolute `left` / `top` / `width` / `height` properties instead — these are in pixels.
-
-Captured 2026-05-20 in `.claude/learnings/_index.md`.
-
 ## What FormPanel DOES support
 
 | Feature | Notes |

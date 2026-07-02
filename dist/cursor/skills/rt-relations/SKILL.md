@@ -99,9 +99,6 @@ For a panel column `{"id":"sym", "title":"Symbol", "value":"symbol"}`:
 - `getValue`: key `"Symbol"`
 
 **Always re-export the panel** (`web_exportPanel`) and read the three fields before writing code that touches any of these APIs. Never assume — even if you set up the panel yourself five minutes ago.
-
-Captured 2026-05-20 in `.claude/learnings/_index.md`.
-
 ## ⚠️ Two clause dialects — pick the right one for the target type
 
 The `wheres[].clause` syntax depends on what the **target panel** is. They use different parsers; mixing dialects breaks silently.

@@ -48,14 +48,6 @@ Use this as the property-name and type source for every `.ami` JSON object you w
 
 **Skip the full-schema call** if you are generating a snippet or partial layout and already know the exact property names needed (token cost not justified).
 
-Proceed to Step 2.5 after loading the schema (or immediately if skipped).
-
-## Step 2.5 — Load Learnings
-
-Check if `.copilot/learnings/_index.md` exists. If it does, read it. Review the **Layout** section for any entries relevant to the current task — these are known pitfalls captured from previous errors. If an entry is directly relevant (e.g. you are about to create a tree panel and there is a tree-panel learning), read the full learning file to understand the root cause and required fix.
-
-Do not read the full files unless the summary line matches what you are about to generate. This keeps token cost minimal.
-
 ## Partial Generation Mode
 
 When the user asks for a **snippet** rather than a full layout (e.g. "show me just the panel JSON", "give me the column config", "what does the datamodel entry look like"), skip Steps 4–7 and return only the requested JSON fragment inline. Do not generate `desktop`, `fileVersion`, `datamodels`, or any other boilerplate the user did not ask for.
@@ -174,49 +166,6 @@ Run a correction loop (max 3 passes):
 3. If the verdict is still BLOCK or WARN after 3 passes → **Stop.** Surface the last validation report to the user with a note that manual intervention is needed. Do not deliver.
 
 Only proceed to Step 8 after the validator returns PASS.
-
-## Step 6.5 — Capture Learnings
-
-After completing the review loop (whether it ended in PASS or was stopped after 3 passes), check if any CRITICAL or HIGH issues were found and fixed during the loop. If yes, write a learning file for each distinct error pattern:
-
-1. `.copilot/learnings/layout/<DATE>_<slug>.md` where `<DATE>` is `YYYY-MM-DD` and `<slug>` is a short kebab-case description (e.g. `tree-panel-missing-grouping`).
-
-2. **File format:**
-   ```markdown
-   ---
-   source: ami-validator
-   severity: CRITICAL | HIGH
-   category: layout
-   date: <DATE>
-   ---
-
-   ## Error
-   [One sentence: what the reviewer flagged]
-
-   ## Context
-   [What was being generated when this happened]
-
-   ## Root Cause
-   [Why the error occurred — wrong API, missing step, incorrect assumption]
-
-   ## Fix
-   [What was changed to resolve it]
-
-   ## Pattern
-   [Generalized rule to prevent recurrence]
-   ```
-
-3. **Update `_index.md`:** append a one-line summary under the `## Layout` section:
-   ```
-   - **<slug>**: [Pattern sentence from above]
-   ```
-   Then count the total bullet-point entries across **all** sections. If the total is **5 or more**, output:
-   > ⚠️ **N learnings accumulated** — run `/ami-promote-learnings` to consolidate into the knowledge base.
-
-**Skip this step if:**
-- The reviewer returned PASS on the first attempt (nothing to learn)
-- The errors were purely stylistic (MEDIUM severity)
-- The fix was a requirement clarification, not an AMI knowledge gap
 
 ## Step 7 — Output Summary
 
