@@ -17,10 +17,15 @@ All runtime interaction goes through the **`3forge-runtime` MCP server** — an 
 - Tool count: **173** (snapshot — call `tools/list` to refresh)
 - Self-documented: `aidoc_getDocumentation("admin")` — Admin console (port 3285): connection protocol, MCP tool conventions, componentId rules, and the `ami`-object method reference
 
-## Two skill files you must consult
+## The live MCP is your tool catalog
 
-1. **`.claude/skills/runtime/tool-catalog.md`** — the full grouped tool catalog (173 tools across 6 subdomains, with descriptions, the doc-verify-apply workflow, and the transient-vs-committed rule).
-2. **`.claude/skills/workflows/doc-verify-apply.md`** — the mandatory workflow for every runtime mutation.
+There is no static tool list to load — the running `3forge-runtime` server is the source of truth:
+
+1. **Discover tools** with ToolSearch (the `3forge-runtime` tools are deferred). Search by subdomain or verb, e.g. `select:ami_showComponents,web_showSessions` or a keyword like `center exec`.
+2. **Discover topics** with `aidoc_getDocumentation()` (no args lists every topic) and `aidoc_search_patterns(query)` for prebuilt skeletons.
+3. **Follow the mandatory workflow** in [`../workflows/doc-verify-apply.md`](../workflows/doc-verify-apply.md) for every runtime mutation.
+
+Tools are grouped by frame (`ami_`, `aidoc_`, `log_`) and component (`center_`, `web_`, `relay_`, `web_balancer_` — each takes `componentId` first). List component IDs with `ami_showComponents()`.
 
 > **New in 2026-06:** live AMIScript editor tools (`web_getCallbackEditor`, `web_getDatamodelEditor`, `web_editor*`, `web_editorDm*`, `web_editorDebugInspectAt`) let you change the AMIScript inside an existing callback or DataModel **without killing the session or patching disk**. See `rt-script` for the editor lifecycle and `rt-debug` for `editorDebugInspectAt`.
 

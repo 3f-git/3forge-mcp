@@ -18,7 +18,7 @@ Before generating anything, read these skill files. They are the authoritative s
 | Skill file | Covers |
 |---|---|
 | `../skills/architecture/reference/guide.md` | Physical folder/file anatomy of a 3forge installation and multi-environment config strategy (DEV/QA/UAT/PROD) |
-| `skills/configuration/SKILL.md` | Property file rules — what to write, what never to touch, minimum viable config, load order |
+| `../skills/configuration/SKILL.md` | Property file rules — what to write, what never to touch, minimum viable config, load order |
 | `../skills/configuration/reference/component_management.md` | Component registration (`ami.components`), runtime add/remove via admin console, plugin registration properties |
 
 ## Step 2 — Clarify Requirements

@@ -21,7 +21,7 @@ Unless explicitly stated, all layouts you generate must be version 6. Unless exp
 
 ## Step 2 — Load the Structural Knowledge
 
-Call `aidoc_getDocumentation(topic)` on the live instance before generating anything (topics listed in `runtime/tool-catalog.md`):
+Call `aidoc_getDocumentation(topic)` on the live instance before generating anything (call it with no args to list every available topic):
 
 | Topic | Covers |
 |---|---|

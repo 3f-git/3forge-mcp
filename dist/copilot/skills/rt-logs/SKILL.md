@@ -94,4 +94,4 @@ Lets you confirm what's being captured and at which level. Logger configuration 
 
 - `aidoc_getDocumentation("debugging")` — Debugging workflow, common error patterns
 - `aidoc_getDocumentation("troubleshooting")` — Known issues and recovery paths
-- See the `log_*` tool descriptions in `tool-catalog.md` for sink identifiers and log-line format — no `aidoc_*` topic covers this.
+- Sink identifiers (no `aidoc_*` topic covers these): `FILE_SINK` = `AmiOne.log` (free-text), `AMIMESSAGES_SINK` = `AmiMessages.log`, `AMISTATS_SINK` = `AmiOne.amilog`. Call `log_showSinks()` on the live instance for the authoritative list and configs.
