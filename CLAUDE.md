@@ -54,6 +54,12 @@ Understanding the target tiers is the key to this repo:
   `3forge-mcp/CLAUDE.md`.
 - **Gemini & Cursor (mirrors)** — instruction-file + `skills/` copies only, configured entirely in
   `build/tools.json` (adding a new mirror is a config-only change). No plugin manifest, no MCP bundle.
+- **Portable (tool-agnostic manual-install bundle)** — `dist/portable/` holds raw canonical agents,
+  path-normalized command prompts, the full `skills/` tree, `mcp.json`, `CLAUDE.md`, and a manual-setup
+  `README.md` (template: `build/portable/README.md`, writer: `writePortable`). For users whose tool
+  can't install marketplace plugins. `node build/pack-portable.mjs` zips it into
+  `3forge-mcp-portable-<version>.zip` at the repo root — a build-on-demand release asset kept out of
+  `dist/` (non-deterministic zip mtimes would break the `verify.mjs` byte-diff) and gitignored.
 
 Adding a new **first-class** target means adding a `build/<tool>/` template set (manifest, marketplace,
 optional MCP) plus a writer function in `generate.mjs` (`writeCodexPlugin` / `writeCopilotPlugin` are

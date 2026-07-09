@@ -216,6 +216,21 @@ Skills for each tool are under `dist/<tool>/skills/`.
 > **Mirrors are best-effort.** External tool formats drift, and only the Claude Code path is
 > exercised in CI.
 
+#### Portable bundle (no-plugin install)
+
+For any tool that **can't install marketplace plugins** but can connect to an MCP server and read
+local skill/instruction files, build a single self-contained zip:
+
+```bash
+node build/generate.mjs        # refresh dist/portable/
+node build/pack-portable.mjs   # → 3forge-mcp-portable-<version>.zip at the repo root
+```
+
+Unzip it and follow its `README.md`. Inside is everything the plugin provides in a plain,
+tool-agnostic layout — `agents/`, `commands/`, `skills/`, the runtime `mcp.json`, and the operating
+`CLAUDE.md` — installed by hand (add the MCP server, copy the folders into your tool's config dir,
+paste `CLAUDE.md` into your project instructions).
+
 ---
 
 ## How it works

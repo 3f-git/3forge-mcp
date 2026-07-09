@@ -7,7 +7,7 @@ const SRC = join(ROOT, "3forge-mcp");
 const DIST = process.env.THREEFORGE_DIST || join(ROOT, "dist");
 const tools = JSON.parse(readFileSync(join(ROOT, "build/tools.json"), "utf8"));
 const mirrorTargets = Object.keys(tools);
-const allTargets = ["codex", "copilot", ...mirrorTargets];
+const allTargets = ["codex", "copilot", "portable", ...mirrorTargets];
 
 const instructions = readFileSync(join(SRC, "CLAUDE.md"), "utf8");
 
@@ -16,6 +16,15 @@ function commandSkillContent(content) {
     .replaceAll("${CLAUDE_PLUGIN_ROOT}/skills/", "skills/")
     .replaceAll(".claude/skills/", "skills/")
     .replaceAll("mcp__3forge-runtime__", "mcp__3forge_runtime__");
+}
+
+// Portable bundle keeps the canonical Claude MCP namespace (hyphenated, matching
+// the server name) but normalizes skill paths so command prompts resolve wherever
+// the user drops the skills/ folder — there is no ${CLAUDE_PLUGIN_ROOT} outside a plugin.
+function portableCommandContent(content) {
+  return content
+    .replaceAll("${CLAUDE_PLUGIN_ROOT}/skills/", "skills/")
+    .replaceAll(".claude/skills/", "skills/");
 }
 
 function parseMarkdownFrontmatter(content, path) {
@@ -256,6 +265,30 @@ function writeCopilotPlugin(version) {
   console.log("generated dist/copilot (standalone Copilot plugin)");
 }
 
+// Portable: tool-agnostic manual-install bundle — no plugin manifest or marketplace.
+// Ships raw canonical agents, path-normalized command prompts, the full skills tree,
+// the runtime MCP config, the operating guidance, and a manual-setup README. Packed
+// into a single zip by build/pack-portable.mjs.
+function writePortable(version) {
+  const out = join(DIST, "portable");
+  writeFileEnsuring(join(out, "CLAUDE.md"), instructions);
+  writeFileEnsuring(join(out, "mcp.json"), readFileSync(join(SRC, ".mcp.json"), "utf8"));
+  forEachAgent((name, content) => {
+    writeFileEnsuring(join(out, "agents", name), content);
+  });
+  const commands = join(SRC, "commands");
+  if (existsSync(commands)) {
+    for (const entry of readdirSync(commands, { withFileTypes: true })) {
+      if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
+      writeFileEnsuring(join(out, "commands", entry.name), portableCommandContent(readFileSync(join(commands, entry.name), "utf8")));
+    }
+  }
+  cpSync(join(SRC, "skills"), join(out, "skills"), { recursive: true });
+  const readme = readFileSync(join(ROOT, "build", "portable", "README.md"), "utf8").replaceAll("{{VERSION}}", version);
+  writeFileEnsuring(join(out, "README.md"), readme);
+  console.log("generated dist/portable (tool-agnostic manual-install bundle)");
+}
+
 // Gemini / Cursor: not plugins — instruction-file + skills mirrors.
 function writeMirror(tool, cfg) {
   const out = join(DIST, tool);
@@ -281,6 +314,7 @@ if (generatingAll) {
 const version = readVersion();
 if (targets.includes("codex")) writeCodexPlugin(version);
 if (targets.includes("copilot")) writeCopilotPlugin(version);
+if (targets.includes("portable")) writePortable(version);
 for (const [tool, cfg] of Object.entries(tools)) {
   if (!targets.includes(tool)) continue;
   writeMirror(tool, cfg);
