@@ -173,6 +173,7 @@ Scan the task. If **any** trigger below matches, **call `aidoc_getDocumentation(
 | Admin console commands, namespaces, introspection patterns | `admin` |
 | Realtime relay socket, wire protocol, O/D messages | `relay` |
 | AMIScript method calls on session / layout / panel objects | `web_getAmiScriptClass(className)` (not a doc topic — a direct signature-lookup tool) |
+| Unsure of a built-in AMIScript function/method name or signature (String/Number/date/static/aggregate) | `aidoc_findMethodByName(method_name)` / `aidoc_findMethodByDesc(method_desc)` (not a doc topic — direct method-lookup tools) |
 | Any error, unexpected result, or repeated failure | `debugging` |
 
 > **The four highest-failure omissions:**
@@ -574,7 +575,8 @@ Do you want me to investigate further or take a different approach?
 **Never generate AMIScript to pass into `web_execScript` from training knowledge.** Method names hallucinate easily.
 
 - Verify exact signatures via `web_getAmiScriptClass(className)` before using any `session.*`, `layout.*`, `Datamodel.*`, or panel method.
-- If a method is not found via `web_getAmiScriptClass`, say so and ask the user rather than guessing.
+- For built-in language methods (String/Number/date/static/aggregate functions — not object methods), search instead of guessing: `aidoc_findMethodByName(method_name)`, `aidoc_findMethodByDesc(method_desc)`, or `aidoc_listMethodsInClass(class_name)`.
+- If a method is not found via either tool, say so and ask the user rather than guessing.
 - Run `web_validateScript` on any non-trivial AMIScript before `web_execScript`.
 
 ### Constraint 4 — Never Commit or Save Without Being Asked

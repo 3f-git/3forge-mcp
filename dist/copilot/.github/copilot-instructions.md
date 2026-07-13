@@ -23,7 +23,12 @@ discovered.
 
 **Never answer AMI/3forge questions from training data.** Get everything from the live
 instance: call `aidoc_getDocumentation(topic)`, `aidoc_search_patterns(query)`, and
-`aidoc_getPattern(name)`. For the layout DOM schema, call `web_showDomSchema(null)`.
+`aidoc_getPattern(name)`. For built-in AMIScript method signatures, search instead of
+guessing — `aidoc_findMethodByName(method_name)` (fuzzy, typo-tolerant),
+`aidoc_findMethodByDesc(method_desc)` (natural-language intent), or
+`aidoc_listMethodsInClass(class_name)` (browse a whole class/bucket); each takes an
+optional `context` filter (`center`/`web`/`relay`). For the layout DOM schema, call
+`web_showDomSchema(null)`.
 
 ## Tool naming
 
