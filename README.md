@@ -218,17 +218,23 @@ Skills for each tool are under `dist/<tool>/skills/`.
 #### Portable bundle (no-plugin install)
 
 For any tool that **can't install marketplace plugins** but can connect to an MCP server and read
-local skill/instruction files, build a single self-contained zip:
+local skill/instruction files, use the prebuilt `dist/portable/` tree straight from a clone — it's
+already committed and generated, so no build step is required:
 
 ```bash
-node build/generate.mjs        # refresh dist/portable/
-node build/pack-portable.mjs   # → 3forge-mcp-portable-<version>.zip at the repo root
+git clone https://github.com/3f-git/3forge-mcp.git
+cd 3forge-mcp/dist/portable
 ```
 
-Unzip it and follow its `README.md`. Inside is everything the plugin provides in a plain,
-tool-agnostic layout — `agents/`, `commands/`, `skills/`, the runtime `mcp.json`, and the operating
+Follow its `README.md`. Inside is everything the plugin provides in a plain, tool-agnostic
+layout — `agents/`, `commands/`, `skills/`, the runtime `mcp.json`, and the operating
 `CLAUDE.md` — installed by hand (add the MCP server, copy the folders into your tool's config dir,
 paste `CLAUDE.md` into your project instructions).
+
+> To cut a single-file release zip instead of pointing people at the folder, maintainers run
+> `node build/generate.mjs && node build/pack-portable.mjs`, which produces
+> `3forge-mcp-portable-<version>.zip` at the repo root. That step is only needed to publish a zip
+> asset — it's not required to use the bundle from a clone.
 
 ---
 
@@ -274,8 +280,9 @@ paste `CLAUDE.md` into your project instructions).
   runtime MCP in their own config.
 - **Portable bundle (`dist/portable/`)** — a tool-agnostic, manual-install copy of everything
   above (agents, commands, skills, `mcp.json`, `CLAUDE.md`, a self-contained `README.md`) for
-  any tool that can't install marketplace plugins at all. `node build/pack-portable.mjs` zips it
-  into `3forge-mcp-portable-<version>.zip` at the repo root as a build-on-demand release asset
+  any tool that can't install marketplace plugins at all. It's prebuilt and committed, so end
+  users can use it straight from a clone with no build step. `node build/pack-portable.mjs` is
+  only for maintainers cutting a single-file `3forge-mcp-portable-<version>.zip` release asset
   (gitignored, not committed). See [Portable bundle](#portable-bundle-no-plugin-install) below.
 
 ### The bundled-reference exception
