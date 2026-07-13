@@ -1,4 +1,4 @@
-# 3forge-mcp — portable bundle (v0.3.0)
+# 3forge-mcp — portable bundle (v0.3.1)
 
 A tool-agnostic copy of everything the **3forge-mcp** plugin provides — skills, agents,
 command prompts, and the runtime MCP connection config — in a plain folder you can install
