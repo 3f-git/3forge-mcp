@@ -217,18 +217,15 @@ Skills for each tool are under `dist/<tool>/skills/`.
 
 #### Portable bundle (no-plugin install)
 
-For any tool that **can't install marketplace plugins** but can connect to an MCP server and read
-local skill/instruction files, build a single self-contained zip:
+For any tool that **can't install marketplace plugins**, use the prebuilt `dist/portable/`
+folder straight from a clone:
 
 ```bash
-node build/generate.mjs        # refresh dist/portable/
-node build/pack-portable.mjs   # → 3forge-mcp-portable-<version>.zip at the repo root
+git clone https://github.com/3f-git/3forge-mcp.git
+cd 3forge-mcp/dist/portable
 ```
 
-Unzip it and follow its `README.md`. Inside is everything the plugin provides in a plain,
-tool-agnostic layout — `agents/`, `commands/`, `skills/`, the runtime `mcp.json`, and the operating
-`CLAUDE.md` — installed by hand (add the MCP server, copy the folders into your tool's config dir,
-paste `CLAUDE.md` into your project instructions).
+Follow its `README.md` to install by hand.
 
 ---
 
@@ -272,11 +269,9 @@ paste `CLAUDE.md` into your project instructions).
   URLs. Copilot gets its own generated `dist/copilot/.mcp.json` with a literal default URL
   (Copilot lacks the `${AMI_MCP_URL:-…}` substitution syntax). Gemini and Cursor configure the
   runtime MCP in their own config.
-- **Portable bundle (`dist/portable/`)** — a tool-agnostic, manual-install copy of everything
-  above (agents, commands, skills, `mcp.json`, `CLAUDE.md`, a self-contained `README.md`) for
-  any tool that can't install marketplace plugins at all. `node build/pack-portable.mjs` zips it
-  into `3forge-mcp-portable-<version>.zip` at the repo root as a build-on-demand release asset
-  (gitignored, not committed). See [Portable bundle](#portable-bundle-no-plugin-install) below.
+- **Portable bundle (`dist/portable/`)** — a tool-agnostic, manual-install copy for any tool
+  that can't install marketplace plugins at all. Prebuilt and committed — see
+  [Portable bundle](#portable-bundle-no-plugin-install) below.
 
 ### The bundled-reference exception
 
