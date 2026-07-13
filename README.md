@@ -31,16 +31,15 @@ your instance already knows.
 > jump to [Claude Code (first-class)](#claude-code-first-class).
 >
 > Codex, Gemini, and Cursor install from generated `dist/` trees, so for those you clone the repo and
-> run commands from its root:
+> run commands from its root. The repo is public, so no auth is required:
 >
 > ```bash
-> git clone git@github.com:3f-git/3forge-mcp.git
+> git clone https://github.com/3f-git/3forge-mcp.git
 > cd 3forge-mcp
 > ```
 >
-> Because the repo is currently **private**, the git-based install needs access to it — an SSH key on
-> your GitHub account or `gh auth login`; for Claude Code's background auto-updates, also set a
-> `GITHUB_TOKEN` / `GH_TOKEN`. If the repo is made public, no auth is required.
+> Tools that can't install marketplace plugins at all can skip cloning and use the prebuilt
+> [portable bundle](#portable-bundle-no-plugin-install) instead.
 
 ### 1. Runtime MCP connection
 
@@ -273,6 +272,11 @@ paste `CLAUDE.md` into your project instructions).
   URLs. Copilot gets its own generated `dist/copilot/.mcp.json` with a literal default URL
   (Copilot lacks the `${AMI_MCP_URL:-…}` substitution syntax). Gemini and Cursor configure the
   runtime MCP in their own config.
+- **Portable bundle (`dist/portable/`)** — a tool-agnostic, manual-install copy of everything
+  above (agents, commands, skills, `mcp.json`, `CLAUDE.md`, a self-contained `README.md`) for
+  any tool that can't install marketplace plugins at all. `node build/pack-portable.mjs` zips it
+  into `3forge-mcp-portable-<version>.zip` at the repo root as a build-on-demand release asset
+  (gitignored, not committed). See [Portable bundle](#portable-bundle-no-plugin-install) below.
 
 ### The bundled-reference exception
 
@@ -305,14 +309,18 @@ so `aidoc` cannot serve it. That content is bundled read-only under:
 ├── build/
 │   ├── generate.mjs                    # 3forge-mcp/ → dist/*  (Claude is read-only input)
 │   ├── verify.mjs                      # regenerate to temp, diff vs dist/, validate manifests
+│   ├── pack-portable.mjs               # dist/portable/ → 3forge-mcp-portable-<version>.zip (repo root, gitignored)
+│   ├── publish-copilot-marketplace.mjs # push dist/copilot to a dedicated marketplace repo/branch
 │   ├── tools.json                      # Gemini/Cursor mirror config
 │   ├── codex/                          # Codex scaffolding (plugin.json, mcp.json, marketplace.json)
-│   └── copilot/                        # Copilot scaffolding (plugin.json, mcp.json, marketplace.json)
+│   ├── copilot/                        # Copilot scaffolding (plugin.json, mcp.json, marketplace.json)
+│   └── portable/                       # Portable bundle scaffolding (README.md template)
 ├── dist/                               # ← GENERATED (never hand-edit)
 │   ├── codex/                          # standalone Codex plugin (.codex-plugin, .mcp.json, .agents/plugins, .codex/agents, skills, AGENTS.md)
 │   ├── copilot/                        # standalone Copilot plugin (plugin.json, .mcp.json, agents, skills)
 │   ├── gemini/                         # mirror (GEMINI.md + skills)
-│   └── cursor/                         # mirror (.cursor rules + skills)
+│   ├── cursor/                         # mirror (.cursor rules + skills)
+│   └── portable/                       # tool-agnostic manual-install bundle (agents, commands, skills, mcp.json, CLAUDE.md, README.md)
 └── README.md
 ```
 

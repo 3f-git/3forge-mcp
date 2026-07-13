@@ -41,9 +41,7 @@ Claude Code tracks the repo's default branch (`main`); pull later releases with
 `claude plugin marketplace update 3forge-mcp-marketplace` then
 `claude plugin update 3forge-mcp@3forge-mcp-marketplace`.
 
-The repo is currently **private**, so the git install needs access to it (an SSH key
-on your GitHub account or `gh auth login`; set `GITHUB_TOKEN`/`GH_TOKEN` for
-background auto-updates). If it is made public, no auth is required. To hack on the
+The repo is public, so no auth is required for the git install. To hack on the
 plugin itself, clone it and register the local clone instead:
 `claude plugin marketplace add ../3forge-mcp` from the repo root.
 
