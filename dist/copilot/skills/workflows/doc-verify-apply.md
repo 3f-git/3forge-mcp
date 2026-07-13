@@ -12,9 +12,10 @@ Mandatory three-step pattern for every operation against a live AMI deployment v
 |---|---|
 | `aidoc_getDocumentation(topic)` | You know the topic. List of topics: `amisql`, `datamodel`, `center`, `web`, `relay`, `panel_table`, `panel_chart`, `panel_form`, `panel_tabs`, `panel_divider`, `callbacks`, `relationships`, `data_loading`, `schema_design`, `sessions`, `transient_objects`, `relay_routes`, `feedhandlers`, `datasource`, `adapters`, `custom_menus`, `custom_html`, `layout_structure`, `layout_style`, `loadfile`, `debugging`, `troubleshooting`, `amiscript`, `admin`. |
 | `aidoc_search_patterns(query)` → `aidoc_getPattern(name)` | You want a prebuilt skeleton (e.g. "kafka feed", "sector heatmap", "realtime table"). |
-| `web_getAmiScriptClass(componentId, className)` | AMIScript method signatures — omit `className` to list all available classes. |
+| `aidoc_findMethodByName(method_name)` / `aidoc_findMethodByDesc(method_desc)` | Built-in AMIScript language methods (String/Number/date/static/aggregate functions) — you're unsure of the exact name or only know what it should do. `aidoc_listMethodsInClass(class_name)` browses a whole class/bucket. All three take an optional `context` (`center`/`web`/`relay`). |
+| `web_getAmiScriptClass(componentId, className)` | Web object-model classes (`Session`, `Layout`, panel types) — omit `className` to list all available classes. |
 
-If a topic the user is asking about isn't covered by `aidoc_*`, fall back to `web_getAmiScriptClass` for method-level questions, or ask the user for clarification.
+If a topic the user is asking about isn't covered by `aidoc_*`, fall back to `web_getAmiScriptClass` for Web object-model methods, or ask the user for clarification.
 
 ---
 

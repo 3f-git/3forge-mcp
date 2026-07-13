@@ -67,6 +67,16 @@ Returns method signatures so you don't have to guess (e.g. `getValue` vs `get`, 
 
 Omit `class_name` to list all 113 web-accessible AMIScript classes.
 
+**Look up a built-in language method (String/Number/date/static/aggregate functions) instead of an object method:**
+
+```
+aidoc_findMethodByName("toUpper")                        → fuzzy, typo-tolerant
+aidoc_findMethodByDesc("convert a string to uppercase")   → natural-language intent
+aidoc_listMethodsInClass("String")                        → browse the whole class/bucket
+```
+
+No `componentId`/session required — these search the built-in method library, not a running object. Each takes an optional `context` (`center`/`web`/`relay`) to hide methods invalid there.
+
 ## Reserved column names
 
 Avoid these column ids — they collide with AMI system columns: `C`, `M`, `V`, `E`, `I`. Showed up as a panel/datamodel pitfall but worth repeating here: `web_validateScript` will not warn you if your script tries to read these from a table.
@@ -231,4 +241,5 @@ Always pass `componentId="web"` and `__SESSIONID` (from `web_showSessions`).
 - `aidoc_getDocumentation("amiscript")` — language reference
 - `aidoc_getDocumentation("callbacks")` — callback parameter scope per event name
 - `aidoc_getDocumentation("web")` — Web-context constraints (USE DS, session.log, HTML escaping)
-- `web_getAmiScriptClass` — primary signature source; omit `className` to list all available classes if a specific one isn't returning results
+- `web_getAmiScriptClass` — primary signature source for object methods; omit `className` to list all available classes if a specific one isn't returning results
+- `aidoc_findMethodByName` / `aidoc_findMethodByDesc` / `aidoc_listMethodsInClass` — built-in language method lookup by name, intent, or class/bucket; no session required

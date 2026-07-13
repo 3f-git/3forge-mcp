@@ -233,7 +233,10 @@ Follow its `README.md` to install by hand.
 
 - **The live instance is the source of truth.** For any 3forge concept, syntax, or pattern,
   call `aidoc_getDocumentation(topic)`, `aidoc_search_patterns(query)`, or
-  `aidoc_getPattern(name)` against the running server — never answer from training data.
+  `aidoc_getPattern(name)` against the running server — never answer from training data. For
+  built-in AMIScript method signatures, search instead of guessing:
+  `aidoc_findMethodByName(method_name)`, `aidoc_findMethodByDesc(method_desc)`, or
+  `aidoc_listMethodsInClass(class_name)`.
 - **Tool naming.** Global-frame tools are `ami_`, `aidoc_`, `log_`. Component tools require a
   `componentId` first argument: `center_`, `web_`, `relay_`, `web_balancer_`. List valid IDs
   with `ami_showComponents()`.
