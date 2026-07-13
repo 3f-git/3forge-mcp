@@ -1,6 +1,6 @@
 {
   "name": "3forge-mcp",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "3forge AMI authoring and runtime workflow skills. Bundles the 3forge-runtime MCP connection (HTTP, auto-connects on install; override the URL with the AMI_MCP_URL env var). All 3forge knowledge is served by the live instance via aidoc.",
   "author": {
     "name": "3forge"
