@@ -39,7 +39,7 @@ For exact panel/property schemas (field names, types, valid values), the authori
 
 ## Step 2.1 — Load the Live DOM Schema
 
-Call `web_showDomSchema(null)` to return the full DOM schema for every registered `.ami` type in one call. Pass a specific `typeName` (see `web_showDomTypes` for valid names) to fetch just one panel/object type's schema when you already know what you're building.
+Call `web_console(view=domSchema)` to return the full DOM schema for every registered `.ami` type in one call. Pass a specific `typeName` (see `web_console(view=domTypes)` for valid names) to fetch just one panel/object type's schema when you already know what you're building.
 
 Use this as the property-name and type source for every `.ami` JSON object you write — panels, datamodels, relationships, columns. If a property name in the schema conflicts with a verified `.ami` export or the DO NOT rules in this agent, **trust the DO NOT rules and the exports over the schema** — the live schema can occasionally lag the newest release.
 
@@ -137,9 +137,9 @@ When extending an existing `.ami` file:
    - Create a new `DividerPanel` with `child1 = new_panel_id`, `child2 = existing_root_id`.
    - Update the `windows` entry `child` field to the new divider's ID.
 
-Refer to the live DOM schema (`web_showDomSchema(null)`, Step 2.1) for the rest of the schema. **Always check if a field exists or if a value is appropriate before writing any layout JSON!**
+Refer to the live DOM schema (`web_console(view=domSchema)`, Step 2.1) for the rest of the schema. **Always check if a field exists or if a value is appropriate before writing any layout JSON!**
 
-When generating code (AMI Script or AMI SQL), **ensure that all code compiles** by referring to `aidoc_getDocumentation("amiscript")` and `aidoc_getDocumentation("amisql")`. Remember that code can only be executed inside of Callbacks — see `aidoc_getDocumentation("callbacks")`!
+When generating code (AMI Script or AMI SQL), **ensure that all code compiles** by referring to `aidoc_getDocumentation("amiscript")` and `aidoc_getDocumentation("amisql")`. To confirm a built-in method's exact signature, search instead of guessing — `aidoc_findMethodByName(method_name)` (fuzzy), `aidoc_findMethodByDesc(method_desc)` (by intent), or `aidoc_listMethodsInClass(class_name)`. Remember that code can only be executed inside of Callbacks — see `aidoc_getDocumentation("callbacks")`!
 
 ## Step 6 — Review and Correct
 
@@ -147,7 +147,7 @@ Run a correction loop using the MCP validation tools (max 3 passes):
 
 ### Step 6a — Validate AMI Script / SQL (if any code was generated)
 
-Call `mcp__3forge-runtime__web_validateScript` with the generated AMIScript/SQL string to check for syntax errors and known anti-patterns. The tool returns diagnostics with line/column and severity. For DataModel `onProcess` scripts specifically, also call `mcp__3forge-runtime__web_validateDatamodel` which validates the full DM (script + queryMode + output table schema). Fix all CRITICAL diagnostics before proceeding.
+Call `mcp__3forge-runtime__web_verify` with `kind=script` and the generated AMIScript/SQL string to check for syntax errors and known anti-patterns. The tool returns diagnostics with line/column and severity. For DataModel `onProcess` scripts specifically, also call `mcp__3forge-runtime__web_verify` with `kind=datamodel` which validates the full DM (script + queryMode + output table schema). Fix all CRITICAL diagnostics before proceeding.
 
 ### Step 6b — Validate Layout JSON
 
@@ -155,7 +155,7 @@ Run a correction loop (max 3 passes):
 
 **Each pass:**
 1. Call the layout validation MCP tool:
-   Call `mcp__3forge-runtime__web_validateJson` with the path to (or contents of) the generated `.ami` file. The tool parses the layout JSON against the AMI DOM schema and returns a structured diagnostics report. Treat any CRITICAL diagnostic as BLOCK and any HIGH as WARN.
+   Call `mcp__3forge-runtime__web_verify` with `kind=panelJson` and the path to (or contents of) the generated `.ami` file. The tool parses the layout JSON against the AMI DOM schema and returns a structured diagnostics report. Treat any CRITICAL diagnostic as BLOCK and any HIGH as WARN.
 2. Read the verdict:
    - **PASS** → Proceed to Step 8.
    - **BLOCK** → Fix every CRITICAL issue listed in the validation report. Write the corrected file. Go back to step 1.

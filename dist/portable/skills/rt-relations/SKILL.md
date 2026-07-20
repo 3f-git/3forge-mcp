@@ -12,16 +12,16 @@ Distinct from `rt-panels` (panel CRUD), `rt-script` (callbacks for arbitrary log
 ## The non-negotiable order
 
 ```
-1. web_showPanels(componentId, sessionId)        → find source + target panel IDs
-2. center_describeTable on BOTH panels' source tables  → list valid column names
-   (or web_getTableColumns / web_exportPanel for column titles)
+1. web_console(view=panels, componentId, sessionId)        → find source + target panel IDs
+2. center_console(view=describeTable, tableName) on BOTH panels' source tables  → list valid column names
+   (or web_console(view=tableColumns) / web_console(view=exportPanel) for column titles)
 3. Decide the clause dialect (RT target vs DM-backed target — see below)
-4. web_addRelationship(...)                       ← TRANSIENT, validates clause at creation
+4. web_execute(action=addRelationship, ...)       ← TRANSIENT, validates clause at creation
 5. Show user. Test by clicking a row. WAIT for confirmation.
-6. web_commitSession → web_saveLayout             ← PERSISTED
+6. web_execute(action=commitSession)                              ← PERSISTED
 ```
 
-`web_addRelationship` validates clauses at creation time. If a referenced column doesn't exist on either side, the call is rejected with the list of valid columns — no silent failure on that path.
+`web_execute(action=addRelationship)` validates clauses at creation time. If a referenced column doesn't exist on either side, the call is rejected with the list of valid columns — no silent failure on that path.
 
 ## ⚠️ #1 footgun — `rtDownstreamMode` on realtimetable sources
 
@@ -31,7 +31,7 @@ A `realtimetable` source panel **will not feed selections into any relationship*
 { "type": "realtimetable", "id": "PNL1", "rtDownstreamMode": "SELECTED_OR_ALL", ... }
 ```
 
-Without this property, clicking a row does nothing and the relationship never fires. **No error is raised.** If row selection seems inert, this is almost always the cause. Set it via `web_updatePanel` if the source panel was created without it.
+Without this property, clicking a row does nothing and the relationship never fires. **No error is raised.** If row selection seems inert, this is almost always the cause. Set it via `web_execute(action=updatePanel)` if the source panel was created without it.
 
 ## Relationship JSON shape
 
@@ -98,7 +98,7 @@ For a panel column `{"id":"sym", "title":"Symbol", "value":"symbol"}`:
 - `setCurrentWhere`: key `"symbol"`
 - `getValue`: key `"Symbol"`
 
-**Always re-export the panel** (`web_exportPanel`) and read the three fields before writing code that touches any of these APIs. Never assume — even if you set up the panel yourself five minutes ago.
+**Always re-export the panel** (`web_console(view=exportPanel)`) and read the three fields before writing code that touches any of these APIs. Never assume — even if you set up the panel yourself five minutes ago.
 ## ⚠️ Two clause dialects — pick the right one for the target type
 
 The `wheres[].clause` syntax depends on what the **target panel** is. They use different parsers; mixing dialects breaks silently.
@@ -123,7 +123,7 @@ Example: if the panel column is `{"id":"item_id", "title":"ItemId", "value":"ite
 
 **Do NOT use `${Source_col}` template syntax here** — that's the DM dialect and causes `Error processing node of type VariableNode`.
 
-Discover the right names via `web_exportPanel` on both panels, reading the `title` field of each column.
+Discover the right names via `web_console(view=exportPanel)` on both panels, reading the `title` field of each column.
 
 ### Dialect B — target is DM-backed (`targetDm` set, or a static `table`)
 
@@ -189,9 +189,9 @@ Inside the callback:
 
 ## Pre-flight checklist
 
-Before calling `web_addRelationship`:
+Before calling `web_execute(action=addRelationship)`:
 
-1. **Confirm both panel IDs exist** — `web_showPanels`.
+1. **Confirm both panel IDs exist** — `web_console(view=panels)`.
 2. **List columns on BOTH source and target backing tables** — case-sensitive titles matter. The wrong case is the second-most common bug after `rtDownstreamMode`.
 3. **Identify the target type** — RT or DM-backed? Pick the matching dialect.
 4. **For RT sources** — confirm `rtDownstreamMode: "SELECTED_OR_ALL"` is set on the source panel.
@@ -209,7 +209,7 @@ Before calling `web_addRelationship`:
 | Wrong field names (`source` vs `sourcePanel`, `clauses` vs `wheres`) | Silent broken relationship; no validation error. |
 | Callback array used at relationship top level (no `{"entries":[]}` wrapper) | Callback never runs. |
 | Skipping the column lookup pre-step | NullPointerException at row-click time, not at relationship creation. |
-| Forgetting `commitSession` / `saveLayout` | Relationship gone on session reload. |
+| Forgetting `commitSession` | Relationship gone on session reload. |
 | Target DM query missing `${WHERE}` | Relationship fires but the filter never reaches the query. |
 
 ## When to use a callback instead
@@ -222,46 +222,46 @@ Before calling `web_addRelationship`:
 | Key event | Panel `onKey` callback |
 | Both filter AND UI update | Relationship + `onProcess` callback |
 
-## Reading, rerunning & changing relationships (AMIScript via `web_execScript`)
+## Reading, rerunning & changing relationships (AMIScript via `web_script`)
 
-`web_addRelationship` is the **only** dedicated relationship MCP tool, and it **creates** a relationship — there is **no `web_updateRelationship` and no `web_removeRelationship`**. Everything beyond create is done through AMIScript, which is fully reachable from MCP via `web_execScript`. The AMIScript `Panel.addRelationship(...)` and the `web_addRelationship` tool call the **same underlying factory**, so behavior is identical.
+`web_execute(action=addRelationship)` is the **only** dedicated relationship MCP action, and it **creates** a relationship — there is **no `web_updateRelationship` and no `web_removeRelationship`**. Everything beyond create is done through AMIScript, which is fully reachable from MCP via `web_script`. The AMIScript `Panel.addRelationship(...)` and the `web_execute(action=addRelationship)` tool call the **same underlying factory**, so behavior is identical.
 
-AMIScript relationship surface (run any of these through `web_execScript`):
+AMIScript relationship surface (run any of these through `web_script`):
 
 | AMIScript | What it does |
 |---|---|
-| `layout.getPanel("PNL1").addRelationship(relId, layout.getPanel("PNL2"), title, trigger, whereVarName, whereClause)` | **Create** — same as `web_addRelationship`; returns the `Relationship` object |
+| `layout.getPanel("PNL1").addRelationship(relId, layout.getPanel("PNL2"), title, trigger, whereVarName, whereClause)` | **Create** — same as `web_execute(action=addRelationship)`; returns the `Relationship` object |
 | `layout.getRelationship("relId")` | **Read** a relationship by ID → `Relationship` |
 | `layout.getPanel("PNL2").getCurrentRelationship()` | **Read** the relationship currently applied to a panel |
 | `Relationship.getId()` / `getSource()` / `getTarget()` / `getClauses()` | Inspect a relationship |
 | `Relationship.execute()` / `executeOnAllRows()` | **Rerun** the relationship's filter programmatically (the only way to fire a `trigger:"amiscript"` relationship) |
 | `Panel.callRelationship(name)` / `Panel.callRelationshipId(id)` | Rerun a relationship targeting this panel by name/ID |
 
-The `Relationship` object is **read + execute only** — it has no setters and no remove method (see `web_getAmiScriptClass("Relationship")`).
+The `Relationship` object is **read + execute only** — it has no setters and no remove method (see `web_console(view=amiScriptClass, className="Relationship")`).
 
 ### How to "update" or "remove" (no native mutate path)
 
-- **Update:** there is no in-place edit. Re-export the panel (`web_exportPanel`), change the relationship in the JSON, and re-import — or recreate it. (The interactive GUI "Add Relationship" dialog can edit in place, but that path is not exposed to MCP or AMIScript.)
-- **Remove:** no MCP/AMIScript delete. Remove the relationship from the panel JSON and re-import, then `web_commitSession` → `web_saveLayout`.
+- **Update:** there is no in-place edit. Re-export the panel (`web_console(view=exportPanel)`), change the relationship in the JSON, and re-import — or recreate it. (The interactive GUI "Add Relationship" dialog can edit in place, but that path is not exposed to MCP or AMIScript.)
+- **Remove:** no MCP/AMIScript delete. Remove the relationship from the panel JSON and re-import, then `web_execute(action=commitSession)`.
 
 ## Tools owned by this skill
 
-- `web_addRelationship` — create the relationship (transient until commit)
-- `web_execScript` — read / rerun / inspect relationships via AMIScript (see section above); the only path for anything beyond create
-- `web_exportPanel` — read existing relationships and column titles
-- `web_showPanels` — list panel IDs
-- `center_describeTable` / `web_getTableColumns` / `web_getVarTypesForFeed` — column discovery
-- `web_updatePanel` — set `rtDownstreamMode` on an existing realtimetable source
-- `web_commitSession`, `web_saveLayout` — persist
-- `web_listAutosaves`, `web_restoreAutosave` — roll back if a relationship goes wrong
+- `web_execute(action=addRelationship)` — create the relationship (transient until commit)
+- `web_script` — read / rerun / inspect relationships via AMIScript (see section above); the only path for anything beyond create
+- `web_console(view=exportPanel)` — read existing relationships and column titles
+- `web_console(view=panels)` — list panel IDs
+- `center_console(view=describeTable)` / `web_console(view=tableColumns)` / `web_console(view=varTypesForFeed)` — column discovery
+- `web_execute(action=updatePanel)` — set `rtDownstreamMode` on an existing realtimetable source
+- `web_execute(action=commitSession)` — persist
 
-Always pass `componentId="web"` and `__SESSIONID` from `web_showSessions`.
+Always pass `componentId="web"` and `__SESSIONID` from `web_console(view=sessions)`.
 
 ## Authoritative doc references
 
 - `aidoc_getDocumentation("relationships")` — full canonical reference (the source of this skill)
 - `aidoc_getDocumentation("panel_table")` — panel column `id` vs `title` vs `value` semantics
 - `aidoc_getDocumentation("datamodel")` — `${WHERE}` template, `reprocess()`, DM query mechanics
-- `web_getAmiScriptClass("Relationship")` — full `Relationship` object method list (read + execute only)
+- `web_console(view=amiScriptClass, className="Relationship")` — full `Relationship` object method list (read + execute only)
+- `aidoc_findMethodByName(method_name, class_name?, context?)` / `aidoc_findMethodByDesc(...)` / `aidoc_listMethodsInClass(class_name, context?)` — search the built-in AMIScript methods used in relationship callbacks (`context="web"` filters to Web-valid methods); `findMethodByName` is fuzzy/typo-tolerant, `findMethodByDesc` searches by intent, `listMethodsInClass` lists every method in a class
 - `rt-panels` — panel structure for the source/target panels
-- `rt-script` — when to combine with callbacks; running AMIScript via `web_execScript`
+- `rt-script` — when to combine with callbacks; running AMIScript via `web_script`

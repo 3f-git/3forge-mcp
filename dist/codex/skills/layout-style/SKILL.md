@@ -26,7 +26,7 @@ Full styling reference, theme patterns, and design principles:
 call `aidoc_getDocumentation("layout_style")` on the live instance.
 
 Layout structure and panel type reference (required context):
-call `aidoc_getDocumentation("layout_structure")`, and use `web_showDomSchema(null)` for exact style property names per panel type.
+call `aidoc_getDocumentation("layout_structure")`, and use `web_console(view=domSchema)` for exact style property names per panel type.
 
 ---
 
