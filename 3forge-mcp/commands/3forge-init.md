@@ -11,18 +11,17 @@ Use ToolSearch to find/load the deferred `3forge-runtime` tool schemas you'll ne
 
 - `aidoc_getDocumentation`
 - `aidoc_search_patterns`
-- `ami_showComponents`
-- `web_showSessions`
-- `web_getAmiScriptClass`
+- `ami_console`
+- `web_console`
 
 Then probe the server:
 
 - `aidoc_getDocumentation` (no args) → confirms `3forge-runtime` is online and lists available doc topics
-- `ami_showComponents` → live component list
-- `web_showSessions` for each Web component → active session list for session-scoped Web tools
-- `web_getAmiScriptClass` (no args, or with an active `__SESSIONID`) → confirms method-signature introspection is available and lists all classes
+- `ami_console(view=components)` → live component list
+- `web_console(view=sessions)` for each Web component → active session list for session-scoped Web tools
+- `web_console(view=amiScriptClass)` (no args, or with an active `__SESSIONID`) → confirms method-signature introspection is available and lists all classes
 
-If `web_getAmiScriptClass` returns `Session not found: null`, use `web_showSessions` to find an active session and retry with its `__SESSIONID`. If there are no active sessions, report API class indexing as unavailable because no Web session is active. Do not create a headless session during `/3forge-init` unless the user explicitly asks for one.
+If `web_console(view=amiScriptClass)` returns `Session not found: null`, use `web_console(view=sessions)` to find an active session and retry with its `__SESSIONID`. If there are no active sessions, report API class indexing as unavailable because no Web session is active. Do not create a headless session during `/3forge-init` unless the user explicitly asks for one.
 
 If `3forge-runtime` is offline, surface this and stop — most runtime work depends on it.
 
@@ -32,8 +31,8 @@ There is no static tool list to load — the running `3forge-runtime` server is 
 
 ## Step 3 — Internalize your role
 
-- **Never generate AMI code from training knowledge alone.** Verify with `aidoc_*` (live, authoritative), then `web_getAmiScriptClass` for method signatures.
-- **Doc to verify to apply** for every live mutation. Stage panels as transient, confirm with the user, then commit via `web_commitPanel` / `web_commitSession` / `web_saveLayout`.
+- **Never generate AMI code from training knowledge alone.** Verify with `aidoc_*` (live, authoritative) — search built-in methods with `aidoc_findMethodByName` / `aidoc_findMethodByDesc` / `aidoc_listMethodsInClass` (`context` = web|center|relay) — then `web_console(view=amiScriptClass)` for the live API class signatures.
+- **Doc to verify to apply** for every live mutation. Stage panels as transient, confirm with the user, then commit via `web_execute(action=commitPanel)` / `web_execute(action=commitSession)`.
 - **Classify before coding.** Apply the Architecture Decision Guide below.
 - **Output target:** file in `outputs/` vs apply-to-live. Ask if ambiguous.
 - **Delegate to specialist agents.** See the Agent Roster below.
@@ -144,9 +143,9 @@ Respond with:
 MCP status:
 - 3forge-runtime: [online — N tools / offline]
 
-Live components: [from ami_showComponents — Name (Type), ...]
+Live components: [from ami_console(view=components) — Name (Type), ...]
 
-API classes indexed: [count from web_getAmiScriptClass, or "unavailable (no active Web session)"]
+API classes indexed: [count from web_console(view=amiScriptClass), or "unavailable (no active Web session)"]
 
 Doc topics available: [count from aidoc_getDocumentation, or "unavailable"]
 

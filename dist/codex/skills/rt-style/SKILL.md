@@ -12,14 +12,14 @@ For visual design on a **static `.ami` file** (artifact in `outputs/`), use the 
 ## The non-negotiable order
 
 ```
-1. web_exportPanel(componentId, sessionId, panelId)   → see what's currently set
+1. web_console(view=exportPanel, componentId, sessionId, panelId)   → see what's currently set
 2. (decide what to change — amiStyle? styles? column fg/bg?)
 3. aidoc_getDocumentation("layout_style")              → confirm property names
 4. (build the updated panel JSON)
-5. web_validateJson(componentId, "<PanelType>", json)  → must return "OK"
-6. web_updatePanel(componentId, sessionId, panelId, panelConfig)   ← TRANSIENT
+5. web_verify(kind=panelJson, componentId, "<PanelType>", json)  → must return "OK"
+6. web_execute(action=updatePanel, componentId, sessionId, panelId, panelConfig)   ← TRANSIENT
 7. Show user. WAIT for confirmation.
-8. web_commitPanel → web_saveLayout                    ← PERSISTED
+8. web_execute(action=commitPanel)    ← PERSISTED
 ```
 
 Same transient lifecycle as `rt-panels`. Never auto-commit a style change — the user should see it first.
@@ -126,15 +126,15 @@ t.setAmiStyle("titleBg", "#0d1117");
 t.setAmiStyle("titleFg", "#79c0ff");
 ```
 
-Look up the exact method name with `web_getAmiScriptClass(componentId, "tablepanel")` before writing.
+Look up the exact method name with `web_console(view=amiScriptClass, componentId, "tablepanel")` before writing.
 
 ## Discovering style property names
 
 When you don't know which `amiStyle` keys a panel supports, the DOM schema is the source of truth:
 
 ```
-web_showDomSchema(componentId, "RealtimeTablePanel")
-web_showDomSchema(componentId, "ChartPanel")
+web_console(view=domSchema, componentId, "RealtimeTablePanel")
+web_console(view=domSchema, componentId, "ChartPanel")
 ```
 
 Look for the `amiStyle` property's `properties` map — that lists every valid key for that panel type.
@@ -146,22 +146,21 @@ Look for the `amiStyle` property's `properties` map — that lists every valid k
 | Setting column `color` to a literal color like `"#ff5252"` (without quotes-as-expression) | Renders no color — `color` is an AMIScript expression. Use `"\"#ff5252\""` to return that string literally. |
 | Forgetting to escape string literals inside JSON-embedded AMIScript | Parse error or wrong color. Inside JSON: `"color": "qty > 0 ? \"#0f0\" : \"#f00\""` |
 | Using `fg` instead of `color` | Works (legacy alias) but prefer `color` for new code |
-| Editing `amiStyle` keys you guessed | Most are silently ignored. Confirm with `web_showDomSchema` first |
-| Forgetting transient → commit → save | Style change disappears on session reload |
+| Editing `amiStyle` keys you guessed | Most are silently ignored. Confirm with `web_console(view=domSchema)` first |
+| Forgetting transient → commit | Style change disappears on session reload |
 | Reusing a styleSet name across layouts | The name is layout-scoped — collisions confuse downstream tools |
 | Inline `style` mixed with `styles` array | `style` overrides `styles`; pick one approach per panel |
 
 ## Tools owned by this skill
 
-- `web_exportPanel`, `web_exportLayout` — read current styling
-- `web_updatePanel`, `web_importLayout` — apply styling changes
-- `web_validateJson` — validate before applying
-- `web_showDomSchema`, `web_showDomTypes` — discover valid style property names
-- `web_execScript` — dynamic styling via AMIScript (also covered by `rt-script`)
-- `web_commitPanel`, `web_commitSession`, `web_saveLayout` — persist
-- `web_listAutosaves`, `web_restoreAutosave` — rollback if a style change goes wrong
+- `web_console(view=exportPanel)`, `web_console(view=exportLayout)` — read current styling
+- `web_execute(action=updatePanel)` — apply styling changes
+- `web_verify(kind=panelJson)` — validate before applying
+- `web_console(view=domSchema)`, `web_console(view=domTypes)` — discover valid style property names
+- `web_script` — dynamic styling via AMIScript (also covered by `rt-script`)
+- `web_execute(action=commitPanel)`, `web_execute(action=commitSession)` — persist
 
-Always pass `componentId="web"` and `__SESSIONID` (from `web_showSessions`).
+Always pass `componentId="web"` and `__SESSIONID` (from `web_console(view=sessions)`).
 
 ## Authoritative doc references
 

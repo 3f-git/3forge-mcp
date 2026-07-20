@@ -19,11 +19,11 @@ Full patterns, examples, and pitfalls: call `aidoc_getDocumentation("datamodel")
 
 For an active session you can open, edit, validate, and apply a DataModel's `onProcess` AMIScript **without bouncing the session or patching disk**:
 
-- `web_getDatamodelEditor(componentId, sessionId, dmName)` — open the editor (bare DM name; `DATAMODEL:` ARI prefix added automatically). Opens minimized by default.
-- `web_editorGetCode` → `web_editorEdit(expectedRevision=...)` → `web_editorValidate` → `web_editorApply` — the revision-checked edit loop (full walkthrough in `rt-script`).
-- `web_editorDmExecute` — trigger the DM to run.
-- `web_editorDmGetStatus` — `state`, `evalsCompleted`, `errorsCount`, `currentlyRunning`, `outputTables`, plus compile and runtime error arrays.
-- `web_editorDmOutputTables` / `web_editorDmOutputTableSchema` — discover output table names + column schemas from the editor.
-- `web_editorDebugInspectAt(handle, line)` — one-shot debug snapshot (temp breakpoint + stack + locals + abort). See `rt-debug`.
+- `web_editor(op=openDatamodel, componentId, sessionId, dmName)` — open the editor (bare DM name; `DATAMODEL:` ARI prefix added automatically). Opens minimized by default.
+- `web_editor(op=getCode)` → `web_editor(op=edit, expectedRevision=...)` → `web_editor(op=validate)` → `web_editor(op=apply)` — the revision-checked edit loop (full walkthrough in `rt-script`).
+- `web_editor(op=dmExecute)` — trigger the DM to run.
+- `web_editor(op=dmGetStatus)` — `state`, `evalsCompleted`, `errorsCount`, `currentlyRunning`, `outputTables`, plus compile and runtime error arrays.
+- `web_editor(op=dmOutputTables)` / `web_editor(op=dmOutputTableSchema)` — discover output table names + column schemas from the editor.
+- `web_editor(op=debugInspectAt, handle, line)` — one-shot debug snapshot (temp breakpoint + stack + locals + abort). See `rt-debug`.
 
-These complement (don't replace) `web_executeDatamodel`, `web_validateDatamodel`, `web_getDatamodelTables`, `web_getDatamodelTableSchema` — use the editor variants when you already have an editor open and want to iterate quickly.
+These complement (don't replace) `web_execute(action=executeDatamodel)`, `web_verify(kind=datamodel)`, `web_console(view=datamodelTables)`, `web_console(view=datamodelTableSchema)` — use the editor variants when you already have an editor open and want to iterate quickly.

@@ -28,25 +28,25 @@ guessing — `aidoc_findMethodByName(method_name)` (fuzzy, typo-tolerant),
 `aidoc_findMethodByDesc(method_desc)` (natural-language intent), or
 `aidoc_listMethodsInClass(class_name)` (browse a whole class/bucket); each takes an
 optional `context` filter (`center`/`web`/`relay`). For the layout DOM schema, call
-`web_showDomSchema(null)`.
+`web_console(view=domSchema)`.
 
 ## Tool naming
 
 - Global frames: `ami_`, `aidoc_`, `log_`.
 - Component tools require `componentId` first: `center_`, `web_`, `relay_`,
-  `web_balancer_`. List IDs with `ami_showComponents()`.
+  `web_balancer_`. List IDs with `ami_console(view=components)`.
 
 ## Mandatory workflow: doc → verify → apply
 
 Before any mutating tool call:
 1. **Doc** — `aidoc_getDocumentation(topic)` / `aidoc_search_patterns`.
-2. **Verify** — a validation tool if one exists (`web_validateJson`,
-   `web_validateScript`, `web_validateDatamodel`, ...).
+2. **Verify** — a validation tool if one exists (`web_verify(kind=panelJson)`,
+   `web_verify(kind=script)`, `web_verify(kind=datamodel)`, `center_verify`, ...).
 3. **Apply** — the mutating tool.
 
-Panels/layouts created via `web_addPanel*` / `web_updatePanel` are **transient** until
-`web_commitPanel` / `web_commitSession` / `web_saveLayout`. Never auto-commit without
-user confirmation.
+Panels/layouts created via `web_execute(action=addPanelNextTo)` / `web_execute(action=updatePanel)`
+are **transient** until `web_execute(action=commitPanel)` / `web_execute(action=commitSession)`.
+Never auto-commit without user confirmation.
 
 ## Agents
 

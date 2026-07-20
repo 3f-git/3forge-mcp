@@ -20,7 +20,7 @@ If no file path is given, look for a `.ami` file in `inputs/`. Use that as the s
 
 Before touching any file, call `aidoc_getDocumentation("layout_style")` for the full amiStyle reference, styleSets, CSS, column coloring, and design principles. Call `aidoc_getDocumentation("layout_structure")` for panel types and structure (context for what you are styling).
 
-For exact `styles` property names (`panelBgCl`, `panelFontCl`, panel-specific style keys, valid value ranges) — the authoritative source is the live DOM schema: call `web_showDomSchema(null)` (or `web_showDomSchema(typeName)` for a single panel type). Do not invent style property names from training knowledge. If a property name is uncertain, pull the relevant type from the live schema — each panel type's schema includes its style-related properties grouped by category.
+For exact `styles` property names (`panelBgCl`, `panelFontCl`, panel-specific style keys, valid value ranges) — the authoritative source is the live DOM schema: call `web_console(view=domSchema)` (or `web_console(view=domSchema, typeName=…)` for a single panel type). Do not invent style property names from training knowledge. If a property name is uncertain, pull the relevant type from the live schema — each panel type's schema includes its style-related properties grouped by category.
 
 ## Step 2 — Read the Target Layout
 

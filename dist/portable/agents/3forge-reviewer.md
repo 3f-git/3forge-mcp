@@ -21,7 +21,7 @@ You are an expert AMI/3forge code reviewer. Your job is to catch real bugs and r
 
 ## Layout File Review (`.ami` files)
 
-Before reviewing a v6 layout, load the property reference if validating specific field names or types: call `web_showDomSchema(null)` for the full live DOM schema (all valid v6 property names, types, and constraints per panel type), or `web_showDomSchema(typeName)` for just the panel type being reviewed. Use it to flag unknown or mistyped property keys.
+Before reviewing a v6 layout, load the property reference if validating specific field names or types: call `web_console(view=domSchema)` for the full live DOM schema (all valid v6 property names, types, and constraints per panel type), or `web_console(view=domSchema, typeName=…)` for just the panel type being reviewed. Use it to flag unknown or mistyped property keys.
 
 For each `.ami` file, run these three passes in order. Report all findings using the same output format as the Script Review (severity, location, issue → fix).
 
