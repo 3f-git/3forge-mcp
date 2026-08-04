@@ -86,7 +86,7 @@ This one-time primer:
 - Lists active Web sessions and confirms AMIScript class introspection.
 - Reports available doc topics and the full agent roster.
 
-If there is no active Web session, `web_getAmiScriptClass` can return
+If there is no active Web session, `web_console(view=amiScriptClass)` can return
 `Session not found: null`. That is expected — Web-context method introspection
 needs an active session ID. `/3forge-init` does **not** create a headless session
 just to satisfy this unless you explicitly ask for one.
@@ -174,7 +174,7 @@ These own the `3forge-runtime` MCP tool surfaces. `runtime` routes to them.
 | `rt-panels` | `web_*` panels/layouts/windows/datamodels; the doc → validate → apply ritual and transient-vs-committed lifecycle. |
 | `rt-dm` | Live Web DataModels — output tables, `queryMode`, `onProcess`, `${WHERE}` substitution, `reprocess()`, the DM editor flow. |
 | `rt-relations` | Cross-panel filtering / drill-down relationships and their two clause dialects. |
-| `rt-script` | Live AMIScript — `web_execScript`/`web_validateScript` and the AMIScript introspection tools. |
+| `rt-script` | Live AMIScript — `web_script`/`web_verify(kind=script)` and the AMIScript introspection tools. |
 | `rt-style` | Live panel/layout styling — `amiStyle`, `styleSets`, column color formulas, HTML templates. |
 | `rt-formpanel` | AMI FormPanel (`type "form"`) behavior, what it supports, and what it does **not**. |
 | `rt-sessions` | Web session lifecycle — list, kill, diagnose, headless creation, autosave recovery. |
@@ -186,8 +186,9 @@ These own the `3forge-runtime` MCP tool surfaces. `runtime` routes to them.
 ## MCP Tool Families
 
 When `3forge-runtime` is connected, the server reflects live AMI console methods
-as MCP tools (173 across 6 subdomains). Call `ami_showComponents()` first to find
-valid component IDs such as `center`, `web`, or `relay`.
+as MCP tools (37 consolidated tools across 6 subdomains). Call
+`ami_console(view=components)` first to find valid component IDs such as
+`center`, `web`, or `relay`.
 
 | Prefix | Scope | Typical use |
 |---|---|---|
@@ -200,9 +201,20 @@ valid component IDs such as `center`, `web`, or `relay`.
 | `web_balancer_*` | WebBalancer component | Load-balancer pools and connection status (only present when a WebBalancer is connected). |
 
 **Naming note:** global frames use `ami_`/`aidoc_`/`log_` prefixes. Component
-tools require `componentId` as the first argument. Newer tools use snake_case
-(`web_set_divider_offset`), older ones camelCase (`web_addPanelNextTo`) — both
-are live; use the exact name from the catalog.
+tools require `componentId` as the first argument. The consolidated tools fold
+many per-operation calls into a few action/view-based tools; the action and view
+names are camelCase (e.g. `web_execute(action=setDividerOffset)`,
+`web_execute(action=addPanelNextTo)`) — use the exact name and argument from the
+catalog.
+
+**Finding built-in methods:** to search AMIScript's built-in methods, use
+`aidoc_findMethodByName(method_name, class_name?, context?, min_dist?)` (fuzzy,
+typo-tolerant search by name; returns `<return> <class>::<method>(<params>)`
+signatures), `aidoc_findMethodByDesc(...)` (find methods by natural-language
+intent), and `aidoc_listMethodsInClass(class_name, context?)` (every built-in
+method in a class or bucket such as `String`, `[static]`, `[aggregate]`,
+`[prepare]`). `context` = `web`|`center`|`relay` filters to methods valid in
+that component.
 
 ## Mutation Safety — Doc → Verify → Apply
 
@@ -210,10 +222,10 @@ For **every** live mutation, follow the mandatory three-step workflow:
 
 1. **Doc** — read `aidoc_getDocumentation(topic)` or `aidoc_search_patterns(query)`.
    Never answer AMI syntax questions from model memory.
-2. **Verify** — run a validator when one exists: `web_validate_panel_json`,
-   `web_validateScript`, `web_validateDatamodel`, `web_validate_amisql`,
-   `web_get_chart_schema_warnings`, `web_get_table_schema_warnings`,
-   `web_getCallbackVariables`.
+2. **Verify** — run a validator when one exists: `web_verify(kind=panelJson)`,
+   `web_verify(kind=script)`, `web_verify(kind=datamodel)`, `center_verify` (AMI
+   SQL syntax), `web_debug(kind=chartSchemaWarnings)`,
+   `web_debug(kind=tableSchemaWarnings)`, `web_console(view=callbackVariables)`.
 3. **Apply** — call the mutating tool only after validation passes.
 
 ### Transient vs committed
@@ -221,23 +233,23 @@ For **every** live mutation, follow the mandatory three-step workflow:
 Web panel/layout changes are **session-scoped and not persisted** until you
 explicitly commit them. These tools produce transient changes:
 
-- `web_addPanelNextTo`, `web_add_tab_to_tabs_panel`, `web_wrap_panel_in_tab`
-- `web_updatePanel`, `web_deletePanel`
-- `web_importDatamodel`, `web_deleteDatamodel`
-- `web_addRelationship`
-- `web_setLayoutStyle`, `web_setPanelStyle`, `web_set_divider_offset`,
-  `web_distribute_dividers`, `web_flip_panels`, `web_rotate_panels`
+- `web_execute(action=addPanelNextTo)`, `web_execute(action=addTabToTabsPanel)`, `web_execute(action=wrapPanelInTab)`
+- `web_execute(action=updatePanel)`, `web_danger(action=deletePanel)`
+- `web_execute(action=importDatamodel)`, `web_danger(action=deleteDatamodel)`
+- `web_execute(action=addRelationship)`
+- `web_execute(action=setLayoutStyle)`, `web_execute(action=setPanelStyle)`, `web_execute(action=setDividerOffset)`,
+  `web_execute(action=distributeDividers)`, `web_execute(action=flipPanels)`, `web_execute(action=rotatePanels)`
 
 Persist them only after showing the user and getting confirmation:
 
 | Persist tool | Scope |
 |---|---|
-| `web_commitPanel` | A single panel's pending changes |
-| `web_commitSession` | All pending changes in a session |
-| `web_saveLayout` | Export the persisted state as a named layout artifact |
+| `web_execute(action=commitPanel)` | A single panel's pending changes |
+| `web_execute(action=commitSession)` | All pending changes in a session |
 
-**Rule:** stage the change, show the user (screenshot or `web_exportPanel` /
-`web_exportLayout`), and **wait for explicit confirmation** before committing.
+**Rule:** stage the change, show the user (screenshot or
+`web_console(view=exportPanel)` / `web_console(view=exportLayout)`), and **wait
+for explicit confirmation** before committing.
 Never auto-commit.
 
 ### Editing AMIScript inside an existing object
@@ -247,11 +259,11 @@ already exists in the session, use the in-session editor path (no disk patch /
 session bounce):
 
 ```
-web_getCallbackEditor / web_getDatamodelEditor   → open editor handle
-web_editorGetCode                                → read code AND revision
-web_editorEdit (expectedRevision from above)     → literal-text edit
-web_editorValidate                               → MUST be ok (errors in diagnostics)
-web_editorApply                                  → persist into the DOM object
+web_editor(op=openCallback) / web_editor(op=openDatamodel)   → open editor handle
+web_editor(op=getCode)                           → read code AND revision
+web_editor(op=edit) (expectedRevision from above) → literal-text edit
+web_editor(op=validate)                          → MUST be ok (errors in diagnostics)
+web_editor(op=apply)                             → persist into the DOM object
 ```
 
 Validation errors are returned in `diagnostics`, **not** surfaced as UI alerts —

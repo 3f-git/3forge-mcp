@@ -128,6 +128,6 @@ Use this when you need a third-party JS library loaded per session (date picker,
 - `aidoc_getDocumentation("layout_style")` — `htmlTemplate2` styling rules
 - `aidoc_getDocumentation("web")` — full `amiJsCallback` bridge pattern
 - `aidoc_getDocumentation("amiscript")` — `setHtml`, `setCssClass`, `session` API
-- `rt-script` — live execution of `setHtml` / `setCssClass` via `web_execScript`
+- `rt-script` — live execution of `setHtml` / `setCssClass` via `web_script`
 - `rt-style` — visual styling that pairs with HTML content
 - `rt-panels` — adding a FormPanel structurally

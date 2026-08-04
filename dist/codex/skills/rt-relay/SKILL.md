@@ -11,7 +11,7 @@ Loaded when the user wants to:
 - Inspect connections, dictionaries, or peer Center registrations
 - Toggle debug for routes / transforms
 
-Follow the doc → verify → apply workflow in [`../workflows/doc-verify-apply.md`](../workflows/doc-verify-apply.md). There are no JSON validators on the Relay surface — read the relevant doc topic, dry-run by listing first (`relay_showFeedhandlers`, `relay_showRoutes`, etc.), then apply.
+Follow the doc → verify → apply workflow in [`../workflows/doc-verify-apply.md`](../workflows/doc-verify-apply.md). There are no JSON validators on the Relay surface — read the relevant doc topic, dry-run by listing first (`relay_console(view=feedHandlers)`, `relay_console(view=routes)`, etc.), then apply.
 
 ## Mental model
 
@@ -32,74 +32,74 @@ Follow the doc → verify → apply workflow in [`../workflows/doc-verify-apply.
 ## Feedhandler lifecycle
 
 ```
-1. relay_showPluginRegistry()        → confirm the plugin type is loaded
+1. relay_console(view=pluginRegistry)       → confirm the plugin type is loaded
 2. aidoc_getDocumentation("feedhandlers")   → option keys for this type
 3. relay_addFeedhandler(id, pluginId, options="k=v,k2=v2")
 4. relay_startFeedhandler(id)
-5. relay_showFeedhandlers()          → expect Status=RUNNING, watch MsgCount climb
-6. (on errors) relay_showFeedHandlerError(id)
+5. relay_console(view=feedHandlers)         → expect Status=RUNNING, watch MsgCount climb
+6. (on errors) relay_debug(action=feedHandlerError, feedHandlerId=id)
 ```
 
 Update / teardown:
 - `relay_updateFeedhandlerOptions(id, options)` — apply config changes without recreating
-- `relay_stopFeedhandler(id)`, `relay_removeFeedhandler(id)`
+- `relay_stopFeedhandler(id)`, `relay_danger(target=feedhandler, id=id)`
 
 ## Routes and transforms
 
 ```
 relay_addRoute(...)              # connect feedhandler → destination
 relay_updateRoute(...)
-relay_removeRoute(...)
-relay_showRoutes() / relay_showRoutesSummary()
+relay_danger(target=route, id=...)
+relay_console(view=routes) / relay_console(view=routesSummary)
 
 relay_addTransform(...)          # attach a transform to a route
-relay_removeTransform(...)
-relay_showTransforms() / relay_showTransformsSummary()
+relay_danger(target=transform, id=...)
+relay_console(view=transforms) / relay_console(view=transformsSummary)
 ```
 
 Per-message debug logging (verbose — turn off when done):
 
 ```
-relay_enableRoutesDebug() / relay_disableRoutesDebug()
-relay_enableTransformDebug() / relay_disableTransformDebug()
+relay_debug(action=enableRoutesDebug) / relay_debug(action=disableRoutesDebug)
+relay_debug(action=enableTransformDebug) / relay_debug(action=disableTransformDebug)
 ```
 
 ## Inspecting state
 
 | Tool | Returns |
 |---|---|
-| `relay_status` | Overall Relay health |
-| `relay_showFeedhandlers` | All feedhandlers — `ID`, `PluginID`, `Status`, `MsgCount`, `ErrorCount`, `ChildCount`, `Properties` |
-| `relay_showFeedHandlerError(id)` | Last error + stack for a feedhandler |
-| `relay_showRoutes` / `relay_showRoutesSummary` | Routes (full or summary) |
-| `relay_showTransforms` / `relay_showTransformsSummary` | Transforms |
-| `relay_showConnections` | Live wire connections |
-| `relay_showDictionaries` | All dictionaries |
-| `relay_showDictionary(name)` | One dictionary's schema |
-| `relay_showCenters` / `relay_showCentersSummary` | Centers this Relay forwards to |
-| `relay_showProperties` | Relay config properties |
-| `relay_getConfiguration(prefix?)` | Filtered config |
-| `relay_showPluginRegistry` | Plugin types available |
+| `relay_console(view=status)` | Overall Relay health |
+| `relay_console(view=feedHandlers)` | All feedhandlers — `ID`, `PluginID`, `Status`, `MsgCount`, `ErrorCount`, `ChildCount`, `Properties` |
+| `relay_debug(action=feedHandlerError, feedHandlerId=id)` | Last error + stack for a feedhandler |
+| `relay_console(view=routes)` / `relay_console(view=routesSummary)` | Routes (full or summary) |
+| `relay_console(view=transforms)` / `relay_console(view=transformsSummary)` | Transforms |
+| `relay_console(view=connections)` | Live wire connections |
+| `relay_console(view=dictionaries)` | All dictionaries |
+| `relay_console(view=dictionary, name=…)` | One dictionary's schema |
+| `relay_console(view=centers)` / `relay_console(view=centersSummary)` | Centers this Relay forwards to |
+| `relay_console(view=properties)` | Relay config properties |
+| `relay_console(view=configuration)` | Filtered config |
+| `relay_console(view=pluginRegistry)` | Plugin types available |
 
 ## Common failure modes
 
 | Symptom | Likely cause |
 |---|---|
-| `Status=FAILED` immediately after `relay_startFeedhandler` | Check `relay_showFeedHandlerError(id)` — usually bad options or unreachable external endpoint |
+| `Status=FAILED` immediately after `relay_startFeedhandler` | Check `relay_debug(action=feedHandlerError, feedHandlerId=id)` — usually bad options or unreachable external endpoint |
 | `MsgCount=0` but Status RUNNING | Feedhandler is up but not receiving — check the source side, or the subscription filter |
 | Route receives messages but Center table is empty | Dictionary mismatch or transform dropping rows; enable transform debug temporarily |
-| `Plugin not found` on `relay_addFeedhandler` | Plugin type not registered — `relay_showPluginRegistry` to confirm available types |
+| `Plugin not found` on `relay_addFeedhandler` | Plugin type not registered — `relay_console(view=pluginRegistry)` to confirm available types |
 
 ## Tools owned by this skill
 
-- `relay_status`, `relay_getConfiguration`, `relay_showProperties`, `relay_showPluginRegistry`
-- `relay_addFeedhandler`, `relay_removeFeedhandler`, `relay_startFeedhandler`, `relay_stopFeedhandler`, `relay_updateFeedhandlerOptions`, `relay_showFeedhandlers`, `relay_showFeedHandlerError`
-- `relay_addRoute`, `relay_removeRoute`, `relay_updateRoute`, `relay_showRoutes`, `relay_showRoutesSummary`, `relay_enableRoutesDebug`, `relay_disableRoutesDebug`
-- `relay_addTransform`, `relay_removeTransform`, `relay_showTransforms`, `relay_showTransformsSummary`, `relay_enableTransformDebug`, `relay_disableTransformDebug`
-- `relay_showConnections`, `relay_showDictionaries`, `relay_showDictionary`
-- `relay_showCenters`, `relay_showCentersSummary`
+- `relay_console(view=status)`, `relay_console(view=configuration)`, `relay_console(view=properties)`, `relay_console(view=pluginRegistry)`
+- `relay_addFeedhandler`, `relay_danger(target=feedhandler)`, `relay_startFeedhandler`, `relay_stopFeedhandler`, `relay_updateFeedhandlerOptions`, `relay_console(view=feedHandlers)`, `relay_debug(action=feedHandlerError)`
+- `relay_addRoute`, `relay_danger(target=route)`, `relay_updateRoute`, `relay_console(view=routes)`, `relay_console(view=routesSummary)`, `relay_debug(action=enableRoutesDebug)`, `relay_debug(action=disableRoutesDebug)`
+- `relay_addTransform`, `relay_danger(target=transform)`, `relay_console(view=transforms)`, `relay_console(view=transformsSummary)`, `relay_debug(action=enableTransformDebug)`, `relay_debug(action=disableTransformDebug)`
+- `relay_console(view=connections)`, `relay_console(view=dictionaries)`, `relay_console(view=dictionary)`
+- `relay_console(view=centers)`, `relay_console(view=centersSummary)`
 
-Always pass `componentId="relay"` (or the actual Relay name from `ami_showComponents`).
+Always pass `componentId="relay"` (or the actual Relay name from `ami_console(view=components)`).
 
 ## Authoritative doc references
 

@@ -128,14 +128,14 @@ to take effect.
 After editing `relay.routes` (when hot-reload is not configured):
 
 ```
-ami_restartComponent("relay")
+ami_execute(action=restartComponent, componentId="relay")
 ```
 
 Verify routing after restart:
 
 ```
-relay_showRoutes("relay")
-relay_showCenters("relay")
+relay_console(view=routes, componentId="relay")
+relay_console(view=centers, componentId="relay")
 ```
 
 > Allow a few seconds after restart — feedhandlers need to re-establish
@@ -148,9 +148,9 @@ relay_showCenters("relay")
 Use the MCP tools (no file access required):
 
 ```
-relay_showRoutes("relay")        # current routing rules and their targets
-relay_showFeedhandlers("relay")  # feedhandlers and their status
-relay_showCenters("relay")       # Centers the Relay is currently routing to
+relay_console(view=routes, componentId="relay")        # current routing rules and their targets
+relay_console(view=feedHandlers, componentId="relay")  # feedhandlers and their status
+relay_console(view=centers, componentId="relay")       # Centers the Relay is currently routing to
 ```
 
 ---

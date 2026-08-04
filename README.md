@@ -239,13 +239,14 @@ Follow its `README.md` to install by hand.
   `aidoc_listMethodsInClass(class_name)`.
 - **Tool naming.** Global-frame tools are `ami_`, `aidoc_`, `log_`. Component tools require a
   `componentId` first argument: `center_`, `web_`, `relay_`, `web_balancer_`. List valid IDs
-  with `ami_showComponents()`.
+  with `ami_console(view=components)`.
 - **Mandatory mutation workflow — doc → verify → apply.** Before any mutating call: (1) read
   the relevant `aidoc` docs, (2) run a validation tool if one exists
-  (`web_validateScript`, `web_validateDatamodel`, …), (3) apply the change.
-- **Transient vs. committed.** Panels/layouts created via `web_addPanel*` / `web_updatePanel`
-  are transient until `web_commitPanel` / `web_commitSession` / `web_saveLayout`. Never
-  auto-commit without user confirmation.
+  (`web_verify(kind=script)`, `web_verify(kind=datamodel)`, …), (3) apply the change.
+- **Transient vs. committed.** Panels/layouts created via `web_execute` (e.g.
+  `action=addPanelNextTo` / `action=updatePanel`) are transient until you commit them —
+  `web_execute(action=commitPanel)` / `web_execute(action=commitSession)`.
+  Never auto-commit without user confirmation.
 
 ---
 
@@ -460,7 +461,7 @@ curl -s -X POST "$URL" -H 'Content-Type: application/json' \
 
 A healthy server returns its tool list (prefixed `ami_`/`aidoc_`/`center_`/`web_`/`relay_`/`log_`).
 Then confirm a real call, e.g. `tools/call` with `aidoc_getDocumentation` (no args lists topics)
-or `ami_showComponents`.
+or `ami_console` (view=components).
 
 ### Versioning & release
 

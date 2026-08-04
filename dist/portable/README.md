@@ -1,4 +1,4 @@
-# 3forge-mcp — portable bundle (v0.3.1)
+# 3forge-mcp — portable bundle (v0.4.0)
 
 A tool-agnostic copy of everything the **3forge-mcp** plugin provides — skills, agents,
 command prompts, and the runtime MCP connection config — in a plain folder you can install
@@ -81,6 +81,6 @@ committed changes, tool-naming conventions).
 - **Never answer 3forge/AMI questions from training data.** Fetch everything live via
   `aidoc_getDocumentation`, `aidoc_search_patterns`, `aidoc_getPattern`.
 - **Doc → verify → apply.** Read the docs, run a validation tool if one exists
-  (`web_validateScript`, `web_validateDatamodel`, …), then apply.
+  (`web_verify(kind=script)`, `web_verify(kind=datamodel)`, `center_verify`, …), then apply.
 - **Transient vs. committed.** Panels/layouts are transient until committed — never
   auto-commit without user confirmation.

@@ -6,7 +6,7 @@ description: Use when working against a live AMI Center via the 3forge-runtime M
 # Live Center — center_* tools
 
 Loaded when the user wants to do anything against a running AMI Center:
-- Run SQL or DDL via `center_exec`
+- Run SQL or DDL via `center_execute`
 - Inspect / create / drop tables, triggers, timers, procedures
 - Manage datasources and replication
 
@@ -31,7 +31,7 @@ Before any mutating call, follow the doc → verify → apply workflow in [`../w
 
 ### ⚠️ AMI SQL strings: double quotes only
 
-AMI SQL string literals use **double quotes**, always — including inside `center_exec`. JSON-escape them as `\"` in the tool argument.
+AMI SQL string literals use **double quotes**, always — including inside `center_execute`. JSON-escape them as `\"` in the tool argument.
 
 Single-quoted literals are not valid AMI SQL syntax. The parser doesn't accept them and silently corrupts the value — `'AAPL'` stores as `AAP`, `'BUY'` as `BU` — with **no error raised**.
 
@@ -78,23 +78,23 @@ CREATE TIMER tmr_name OFTYPE AMISCRIPT EVERY 5 MINUTES {
 ```
 
 Inspect / control:
-- `center_showTriggers`, `center_showTriggerError`, `center_dropTrigger`
-- `center_showTimers`, `center_showTimerError`, `center_scheduleTimer`, `center_enableTimer`, `center_disableTimer`, `center_dropTimer`
+- `center_console(view=sql, sql="SHOW TRIGGERS")`, `center_debug(command=triggerError, triggerName=…)`, `center_execute("DROP TRIGGER IF EXISTS n")`
+- `center_console(view=sql, sql="SHOW TIMERS")`, `center_debug(command=timerError, timerName=…)`, `center_execute("CALL __SCHEDULE_TIMER('n', ms)")`, `center_execute("ENABLE TIMER n")`, `center_execute("DISABLE TIMER n")`, `center_execute("DROP TIMER IF EXISTS n")`
 
 ## Diagnostics
 
 | Tool | Use for |
 |---|---|
-| `center_status` | Is the Center running? |
-| `center_describeTable(t)` | Return the CREATE TABLE DDL |
-| `center_diagnoseTable(t)` | Memory + cardinality per column |
-| `center_showProperties` | All Center properties |
-| `center_getConfiguration(prefix?)` | Filtered config |
-| `center_showDatasources` | All configured datasources |
-| `center_showDatasourceTypes` | Driver types available |
-| `center_showSubscriptions` | Live client subscriptions |
-| `center_showReplications` | Active replications |
-| `center_showProcedures` | Stored procedures |
+| `center_console(view=status)` | Is the Center running? |
+| `center_console(view=describeTable, tableName=t)` | Return the CREATE TABLE DDL |
+| `center_console(view=diagnoseTable, tableName=t)` | Memory + cardinality per column |
+| `center_console(view=properties)` | All Center properties |
+| `center_console(view=configuration)` | Filtered config |
+| `center_console(view=sql, sql="SHOW DATASOURCES")` | All configured datasources |
+| `center_console(view=sql, sql="SHOW DATASOURCE TYPES")` | Driver types available |
+| `center_console(view=subscriptions)` | Live client subscriptions |
+| `center_console(view=sql, sql="SHOW REPLICATIONS")` | Active replications |
+| `center_console(view=sql, sql="SHOW PROCEDURES")` | Stored procedures |
 
 ## Common failure modes
 
@@ -110,18 +110,18 @@ Inspect / control:
 
 ## Tools owned by this skill
 
-- `center_exec`, `center_status`
-- `center_describeTable`, `center_diagnoseTable`
-- `center_showTriggers`, `center_showTriggerError`, `center_dropTrigger`
-- `center_showTimers`, `center_showTimerError`, `center_scheduleTimer`, `center_enableTimer`, `center_disableTimer`, `center_dropTimer`
-- `center_showProcedures`
-- `center_addDatasource`, `center_removeDatasource`, `center_showDatasources`, `center_showDatasourceTypes`
-- `center_addReplication`, `center_removeReplication`, `center_showReplications`
-- `center_addCenter`, `center_removeCenter`
-- `center_showProperties`, `center_getConfiguration`, `center_getTimezone`, `center_setTimezone`
-- `center_showSubscriptions`
+- `center_execute` (SQL/DDL/DML), `center_verify` (SQL syntax check), `center_console(view=status)`
+- `center_console(view=describeTable, tableName=…)`, `center_console(view=diagnoseTable, tableName=…)`
+- `center_console(view=sql, sql="SHOW TRIGGERS")`, `center_debug(command=triggerError, triggerName=…)`, `center_execute("DROP TRIGGER IF EXISTS n")`
+- `center_console(view=sql, sql="SHOW TIMERS")`, `center_debug(command=timerError, timerName=…)`, `center_execute("CALL __SCHEDULE_TIMER('n', ms)")`, `center_execute("ENABLE TIMER n")`, `center_execute("DISABLE TIMER n")`, `center_execute("DROP TIMER IF EXISTS n")`
+- `center_console(view=sql, sql="SHOW PROCEDURES")`
+- `center_execute("CALL __ADD_DATASOURCE('n','type','url','user','pwd','opts')")`, `center_execute("CALL __REMOVE_DATASOURCE('n')")`, `center_console(view=sql, sql="SHOW DATASOURCES")`, `center_console(view=sql, sql="SHOW DATASOURCE TYPES")`
+- `center_execute("CALL __ADD_REPLICATION('def','n','map','opts')")`, `center_execute("CALL __REMOVE_REPLICATION('n')")`, `center_console(view=sql, sql="SHOW REPLICATIONS")`
+- `center_execute("CALL __ADD_CENTER('n','url')")`, `center_execute("CALL __REMOVE_CENTER('n')")`
+- `center_console(view=properties)`, `center_console(view=configuration)`, `center_console(view=timezone)`, `center_execute("CALL __SET_TIMEZONE('tz')")`
+- `center_console(view=subscriptions)`
 
-Always pass `componentId="center"` (or the actual Center component name from `ami_showComponents`).
+Always pass `componentId="center"` (or the actual Center component name from `ami_console(view=components)`).
 
 ## Authoritative doc references
 
@@ -129,3 +129,9 @@ Always pass `componentId="center"` (or the actual Center component name from `am
 - `aidoc_getDocumentation("center")` — Center-side patterns
 - `aidoc_getDocumentation("schema_design")` — table design
 - `aidoc_getDocumentation("datasource")` — datasource configuration
+
+To find / verify built-in AMIScript methods used in triggers and timers (Center context):
+- `aidoc_findMethodByName(method_name, class_name?, context?, min_dist?)` — fuzzy, typo-tolerant search by method name; returns signatures `<return> <class>::<method>(<params>)`.
+- `aidoc_findMethodByDesc(...)` — find methods by natural-language description / intent.
+- `aidoc_listMethodsInClass(class_name, context?)` — list every built-in method in a class/bucket ("String", "[static]", "[aggregate]", "[prepare]").
+- Pass `context="center"` to filter to methods valid in the Center component.

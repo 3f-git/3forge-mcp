@@ -95,13 +95,16 @@ Note: this repo-root `CLAUDE.md` (contributor guidance) is distinct from `3forge
 When operating a live AMI instance through the `3forge-runtime` MCP:
 
 - **Never answer AMI/3forge questions from training data.** Get everything from the live instance via
-  `aidoc_getDocumentation(topic)`, `aidoc_search_patterns(query)`, `aidoc_getPattern(name)`.
+  `aidoc_getDocumentation(topic)`, `aidoc_search_patterns(query)`, `aidoc_getPattern(name)`. For built-in
+  AMIScript method signatures, search instead of guessing — `aidoc_findMethodByName(method_name)`,
+  `aidoc_findMethodByDesc(method_desc)`, or `aidoc_listMethodsInClass(class_name)`.
 - **Tool naming:** global frames `ami_`, `aidoc_`, `log_`; component tools take a `componentId` first
-  arg — `center_`, `web_`, `relay_`, `web_balancer_` (list IDs with `ami_showComponents()`).
+  arg — `center_`, `web_`, `relay_`, `web_balancer_` (list IDs with `ami_console(view=components)`).
 - **Doc → verify → apply:** before any mutating call, read the docs, run a validation tool if one
-  exists (`web_validateScript`, `web_validateDatamodel`, …), then apply.
-- **Transient vs. committed:** panels/layouts from `web_addPanel*` / `web_updatePanel` are transient
-  until `web_commitPanel` / `web_commitSession` / `web_saveLayout`. Never auto-commit without user confirmation.
+  exists (`web_verify(kind=script)`, `web_verify(kind=datamodel)`, …), then apply.
+- **Transient vs. committed:** panels/layouts from `web_execute` (e.g. `action=addPanelNextTo` /
+  `action=updatePanel`) are transient until you commit them — `web_execute(action=commitPanel)` /
+  `web_execute(action=commitSession)`. Never auto-commit without user confirmation.
 
 ## Release
 

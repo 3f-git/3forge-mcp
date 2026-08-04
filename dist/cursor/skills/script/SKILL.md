@@ -21,6 +21,6 @@ Activate when writing or reviewing AMI Script code involving:
 
 Full patterns, examples, and pitfalls: call `aidoc_getDocumentation("amiscript")` on the live instance.
 
-Class and method reference: call `web_getAmiScriptClass(className)` (omit `className` to list all classes).
+Class and method reference: call `web_console(view=amiScriptClass, className=…)` (omit `className` to list all classes).
 
 Built-in language method lookup by name or intent, no live session required: `aidoc_findMethodByName(method_name)`, `aidoc_findMethodByDesc(method_desc)`, or `aidoc_listMethodsInClass(class_name)`.

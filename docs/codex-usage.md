@@ -116,12 +116,12 @@ Expected behavior:
 - Codex activates `3forge-mcp:commands`.
 - The skill dispatches to `reference/3forge-init.md`.
 - If `3forge-runtime` is reachable, Codex probes `aidoc_getDocumentation`,
-  `ami_showComponents`, Web sessions, and AMIScript class introspection when a
-  Web session is available.
+  `ami_console(view=components)`, Web sessions, and AMIScript class introspection
+  when a Web session is available.
 - Codex loads the runtime catalog and doc -> verify -> apply workflow when live
   tools are available.
 
-If there is no active Web session, `web_getAmiScriptClass` can return
+If there is no active Web session, `web_console(view=amiScriptClass)` can return
 `Session not found: null`. That is not a plugin failure. It means Web-context
 method introspection needs an active session ID. Do not create a headless
 session just for `/3forge-init` unless you explicitly want one.
@@ -227,8 +227,8 @@ Use 3forge MCP to review this .ami layout before I commit it.
 ## MCP Tool Families
 
 When reachable, the bundled `3forge-runtime` MCP server reflects live AMI console
-methods. Use `ami_showComponents()` first to find valid component IDs such as
-`center`, `web`, or `relay`.
+methods as 37 consolidated tools. Use `ami_console(view=components)` first to
+find valid component IDs such as `center`, `web`, or `relay`.
 
 | Prefix | Scope | Typical use |
 |---|---|---|
@@ -239,6 +239,15 @@ methods. Use `ami_showComponents()` first to find valid component IDs such as
 | `relay_*` | Relay component | Feedhandlers, routes, transforms, dictionaries, streaming integration. |
 | `web_balancer_*` | WebBalancer component | Load balancer pools and connection status. |
 | `log_*` | Global logs | Show sinks, tail logs, scan for warnings/errors. |
+
+**Finding built-in methods:** to search AMIScript's built-in methods, use
+`aidoc_findMethodByName(method_name, class_name?, context?, min_dist?)` (fuzzy,
+typo-tolerant search by name; returns `<return> <class>::<method>(<params>)`
+signatures), `aidoc_findMethodByDesc(...)` (find methods by natural-language
+intent), and `aidoc_listMethodsInClass(class_name, context?)` (every built-in
+method in a class or bucket such as `String`, `[static]`, `[aggregate]`,
+`[prepare]`). `context` = `web`|`center`|`relay` filters to methods valid in
+that component.
 
 Common read-only runtime probes:
 
@@ -259,23 +268,24 @@ Use 3forge MCP to show active Web sessions and recent session errors.
 For every live mutation, Codex must follow:
 
 1. **Doc**: read `aidoc_getDocumentation(topic)` or `aidoc_search_patterns`.
-2. **Verify**: run a validator when one exists, such as `web_validateJson`,
-   `web_validateScript`, or `web_validateDatamodel`.
+2. **Verify**: run a validator when one exists, such as
+   `web_verify(kind=panelJson)`, `web_verify(kind=script)`, or
+   `web_verify(kind=datamodel)`.
 3. **Apply**: call the mutating MCP tool only after validation.
 
 Web panel/layout changes are usually transient until explicitly committed:
 
-- `web_addPanelNextTo`
-- `web_addTabToTabsPanel`
-- `web_wrapPanelInTab`
-- `web_updatePanel`
-- `web_importDatamodel`
-- `web_addRelationship`
-- `web_setLayoutStyle`
+- `web_execute(action=addPanelNextTo)`
+- `web_execute(action=addTabToTabsPanel)`
+- `web_execute(action=wrapPanelInTab)`
+- `web_execute(action=updatePanel)`
+- `web_execute(action=importDatamodel)`
+- `web_execute(action=addRelationship)`
+- `web_execute(action=setLayoutStyle)`
 
-Codex should not call `web_commitPanel`, `web_commitSession`, or
-`web_saveLayout` unless you explicitly confirm that the staged change should be
-persisted.
+Codex should not call `web_execute(action=commitPanel)` or
+`web_execute(action=commitSession)` unless you explicitly
+confirm that the staged change should be persisted.
 
 Use wording like this when you want live edits but no persistence yet:
 
