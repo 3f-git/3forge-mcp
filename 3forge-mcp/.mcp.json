@@ -2,7 +2,7 @@
   "mcpServers": {
     "3forge-runtime": {
       "type": "http",
-      "url": "${AMI_MCP_URL:-http://localhost:8766/mcp}"
+      "url": "${AMI_MCP_URL:-http://localhost:33333/3forge_rest/mcp}"
     }
   }
 }

@@ -57,17 +57,17 @@ Claude Code bundles the `3forge-runtime` MCP connection in the plugin
 installed — **no manual `claude mcp add`**. It defaults to:
 
 ```
-http://localhost:8766/mcp
+http://localhost:33333/3forge_rest/mcp
 ```
 
 To target another host/port, set `AMI_MCP_URL` before launching Claude Code:
 
 ```bash
-AMI_MCP_URL=http://ami-host:8766/mcp claude
+AMI_MCP_URL=http://ami-host:33333/3forge_rest/mcp claude
 ```
 
 The endpoint is the in-process Java MCP plugin running inside AMI Web on port
-8766. If AMI Web is not running with the `amimcp` plugin, the runtime tools will
+33333. If AMI Web is not running with the `amimcp` plugin, the runtime tools will
 be unavailable — authoring skills and agents (file output) still work, but live
 mutation tools will not.
 
@@ -353,7 +353,7 @@ formulas, named ranges, inputs, and outputs, and propose an AMI migration plan.
 - Don't commit or save transient Web changes without explicit confirmation.
 - Don't create headless sessions during `/3forge-init` unless you asked for one.
 - Don't assume live tools work without AMI Web running the `amimcp` plugin on
-  the configured `AMI_MCP_URL` (default `http://localhost:8766/mcp`).
+  the configured `AMI_MCP_URL` (default `http://localhost:33333/3forge_rest/mcp`).
 - Don't hand-edit `dist/`; edit sources under `3forge-mcp/` and run
   `node build/generate.mjs`.
 - Don't hand-edit the generated trees under `dist/` (e.g.

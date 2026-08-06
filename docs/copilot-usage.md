@@ -83,7 +83,7 @@ Copilot bundles the `3forge-runtime` MCP connection in the plugin
 plugin is installed. It targets the literal default:
 
 ```
-http://localhost:8766/mcp
+http://localhost:33333/3forge_rest/mcp
 ```
 
 Copilot CLI does **not** support the `${AMI_MCP_URL:-…}` environment-substitution
@@ -99,13 +99,13 @@ where `my-ami-mcp.json` re-declares the `3forge-runtime` server with your URL:
 ```json
 {
   "mcpServers": {
-    "3forge-runtime": { "type": "http", "url": "http://ami-host:8766/mcp", "tools": ["*"] }
+    "3forge-runtime": { "type": "http", "url": "http://ami-host:33333/3forge_rest/mcp", "tools": ["*"] }
   }
 }
 ```
 
 The endpoint is the in-process Java MCP plugin running inside AMI Web on port
-8766. If AMI Web is not running with the `amimcp` plugin, the runtime tools will
+33333. If AMI Web is not running with the `amimcp` plugin, the runtime tools will
 be unavailable — authoring skills and agents (file output) still work, but live
 mutation tools will not.
 
@@ -326,7 +326,7 @@ named ranges, inputs, and outputs, and propose an AMI migration plan.
 ### MCP tools not available
 
 1. Ensure AMI Web is running with the `amimcp` plugin, reachable at
-   `http://localhost:8766/mcp` (the bundled default).
+   `http://localhost:33333/3forge_rest/mcp` (the bundled default).
 2. To target another host, launch Copilot with
    `--additional-mcp-config ./my-ami-mcp.json` (see **Runtime MCP Connection**).
 3. Start a fresh Copilot session so the plugin's tools are re-discovered.
@@ -345,7 +345,7 @@ named ranges, inputs, and outputs, and propose an AMI migration plan.
 - Don't mutate live layouts without the doc → verify → apply workflow.
 - Don't commit or save transient Web changes without explicit confirmation.
 - Don't assume live tools work without AMI Web running the `amimcp` plugin on the
-  configured MCP endpoint (default `http://localhost:8766/mcp`).
+  configured MCP endpoint (default `http://localhost:33333/3forge_rest/mcp`).
 - Don't hand-edit `dist/copilot/agents/*.agent.md`; edit
   `3forge-mcp/agents/*.md` and run `node build/generate.mjs`.
 

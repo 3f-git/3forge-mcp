@@ -158,7 +158,7 @@ function verifyManifests() {
   const codexMcp = readJson(join(DIST, "codex", ".mcp.json")).mcpServers?.["3forge-runtime"];
   expect(!!codexMcp, "dist/codex/.mcp.json must define 3forge-runtime");
   expect(codexMcp?.type === "http", "Codex 3forge-runtime must use http transport");
-  expect(codexMcp?.url === "http://localhost:8766/mcp",
+  expect(codexMcp?.url === "http://localhost:33333/3forge_rest/mcp",
     "Codex 3forge-runtime url must be the literal localhost default");
   expect(codexMcp?.startup_timeout_sec === 60, "Codex 3forge-runtime startup_timeout_sec must be 60");
 

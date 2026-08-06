@@ -14,7 +14,7 @@ concept documentation** - the live instance is the source of truth.
 **Claude Code and Codex:** the plugin bundles the `3forge-runtime` MCP connection
 (see `.mcp.json` at the plugin root). It connects automatically when the plugin is
 enabled. Claude Code can point at another host or port by setting `AMI_MCP_URL`
-before launch. Codex uses the literal default `http://localhost:8766/mcp` because
+before launch. Codex uses the literal default `http://localhost:33333/3forge_rest/mcp` because
 it does not expand `${...}` in plugin-provided HTTP URLs.
 
 **Copilot:** the generated Copilot plugin also bundles `3forge-runtime`, but Copilot

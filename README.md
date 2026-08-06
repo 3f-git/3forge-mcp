@@ -7,7 +7,7 @@ The plugin ships **no offline 3forge documentation** — all conceptual knowledg
 at runtime from the live instance via `aidoc_getDocumentation`. **Claude Code, Codex, and
 Copilot** are first-class plugin targets and bundle the `3forge-runtime` MCP connection,
 so live tools connect automatically on install when AMI Web is reachable. Claude Code
-defaults to `http://localhost:8766/mcp` and overrides the endpoint with the
+defaults to `http://localhost:33333/3forge_rest/mcp` and overrides the endpoint with the
 `AMI_MCP_URL` env var; Codex and Copilot connect to the same default literal URL.
 Gemini and Cursor configure the runtime MCP separately. Nothing here duplicates what
 your instance already knows.
@@ -18,7 +18,7 @@ your instance already knows.
 
 - Optional for live-runtime workflows: a running **3forge** deployment with the
   `3forge-runtime` MCP plugin (`amimcp`) loaded in the Web JVM, reachable over HTTP.
-  The standard in-process port is `8766`, i.e. `http://<host>:8766/mcp`.
+  The standard in-process port is `33333`, i.e. `http://<host>:33333/3forge_rest/mcp`.
 - One of the supported AI tools: Claude Code, Codex, GitHub Copilot, Gemini CLI, or Cursor.
 - For contributors only: **Node.js** (the build script is plain ESM, no dependencies).
 
@@ -45,15 +45,15 @@ your instance already knows.
 
 **Claude Code** bundles the `3forge-runtime` MCP connection in the plugin (`3forge-mcp/.mcp.json`),
 so it connects automatically once the plugin is installed — no `claude mcp add` needed. It
-defaults to `http://localhost:8766/mcp`; to target another host/port, set `AMI_MCP_URL`
+defaults to `http://localhost:33333/3forge_rest/mcp`; to target another host/port, set `AMI_MCP_URL`
 before launching Claude Code:
 
 ```bash
-export AMI_MCP_URL=http://ami-host:8766/mcp
+export AMI_MCP_URL=http://ami-host:33333/3forge_rest/mcp
 ```
 
 **Codex** bundles the same `3forge-runtime` connection in its generated plugin MCP config
-(`dist/codex/.mcp.json`). It defaults to `http://localhost:8766/mcp`. Codex does not
+(`dist/codex/.mcp.json`). It defaults to `http://localhost:33333/3forge_rest/mcp`. Codex does not
 expand Claude-style `${AMI_MCP_URL:-...}` syntax in plugin-provided HTTP URLs; to target
 another host/port, disable the plugin-provided server and add your own Codex MCP config:
 
@@ -62,14 +62,14 @@ another host/port, disable the plugin-provided server and add your own Codex MCP
 enabled = false
 
 [mcp_servers.3forge-runtime]
-url = "http://ami-host:8766/mcp"
+url = "http://ami-host:33333/3forge_rest/mcp"
 startup_timeout_sec = 60
 ```
 
 **Copilot** also bundles the connection, in its own generated plugin MCP config
 (`dist/copilot/.mcp.json`), so it connects automatically on install. Copilot does not
 support the `${AMI_MCP_URL:-…}` substitution syntax, so the URL is the literal default
-`http://localhost:8766/mcp`. To target another host for a single session, launch Copilot with
+`http://localhost:33333/3forge_rest/mcp`. To target another host for a single session, launch Copilot with
 `--additional-mcp-config` pointing at a config that overrides the `3forge-runtime` url.
 
 **Gemini and Cursor** don't consume a bundled `.mcp.json` — configure the
@@ -169,7 +169,7 @@ enabled = false
 
 After changing MCP config, close old Codex/Claude sessions and start a new
 Codex thread. Existing sessions can keep old HTTP connections open against
-`localhost:8766` until they exit; if the AMI MCP endpoint still hangs, restart
+`localhost:33333` until they exit; if the AMI MCP endpoint still hangs, restart
 the AMI Web JVM that hosts `amimcp`.
 
 For day-to-day Codex usage, including command-equivalent prompts, MCP tool families, skills,
@@ -194,7 +194,7 @@ copilot plugin install 3forge-mcp@3forge-mcp-copilot
 ```
 
 This installs the skills, the 10 agents, and the bundled `3forge-runtime` MCP connection
-(auto-connects to `http://localhost:8766/mcp`). Start a fresh Copilot session so the plugin is
+(auto-connects to `http://localhost:33333/3forge_rest/mcp`). Start a fresh Copilot session so the plugin is
 discovered.
 
 For day-to-day Copilot usage — skills, agents, MCP tool families, and the doc → verify →
@@ -267,7 +267,7 @@ Follow its `README.md` to install by hand.
   `3forge-debug`. The generator also syncs these into the `commands` skill as command-equivalent
   workflows for harnesses that do not load Claude slash commands.
 - **Bundled MCP server config (Claude Code + Codex + Copilot)** — `3forge-mcp/.mcp.json` registers the
-  `3forge-runtime` HTTP server for Claude Code (endpoint defaults to `http://localhost:8766/mcp`,
+  `3forge-runtime` HTTP server for Claude Code (endpoint defaults to `http://localhost:33333/3forge_rest/mcp`,
   overridable via the `AMI_MCP_URL` env var). Codex gets its own generated `dist/codex/.mcp.json`
   with a literal localhost default because Codex does not expand `${...}` in plugin-provided HTTP
   URLs. Copilot gets its own generated `dist/copilot/.mcp.json` with a literal default URL
@@ -442,7 +442,7 @@ You can verify the plugin end-to-end against a running server with plain `curl` 
 the streamable-HTTP transport):
 
 ```bash
-URL=http://localhost:8766/mcp
+URL=http://localhost:33333/3forge_rest/mcp
 
 # 1. initialize and capture the session id
 SID=$(curl -s -D - -o /dev/null -X POST "$URL" \

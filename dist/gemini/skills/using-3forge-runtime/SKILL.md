@@ -13,9 +13,9 @@ instance is the source of truth.
 
 ## Runtime MCP Connection
 
-Claude Code defaults to `http://localhost:8766/mcp` and can be pointed at another
+Claude Code defaults to `http://localhost:33333/3forge_rest/mcp` and can be pointed at another
 endpoint by setting `AMI_MCP_URL` before launching the tool. Codex and Copilot use
-the literal default `http://localhost:8766/mcp`.
+the literal default `http://localhost:33333/3forge_rest/mcp`.
 
 ## The one rule for AMI knowledge
 

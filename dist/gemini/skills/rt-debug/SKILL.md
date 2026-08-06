@@ -88,7 +88,7 @@ If the error is about a panel callback, also pull the callback's scope:
 | Stored strings 1 char shorter than inserted | **Doc bug — `aidoc("amisql")` is wrong (issue #17).** You used single-quote literals because the doc said to. Switch to double quotes — that's the actual AMI SQL rule. Fix is to correct the doc, not the parser. |
 | `JOIN not supported across HISTORICAL and NON-HISTORICAL tables` | Stage HISTORICAL data into a FAST `_staging` table first. |
 | `HISTORICAL does not support USE option: Broadcast` | Drop `Broadcast="true"` — historicals can't be broadcast. |
-| `Streamable HTTP error: Error POSTing to endpoint` | Claude Code's MCP client transport bug, NOT the AMI plugin. The server is fine via curl. Retry; if still failing fall back to raw HTTP to `http://localhost:8766/mcp`. |
+| `Streamable HTTP error: Error POSTing to endpoint` | Claude Code's MCP client transport bug, NOT the AMI plugin. The server is fine via curl. Retry; if still failing fall back to raw HTTP to `http://localhost:33333/3forge_rest/mcp`. |
 
 ## One-shot debugger — `web_editor(op=debugInspectAt)`
 

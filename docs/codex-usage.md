@@ -73,7 +73,7 @@ The Codex plugin bundles `3forge-runtime` through `dist/codex/.mcp.json` and
 Default endpoint:
 
 ```text
-http://localhost:8766/mcp
+http://localhost:33333/3forge_rest/mcp
 ```
 
 Codex does not expand Claude-style `${AMI_MCP_URL:-...}` syntax in plugin-provided
@@ -86,7 +86,7 @@ Codex MCP config:
 enabled = false
 
 [mcp_servers.3forge-runtime]
-url = "http://ami-host:8766/mcp"
+url = "http://ami-host:33333/3forge_rest/mcp"
 startup_timeout_sec = 60
 ```
 
@@ -100,7 +100,7 @@ enabled = false
 ```
 
 Close old Codex/Claude sessions after changing MCP config. They can keep
-existing HTTP connections open against `localhost:8766`; if the AMI MCP endpoint
+existing HTTP connections open against `localhost:33333`; if the AMI MCP endpoint
 still hangs after the clients exit, restart the AMI Web JVM that hosts `amimcp`.
 
 ## First Prompt

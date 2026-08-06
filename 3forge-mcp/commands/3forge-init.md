@@ -161,7 +161,7 @@ or describe what you need.
 
 If `3forge-runtime` is offline:
 ```
-3forge-runtime not reachable on http://localhost:8766/mcp
+3forge-runtime not reachable on http://localhost:33333/3forge_rest/mcp
   Start AMI Web with the amimcp plugin to enable live tools.
   Authoring agents (file output) still work; live mutation tools will not.
 ```

@@ -1,4 +1,4 @@
-# 3forge-mcp — portable bundle (v0.4.0)
+# 3forge-mcp — portable bundle (v0.5.0)
 
 A tool-agnostic copy of everything the **3forge-mcp** plugin provides — skills, agents,
 command prompts, and the runtime MCP connection config — in a plain folder you can install
@@ -26,14 +26,14 @@ runtime MCP connection below.
 ## 1. Connect the runtime MCP (the important part)
 
 `mcp.json` defines an HTTP MCP server named `3forge-runtime`, defaulting to
-`http://localhost:8766/mcp` and overridable with the `AMI_MCP_URL` env var:
+`http://localhost:33333/3forge_rest/mcp` and overridable with the `AMI_MCP_URL` env var:
 
 ```json
 {
   "mcpServers": {
     "3forge-runtime": {
       "type": "http",
-      "url": "${AMI_MCP_URL:-http://localhost:8766/mcp}"
+      "url": "${AMI_MCP_URL:-http://localhost:33333/3forge_rest/mcp}"
     }
   }
 }
@@ -44,13 +44,13 @@ Point it at the AMI Web JVM that has the `3forge-runtime` MCP plugin (`amimcp`) 
 **Claude Code** — add it from this folder:
 
 ```bash
-export AMI_MCP_URL=http://<ami-host>:8766/mcp     # optional; defaults to localhost:8766
+export AMI_MCP_URL=http://<ami-host>:33333/3forge_rest/mcp     # optional; defaults to localhost:33333
 claude mcp add --transport http 3forge-runtime "$AMI_MCP_URL"
 ```
 
 **Codex / Copilot / Gemini / Cursor** — copy the `3forge-runtime` block from `mcp.json` into
 your tool's MCP configuration. If your tool does not expand `${AMI_MCP_URL:-…}`, replace the
-`url` with the literal endpoint (e.g. `http://localhost:8766/mcp`).
+`url` with the literal endpoint (e.g. `http://localhost:33333/3forge_rest/mcp`).
 
 ## 2. Load the skills, agents, and commands
 

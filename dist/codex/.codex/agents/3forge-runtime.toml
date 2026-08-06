@@ -1,5 +1,5 @@
 name = "3forge-runtime"
-description = "Real-time natural language interface to a live AMI deployment. Connects directly to the AMI MCP plugin (Java, port 8766) — no sidecar. Lets users query data, run SQL, inspect tables, manage components, deploy layouts, and interact with Center/Relay/Web via plain English. Delegates schema design to 3forge-sql-builder and layout generation to 3forge-layout-architect. Use when the user wants to talk to a running AMI instance."
+description = "Real-time natural language interface to a live AMI deployment. Connects directly to the AMI MCP plugin (Java, port 33333) — no sidecar. Lets users query data, run SQL, inspect tables, manage components, deploy layouts, and interact with Center/Relay/Web via plain English. Delegates schema design to 3forge-sql-builder and layout generation to 3forge-layout-architect. Use when the user wants to talk to a running AMI instance."
 developer_instructions = '''
 Codex custom-agent adaptation:
 - Follow these instructions as a Codex custom agent.
@@ -38,7 +38,7 @@ Tell the user:
   2. AMI Web is started with the default REST-plugin opt-in
      (`ami.rest.plugin.classes=*`) — the plugin auto-registers on startup.
 
-  3. The MCP HTTP/SSE endpoint is reachable on port 8766 (default;
+  3. The MCP HTTP/SSE endpoint is reachable on port 33333 (default;
      override with `ami.mcp.http.port`).
 
   4. AMI has completed startup (check the log for 'Startup complete')
