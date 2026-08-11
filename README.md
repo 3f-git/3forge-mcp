@@ -5,13 +5,11 @@ agents for 3forge AMI authoring and live instance workflows.
 
 The plugin ships **no offline 3forge documentation** — all conceptual knowledge is fetched
 at runtime from the live instance via `aidoc_getDocumentation`. **Claude Code, Codex, and
-Copilot** are first-class plugin targets and bundle the `3forge-runtime` MCP connection,
-so live tools connect once AMI Web is reachable **and credentials are configured** — the
-endpoint is HTTPS and authenticated, so it never works out of the box with no setup.
-Claude Code defaults to `https://localhost:33333/3forge_rest/mcp`, takes the credential from
-`AMI_MCP_AUTH`, and overrides the endpoint with `AMI_MCP_URL`; Codex and Copilot use the same
-literal default URL with a hand-edited `Authorization` header. Gemini and Cursor configure the
-runtime MCP separately. Nothing here duplicates what your instance already knows.
+Copilot** are first-class plugin targets. No MCP connection is bundled — the endpoint, port,
+credentials, and certificate trust are all deployment-specific, so you register
+`3forge-runtime` against your own AMI instance in your tool's own MCP config
+([setup](#1-runtime-mcp-connection)). Authoring skills and agents work without it. Nothing
+here duplicates what your instance already knows.
 
 ---
 
@@ -46,74 +44,78 @@ runtime MCP separately. Nothing here duplicates what your instance already knows
 
 ### 1. Runtime MCP connection
 
-The MCP endpoint is served by AMI's `AmiMcpPlugin` as an authenticated REST plugin on the AMI
-web **HTTPS** port — `https://<host>:<webHttpsPort>/3forge_rest/mcp` (default `33333`). Both of
-these are mandatory:
+**No MCP connection is bundled.** You configure `3forge-runtime` yourself, against your own AMI
+deployment. This is deliberate: the endpoint host, port, credentials, and certificate trust are
+all deployment-specific, so any shipped default would be wrong for nearly everyone and would
+only hide the real setup step.
 
-- **HTTPS, not HTTP.** Plain `http://` on that port does not answer at all — you get a
-  connection failure with no HTTP status, not a redirect.
-- **HTTP Basic auth on every call.** The MCP tools are high-privilege (SQL exec, component
-  management, layout deploy), so the plugin authenticates every request and returns `401`
-  without credentials. Use an AMI user that has the permissions you intend the agent to have.
+The authoring skills, agents, and commands all work without it. Only the live-instance tools
+need it.
 
-No credential ships in this repo. Supply your own:
+#### The endpoint
 
-```bash
-export AMI_MCP_AUTH=$(printf '<user>:<pass>' | base64)
+AMI's `AmiMcpPlugin` serves MCP as an authenticated REST plugin on the AMI web **HTTPS** port:
+
+```
+https://<host>:<webHttpsPort>/3forge_rest/mcp        # webHttpsPort defaults to 33333
 ```
 
-**Claude Code** bundles the `3forge-runtime` MCP connection in the plugin (`3forge-mcp/.mcp.json`),
-so it connects once the plugin is installed and `AMI_MCP_AUTH` is set — no `claude mcp add`
-needed. To target another host/port, also set `AMI_MCP_URL` before launching Claude Code:
+Three things are mandatory, and each fails in a distinct way:
+
+| Requirement | Symptom if wrong |
+|---|---|
+| **HTTPS**, not HTTP | Connection fails with no HTTP status. Plain `http://` on that port never answers — it is not a redirect. |
+| **HTTP Basic auth** on every call | `401`. The tools are high-privilege (SQL exec, component management, layout deploy), so `AmiMcpPlugin.requiresAuth()` is `true`. |
+| **Trusted certificate** | `DEPTH_ZERO_SELF_SIGNED_CERT`. Most AMI dev instances use a self-signed cert, and MCP clients verify TLS with no per-server opt-out. |
+
+Use an AMI user whose permissions match what you intend the agent to be able to do.
+
+#### Verify the endpoint first
+
+Before configuring any tool, confirm the endpoint answers. This isolates server problems from
+client problems:
 
 ```bash
-export AMI_MCP_AUTH=$(printf '<user>:<pass>' | base64)
-export AMI_MCP_URL=https://ami-host:33333/3forge_rest/mcp   # optional
+curl -sk -u '<user>:<pass>' -X POST https://<host>:33333/3forge_rest/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.0.1"}}}'
 ```
 
-**Codex** bundles the same `3forge-runtime` connection in its generated plugin MCP config
-(`dist/codex/.mcp.json`), defaulting to `https://localhost:33333/3forge_rest/mcp` with a
-placeholder `Authorization` header. Codex does not expand Claude-style `${...}` syntax in
-plugin-provided config, so **you must edit the header by hand** — or disable the
-plugin-provided server and add your own Codex MCP config:
+A healthy server returns a JSON-RPC result with `serverInfo`. Then:
+
+- **`401`** → credentials are wrong.
+- **Works only with `-k`** → the certificate is self-signed. Trust it in your client's trust
+  store, or use a host with a CA-signed certificate. Dropping `-k` is the real test, because
+  that is what your MCP client does.
+- **No response at all** → wrong scheme or port.
+
+#### Register it with your tool
+
+**Claude Code:**
+
+```bash
+claude mcp add --transport http 3forge-runtime https://<host>:33333/3forge_rest/mcp \
+  --header "Authorization: Basic $(printf '<user>:<pass>' | base64)"
+```
+
+**Codex** — in your Codex config:
 
 ```toml
-[plugins."3forge-mcp@3forge-mcp-codex".mcp_servers.3forge-runtime]
-enabled = false
-
 [mcp_servers.3forge-runtime]
-url = "https://ami-host:33333/3forge_rest/mcp"
+url = "https://<host>:33333/3forge_rest/mcp"
 startup_timeout_sec = 60
 
 [mcp_servers.3forge-runtime.headers]
 Authorization = "Basic <base64(user:pass)>"
 ```
 
-**Copilot** also bundles the connection, in its own generated plugin MCP config
-(`dist/copilot/.mcp.json`). Copilot does not support `${...}` substitution either, so the URL is
-the literal default `https://localhost:33333/3forge_rest/mcp` and the `Authorization` header is a
-placeholder you must replace. To target another host for a single session, launch Copilot with
-`--additional-mcp-config` pointing at a config that overrides the `3forge-runtime` entry.
+**Copilot** — launch with `--additional-mcp-config` pointing at a config that defines
+`3forge-runtime` with the same URL and `Authorization` header.
 
-#### Self-signed certificates
+**Gemini and Cursor** — configure `3forge-runtime` in those tools' own MCP configs.
 
-Many AMI deployments (and every default dev instance) use a self-signed certificate. A
-TLS-verifying MCP client refuses that connection, usually surfacing as a connection failure with
-no HTTP status. Either trust the AMI certificate in your client's trust store, or point
-`AMI_MCP_URL` at a host with a CA-signed certificate. To confirm the certificate is the culprit,
-test with and without `curl -k`:
-
-```bash
-curl -sk -u <user>:<pass> -X POST https://localhost:33333/3forge_rest/mcp \
-  -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.0.1"}}}'
-```
-
-If that succeeds only with `-k`, the certificate is the problem. If it returns `401`, the
-credentials are.
-
-**Gemini and Cursor** don't consume a bundled `.mcp.json` — configure the
-`3forge-runtime` MCP server in those tools' own configs if you need live tools.
+Generate the credential with `printf '<user>:<pass>' | base64`. After registering, start a
+fresh session so the MCP tools are discovered.
 
 ### 2. Install the plugin
 
@@ -174,9 +176,9 @@ codex plugin marketplace add ./dist/codex        # the generated standalone Code
 codex plugin add 3forge-mcp@3forge-mcp-codex
 ```
 
-The installed plugin contains the Codex manifest, bundled `3forge-runtime` MCP
-config, 28 skills, `AGENTS.md`, and generated custom-agent TOML under
-`dist/codex/.codex/agents/`.
+The installed plugin contains the Codex manifest, 28 skills, `AGENTS.md`, and
+generated custom-agent TOML under `dist/codex/.codex/agents/`. Configure the
+`3forge-runtime` MCP server separately ([setup](#1-runtime-mcp-connection)).
 
 Verify install state:
 
@@ -198,9 +200,8 @@ Use 3forge MCP /runtime status.
 Use 3forge MCP to write an AMI SQL query for live Orders rows.
 ```
 
-The bundled Codex MCP server key is `3forge-runtime`. If `/mcp` shows an old
-server such as `ami-runtime` timing out, disable that stale config entry so
-Codex uses the plugin-provided `3forge-runtime` server:
+Use the server key `3forge-runtime` when you register it. If `/mcp` shows an old
+server such as `ami-runtime` timing out, disable that stale config entry:
 
 ```toml
 [mcp_servers.ami-runtime]
@@ -226,17 +227,16 @@ copilot plugin install 3forge-mcp@3forge-mcp-copilot
 ```
 
 You can also install from a dedicated marketplace repo/branch that contains the generated standalone
-Copilot plugin tree (`plugin.json`, `.agent.md` agents, skills, and `.mcp.json`) at repository root:
+Copilot plugin tree (`plugin.json`, `.agent.md` agents, and skills) at repository root:
 
 ```bash
 copilot plugin marketplace add <owner>/<copilot-marketplace-repo>
 copilot plugin install 3forge-mcp@3forge-mcp-copilot
 ```
 
-This installs the skills, the 10 agents, and the bundled `3forge-runtime` MCP connection
-(defaults to `https://localhost:33333/3forge_rest/mcp`; replace the placeholder `Authorization`
-header in `.mcp.json` with your own `Basic <base64(user:pass)>`). Start a fresh Copilot session
-so the plugin is discovered.
+This installs the skills and the 10 agents. Configure the `3forge-runtime` MCP server
+separately ([setup](#1-runtime-mcp-connection)), then start a fresh Copilot session so the
+plugin is discovered.
 
 For day-to-day Copilot usage — skills, agents, MCP tool families, and the doc → verify →
 apply workflow — see [`docs/copilot-usage.md`](docs/copilot-usage.md).
@@ -307,16 +307,12 @@ Follow its `README.md` to install by hand.
 - **6 Claude Code commands** — `3forge-init`, `runtime`, `3forge-plan`, `3forge-query`, `3forge-review`,
   `3forge-debug`. The generator also syncs these into the `commands` skill as command-equivalent
   workflows for harnesses that do not load Claude slash commands.
-- **Bundled MCP server config (Claude Code + Codex + Copilot)** — `3forge-mcp/.mcp.json` registers the
-  `3forge-runtime` HTTPS server for Claude Code (endpoint defaults to `https://localhost:33333/3forge_rest/mcp`,
-  overridable via `AMI_MCP_URL`; Basic-auth credential supplied via `AMI_MCP_AUTH`). Codex gets its
-  own generated `dist/codex/.mcp.json` with a literal localhost default and a placeholder
-  `Authorization` header, because Codex does not expand `${...}` in plugin-provided config.
-  Copilot gets its own generated `dist/copilot/.mcp.json` on the same terms
-  (Copilot lacks the `${AMI_MCP_URL:-…}` substitution syntax). No credential is ever committed —
-  `build/verify.mjs` fails if the placeholder is filled in or a URL embeds inline
-  credentials. Gemini and Cursor configure the
-  runtime MCP in their own config.
+- **No bundled MCP server config (all targets)** — every tool configures `3forge-runtime`
+  itself. The endpoint host, port, credentials, and certificate trust are deployment-specific,
+  so a shipped default is wrong for nearly every user and only hides the setup step. This is
+  enforced, not just convention: `build/verify.mjs` fails if an `.mcp.json` reappears in any
+  source or generated tree, or if a manifest declares `mcpServers`. See
+  [Runtime MCP connection](#1-runtime-mcp-connection) for the setup users follow.
 - **Portable bundle (`dist/portable/`)** — a tool-agnostic, manual-install copy for any tool
   that can't install marketplace plugins at all. Prebuilt and committed — see
   [Portable bundle](#portable-bundle-no-plugin-install) below.
@@ -344,7 +340,6 @@ so `aidoc` cannot serve it. That content is bundled read-only under:
 ├── .agents/plugins/marketplace.json    # Codex marketplace (source ./dist/codex)
 ├── 3forge-mcp/                         # ← CANONICAL SOURCE — Claude plugin + shared content
 │   ├── .claude-plugin/plugin.json      # Claude Code plugin manifest (name, version)
-│   ├── .mcp.json                       # Claude bundled 3forge-runtime MCP (AMI_MCP_URL)
 │   ├── CLAUDE.md                       # canonical operating guidance
 │   ├── skills/                         # <name>/SKILL.md (+ optional reference/)
 │   ├── agents/                         # <name>.md   (canonical agent definitions)
@@ -355,15 +350,15 @@ so `aidoc` cannot serve it. That content is bundled read-only under:
 │   ├── pack-portable.mjs               # dist/portable/ → 3forge-mcp-portable-<version>.zip (repo root, gitignored)
 │   ├── publish-copilot-marketplace.mjs # push dist/copilot to a dedicated marketplace repo/branch
 │   ├── tools.json                      # Gemini/Cursor mirror config
-│   ├── codex/                          # Codex scaffolding (plugin.json, mcp.json, marketplace.json)
-│   ├── copilot/                        # Copilot scaffolding (plugin.json, mcp.json, marketplace.json)
+│   ├── codex/                          # Codex scaffolding (plugin.json, marketplace.json)
+│   ├── copilot/                        # Copilot scaffolding (plugin.json, marketplace.json)
 │   └── portable/                       # Portable bundle scaffolding (README.md template)
 ├── dist/                               # ← GENERATED (never hand-edit)
-│   ├── codex/                          # standalone Codex plugin (.codex-plugin, .mcp.json, .agents/plugins, .codex/agents, skills, AGENTS.md)
-│   ├── copilot/                        # standalone Copilot plugin (plugin.json, .mcp.json, agents, skills)
+│   ├── codex/                          # standalone Codex plugin (.codex-plugin, .agents/plugins, .codex/agents, skills, AGENTS.md)
+│   ├── copilot/                        # standalone Copilot plugin (plugin.json, agents, skills)
 │   ├── gemini/                         # mirror (GEMINI.md + skills)
 │   ├── cursor/                         # mirror (.cursor rules + skills)
-│   └── portable/                       # tool-agnostic manual-install bundle (agents, commands, skills, mcp.json, CLAUDE.md, README.md)
+│   └── portable/                       # tool-agnostic manual-install bundle (agents, commands, skills, CLAUDE.md, README.md)
 └── README.md
 ```
 

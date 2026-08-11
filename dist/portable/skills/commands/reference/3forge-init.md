@@ -161,10 +161,12 @@ or describe what you need.
 
 If `3forge-runtime` is offline:
 ```
-3forge-runtime not reachable on https://localhost:33333/3forge_rest/mcp
-  Start AMI Web with the amimcp plugin to enable live tools.
-  If it is running: 401 means AMI_MCP_AUTH is unset or wrong; a connection
-  failure with no status usually means http:// instead of https://, or an
-  untrusted self-signed certificate.
+3forge-runtime MCP server is not configured or not reachable.
+  This plugin bundles no MCP connection — register one against your instance:
+    claude mcp add --transport http 3forge-runtime \
+      https://<host>:33333/3forge_rest/mcp \
+      --header "Authorization: Basic $(printf '<user>:<pass>' | base64)"
+  If it is registered: 401 means bad credentials; a connection failure with no
+  status means http:// instead of https://, or an untrusted self-signed cert.
   Authoring agents (file output) still work; live mutation tools will not.
 ```

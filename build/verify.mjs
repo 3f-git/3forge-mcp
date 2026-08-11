@@ -138,63 +138,38 @@ function verifyCommandReference() {
   }
 }
 
-// 3. Manifests, MCP configs, and marketplaces are well-formed.
+// 3. Manifests and marketplaces are well-formed, and no MCP config is bundled.
 function verifyManifests() {
-  // Claude source MCP (bundled, env-overridable).
-  const claudeMcp = readJson(join(SRC, ".mcp.json")).mcpServers?.["3forge-runtime"];
-  expect(!!claudeMcp, "3forge-mcp/.mcp.json must define 3forge-runtime");
-  expect(claudeMcp?.type === "http", "Claude 3forge-runtime must use http transport");
-  expect(typeof claudeMcp?.url === "string" && claudeMcp.url.includes("${AMI_MCP_URL"),
-    "Claude 3forge-runtime url must be overridable via ${AMI_MCP_URL:-...}");
-  // The MCP endpoint is served by AmiMcpPlugin on the AMI web HTTPS port; plain http does not answer.
-  expect(claudeMcp.url.includes("https://localhost:33333/3forge_rest/mcp"),
-    "Claude 3forge-runtime default url must be https on the web HTTPS port");
-  // AmiMcpPlugin.requiresAuth() is true -- without a Basic header every call 401s.
-  expect(typeof claudeMcp?.headers?.Authorization === "string" &&
-    claudeMcp.headers.Authorization.includes("${AMI_MCP_AUTH"),
-    "Claude 3forge-runtime must send Basic auth sourced from ${AMI_MCP_AUTH}");
+  // No runtime MCP config ships anywhere. The endpoint is per-deployment -- host, port,
+  // credentials, and TLS trust all vary -- so a bundled default cannot work for anyone and
+  // only masks the real setup step. Users configure `3forge-runtime` in their own tool config.
+  const forbiddenMcpConfigs = [
+    join(SRC, ".mcp.json"),
+    join(ROOT, "build", "codex", "mcp.json"),
+    join(ROOT, "build", "copilot", "mcp.json"),
+    join(DIST, "codex", ".mcp.json"),
+    join(DIST, "copilot", ".mcp.json"),
+    join(DIST, "portable", "mcp.json"),
+  ];
+  for (const path of forbiddenMcpConfigs) {
+    expect(!existsSync(path),
+      `${relative(ROOT, path)} must not exist -- the runtime MCP connection is user-configured, not bundled`);
+  }
 
   // Codex standalone plugin.
   const codex = readJson(join(DIST, "codex", ".codex-plugin", "plugin.json"));
   expect(codex.name === "3forge-mcp", "Codex plugin.json name must be 3forge-mcp");
   expect(codex.skills === "./skills/", "Codex plugin.json skills must be ./skills/");
-  expect(codex.mcpServers === "./.mcp.json", "Codex plugin.json mcpServers must be ./.mcp.json");
+  expect(codex.mcpServers === undefined, "Codex plugin.json must not declare mcpServers");
   expect(typeof codex.version === "string", "Codex plugin.json must have a version");
-
-  // Codex bundled MCP: literal default URL. Codex does not expand ${...} in HTTP URLs.
-  const codexMcp = readJson(join(DIST, "codex", ".mcp.json")).mcpServers?.["3forge-runtime"];
-  expect(!!codexMcp, "dist/codex/.mcp.json must define 3forge-runtime");
-  expect(codexMcp?.type === "http", "Codex 3forge-runtime must use http transport");
-  expect(codexMcp?.url === "https://localhost:33333/3forge_rest/mcp",
-    "Codex 3forge-runtime url must be the literal https localhost default");
-  expect(codexMcp?.startup_timeout_sec === 60, "Codex 3forge-runtime startup_timeout_sec must be 60");
 
   // Copilot standalone plugin.
   const copilot = readJson(join(DIST, "copilot", "plugin.json"));
   expect(copilot.name === "3forge-mcp", "Copilot plugin.json name must be 3forge-mcp");
   expect(copilot.skills === "skills/", "Copilot plugin.json skills must be skills/");
   expect(copilot.agents === "agents/", "Copilot plugin.json agents must be agents/");
-  expect(copilot.mcpServers === ".mcp.json", "Copilot plugin.json mcpServers must be .mcp.json");
+  expect(copilot.mcpServers === undefined, "Copilot plugin.json must not declare mcpServers");
   expect(typeof copilot.version === "string", "Copilot plugin.json must have a version");
-
-  // Copilot bundled MCP: literal URL, no ${...} substitution.
-  const copilotMcp = readJson(join(DIST, "copilot", ".mcp.json")).mcpServers?.["3forge-runtime"];
-  expect(!!copilotMcp, "dist/copilot/.mcp.json must define 3forge-runtime");
-  expect(copilotMcp?.type === "http", "Copilot 3forge-runtime must use http transport");
-  expect(typeof copilotMcp?.url === "string" && copilotMcp.url.startsWith("http") && !copilotMcp.url.includes("${"),
-    "Copilot 3forge-runtime url must be a literal http URL (no ${...})");
-  expect(copilotMcp.url === "https://localhost:33333/3forge_rest/mcp",
-    "Copilot 3forge-runtime url must be the literal https localhost default");
-
-  // No real credential may ship in either literal-URL bundle: the Authorization value must stay a
-  // placeholder, and the URL must never carry user:pass@ inline.
-  for (const [label, cfg] of [["Codex", codexMcp], ["Copilot", copilotMcp]]) {
-    const authz = cfg?.headers?.Authorization;
-    expect(typeof authz === "string" && authz === "Basic REPLACE_WITH_BASE64_USER_COLON_PASS",
-      `${label} 3forge-runtime Authorization must remain the unfilled placeholder`);
-    expect(!/\/\/[^/@]*@/.test(cfg.url),
-      `${label} 3forge-runtime url must not embed inline credentials`);
-  }
 
   // Version parity: generated manifests match the canonical Claude version.
   const claudeVersion = readJson(join(SRC, ".claude-plugin", "plugin.json")).version;

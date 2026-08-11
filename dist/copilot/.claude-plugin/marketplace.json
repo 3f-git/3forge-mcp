@@ -8,7 +8,7 @@
     {
       "name": "3forge-mcp",
       "source": ".",
-      "description": "3forge AMI skills, agents, and bundled 3forge-runtime MCP."
+      "description": "3forge AMI skills and agents. Configure the 3forge-runtime MCP server yourself."
     }
   ]
 }

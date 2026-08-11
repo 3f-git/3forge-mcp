@@ -4,7 +4,7 @@ This guide explains how to use the `3forge-mcp` plugin from **GitHub Copilot CLI
 what it installs, how the bundled live MCP connection behaves, and how to use the
 skills, agents, and runtime tools it ships. Copilot CLI is a first-class plugin
 target — skills and agents install natively, and the `3forge-runtime` MCP
-connection is bundled and auto-connects.
+connection is configured by you (see below).
 
 > Working from Claude Code or Codex instead? See
 > [`docs/claude-code-usage.md`](./claude-code-usage.md) and
@@ -16,8 +16,8 @@ Copilot installs from its own generated standalone plugin tree at `dist/copilot/
 (generated from the canonical Claude plugin; the Claude Code plugin is a separate
 tree and is left untouched). When the plugin is installed, Copilot loads:
 
-- **1 bundled MCP server** — `3forge-runtime` (HTTP), from `dist/copilot/.mcp.json`.
-  Auto-connects on install; no manual MCP setup.
+- **0 bundled MCP servers** — declare `3forge-runtime` in your own Copilot MCP
+  config (see Runtime MCP Connection).
 - **10 agents** — from generated `dist/copilot/agents/*.agent.md`.
 - **27 skills** — from `dist/copilot/skills/<name>/SKILL.md` (generated from the
   canonical `3forge-mcp/skills/`), invoked when a task matches or referenced explicitly.
@@ -78,36 +78,57 @@ standalone plugin tree to the target branch root, commits, and pushes.
 
 ## Runtime MCP Connection
 
-Copilot bundles the `3forge-runtime` MCP connection in the plugin
-(`dist/copilot/.mcp.json`), so live tools connect automatically once the
-plugin is installed. It targets the literal default:
+**No MCP connection is bundled.** You register `3forge-runtime` yourself against your
+own AMI deployment — the endpoint host, port, credentials, and certificate trust are
+all deployment-specific.
+
+AMI's `AmiMcpPlugin` serves MCP as an authenticated REST plugin on the AMI web
+**HTTPS** port of the JVM running `amimcp`:
 
 ```
-http://localhost:33333/3forge_rest/mcp
+https://<host>:<webHttpsPort>/3forge_rest/mcp        # webHttpsPort defaults to 33333
 ```
 
-Copilot CLI does **not** support the `${AMI_MCP_URL:-…}` environment-substitution
-syntax that the Claude Code `.mcp.json` uses, so the URL is a literal. To target a
-different host or port for a session, launch Copilot with an override config:
+Three things are mandatory, and each fails in a distinct way:
+
+| Requirement | Symptom if wrong |
+|---|---|
+| **HTTPS**, not HTTP | Connection fails with no HTTP status — plain `http://` never answers |
+| **HTTP Basic auth** on every call | `401` — the MCP tools are high-privilege, so everything is authenticated |
+| **Trusted certificate** | `DEPTH_ZERO_SELF_SIGNED_CERT` if AMI uses a self-signed cert |
+
+Verify the endpoint before configuring the client:
+
+```bash
+curl -sk -u '<user>:<pass>' -X POST https://<host>:33333/3forge_rest/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.0.1"}}}'
+```
+
+`401` means credentials. Working only with `-k` means the cert is self-signed — trust it
+or use a CA-signed host; MCP clients verify TLS with no per-server opt-out.
+
+Register it by launching Copilot with an MCP config that declares `3forge-runtime`:
 
 ```bash
 copilot --additional-mcp-config ./my-ami-mcp.json
 ```
 
-where `my-ami-mcp.json` re-declares the `3forge-runtime` server with your URL:
-
 ```json
 {
   "mcpServers": {
-    "3forge-runtime": { "type": "http", "url": "http://ami-host:33333/3forge_rest/mcp", "tools": ["*"] }
+    "3forge-runtime": {
+      "type": "http",
+      "url": "https://<host>:33333/3forge_rest/mcp",
+      "headers": { "Authorization": "Basic <base64(user:pass)>" },
+      "tools": ["*"]
+    }
   }
 }
 ```
 
-The endpoint is the in-process Java MCP plugin running inside AMI Web on port
-33333. If AMI Web is not running with the `amimcp` plugin, the runtime tools will
-be unavailable — authoring skills and agents (file output) still work, but live
-mutation tools will not.
+Generate the credential with `printf '<user>:<pass>' | base64`. Start a fresh Copilot
+session afterwards so the tools are discovered.
 
 ## First Prompt
 
@@ -326,7 +347,7 @@ named ranges, inputs, and outputs, and propose an AMI migration plan.
 ### MCP tools not available
 
 1. Ensure AMI Web is running with the `amimcp` plugin, reachable at
-   `http://localhost:33333/3forge_rest/mcp` (the bundled default).
+   `https://<host>:33333/3forge_rest/mcp` (the endpoint you registered).
 2. To target another host, launch Copilot with
    `--additional-mcp-config ./my-ami-mcp.json` (see **Runtime MCP Connection**).
 3. Start a fresh Copilot session so the plugin's tools are re-discovered.
@@ -345,7 +366,7 @@ named ranges, inputs, and outputs, and propose an AMI migration plan.
 - Don't mutate live layouts without the doc → verify → apply workflow.
 - Don't commit or save transient Web changes without explicit confirmation.
 - Don't assume live tools work without AMI Web running the `amimcp` plugin on the
-  configured MCP endpoint (default `http://localhost:33333/3forge_rest/mcp`).
+  MCP endpoint you registered for `3forge-runtime`.
 - Don't hand-edit `dist/copilot/agents/*.agent.md`; edit
   `3forge-mcp/agents/*.md` and run `node build/generate.mjs`.
 

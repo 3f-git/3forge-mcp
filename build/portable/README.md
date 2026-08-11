@@ -13,7 +13,6 @@ Everything here is a plain Markdown/JSON file. There is nothing to build.
 3forge-mcp-portable/
 ├── README.md        ← this file
 ├── CLAUDE.md        ← operating guidance (paste into your project's CLAUDE.md / AGENTS.md)
-├── mcp.json         ← the 3forge-runtime MCP server connection
 ├── agents/          ← specialist sub-agents (architect, sql-builder, layout, reviewer, …)
 ├── commands/        ← ready-to-run command prompts (init, plan, query, review, debug, runtime)
 └── skills/          ← the full skill library (authoring + live-runtime workflows)
@@ -25,52 +24,55 @@ runtime MCP connection below.
 
 ## 1. Connect the runtime MCP (the important part)
 
-`mcp.json` defines an HTTP MCP server named `3forge-runtime`, defaulting to
-`https://localhost:33333/3forge_rest/mcp` and overridable with the `AMI_MCP_URL` env var:
+This bundle ships **no MCP config** — you register `3forge-runtime` yourself against your own
+AMI deployment. The endpoint host, port, credentials, and certificate trust are all
+deployment-specific, so there is no default worth shipping.
 
-```json
-{
-  "mcpServers": {
-    "3forge-runtime": {
-      "type": "http",
-      "url": "${AMI_MCP_URL:-https://localhost:33333/3forge_rest/mcp}",
-      "headers": {
-        "Authorization": "Basic ${AMI_MCP_AUTH:-}"
-      }
-    }
-  }
-}
+AMI's `AmiMcpPlugin` serves MCP as an authenticated REST plugin on the AMI web **HTTPS** port
+of the JVM that has the `amimcp` plugin loaded:
+
+```
+https://<host>:<webHttpsPort>/3forge_rest/mcp        # webHttpsPort defaults to 33333
 ```
 
-Point it at the AMI Web JVM that has the `3forge-runtime` MCP plugin (`amimcp`) loaded.
-Two requirements are easy to miss:
+Three things are mandatory, and each fails in a distinct way:
 
-- **HTTPS, not HTTP.** The endpoint is served on the AMI web **HTTPS** port. Plain `http://`
-  on that port does not answer at all.
-- **Basic auth is mandatory.** The MCP tools are high-privilege, so the plugin authenticates
-  every call and returns `401` without credentials.
+| Requirement | Symptom if wrong |
+|---|---|
+| **HTTPS**, not HTTP | Connection fails with no HTTP status — plain `http://` on that port never answers |
+| **HTTP Basic auth** on every call | `401` — the MCP tools are high-privilege, so the plugin authenticates everything |
+| **Trusted certificate** | `DEPTH_ZERO_SELF_SIGNED_CERT` if AMI uses a self-signed cert |
 
-**Claude Code** — add it from this folder:
+### Verify the endpoint first
+
+Confirm the server answers before configuring any tool — this separates server problems from
+client problems:
 
 ```bash
-export AMI_MCP_AUTH=$(printf '<user>:<pass>' | base64)         # required
-export AMI_MCP_URL=https://<ami-host>:33333/3forge_rest/mcp    # optional; defaults to localhost:33333
-claude mcp add --transport http 3forge-runtime "$AMI_MCP_URL" \
-  --header "Authorization: Basic $AMI_MCP_AUTH"
+curl -sk -u '<user>:<pass>' -X POST https://<host>:33333/3forge_rest/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.0.1"}}}'
 ```
 
-**Codex / Copilot / Gemini / Cursor** — copy the `3forge-runtime` block from `mcp.json` into
-your tool's MCP configuration. If your tool does not expand `${...}` (Codex and Copilot do
-not), replace `url` with the literal endpoint and `Authorization` with a literal
-`Basic <base64(user:pass)>` value.
+A healthy server returns a JSON-RPC result with `serverInfo`. `401` means credentials are
+wrong. If it works **only** with `-k`, the certificate is self-signed — trust it in your
+client's trust store or use a host with a CA-signed certificate. MCP clients verify TLS with
+no per-server opt-out, so `-k` is not something you can replicate in the client config.
 
-### Self-signed certificates
+### Register it
 
-Many AMI deployments use a self-signed certificate. A TLS-verifying MCP client will refuse
-that connection — typically a connection failure with no HTTP status. Either trust the AMI
-certificate in your client's trust store, or point `AMI_MCP_URL` at a host with a CA-signed
-certificate. Verify independently with `curl -k -u <user>:<pass> <url>`; if `-k` is what makes
-it work, the certificate is the problem.
+**Claude Code:**
+
+```bash
+claude mcp add --transport http 3forge-runtime https://<host>:33333/3forge_rest/mcp \
+  --header "Authorization: Basic $(printf '<user>:<pass>' | base64)"
+```
+
+**Codex / Copilot / Gemini / Cursor** — add an HTTP MCP server named `3forge-runtime` in your
+tool's own MCP configuration, with that URL and an `Authorization: Basic <base64(user:pass)>`
+header. Generate the credential with `printf '<user>:<pass>' | base64`.
+
+Start a fresh session afterwards so the MCP tools are discovered.
 
 ## 2. Load the skills, agents, and commands
 

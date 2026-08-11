@@ -235,11 +235,12 @@ function parseTargets(argv) {
 }
 
 // Codex: standalone plugin tree — TOML agents under .codex/agents/, own manifest
-// and repo-style marketplace. AGENTS.md is the plain CLAUDE.md.
+// and repo-style marketplace. AGENTS.md is the plain CLAUDE.md. No MCP config is
+// bundled: the runtime endpoint is per-deployment (host, port, credentials, and TLS
+// trust all vary), so users configure `3forge-runtime` in their own tool config.
 function writeCodexPlugin(version) {
   const out = join(DIST, "codex");
   writeFileEnsuring(join(out, ".codex-plugin", "plugin.json"), withVersion(join(ROOT, "build", "codex", "plugin.json"), version));
-  writeFileEnsuring(join(out, ".mcp.json"), readFileSync(join(ROOT, "build", "codex", "mcp.json"), "utf8"));
   writeFileEnsuring(join(out, ".agents", "plugins", "marketplace.json"), readFileSync(join(ROOT, "build", "codex", "marketplace.json"), "utf8"));
   forEachAgent((name, content, source) => {
     writeFileEnsuring(join(out, ".codex", "agents", name.replace(/\.md$/, ".toml")), codexAgentToml(content, source));
@@ -249,12 +250,12 @@ function writeCodexPlugin(version) {
   console.log("generated dist/codex (standalone Codex plugin)");
 }
 
-// Copilot: standalone plugin tree — .agent.md agents, root manifest, bundled MCP
-// (literal URL), own marketplace. copilot-instructions.md is the plain CLAUDE.md.
+// Copilot: standalone plugin tree — .agent.md agents, root manifest, own marketplace.
+// copilot-instructions.md is the plain CLAUDE.md. No MCP config is bundled (see
+// writeCodexPlugin) — users configure `3forge-runtime` in their own tool config.
 function writeCopilotPlugin(version) {
   const out = join(DIST, "copilot");
   writeFileEnsuring(join(out, "plugin.json"), withVersion(join(ROOT, "build", "copilot", "plugin.json"), version));
-  writeFileEnsuring(join(out, ".mcp.json"), readFileSync(join(ROOT, "build", "copilot", "mcp.json"), "utf8"));
   writeFileEnsuring(join(out, ".claude-plugin", "marketplace.json"), readFileSync(join(ROOT, "build", "copilot", "marketplace.json"), "utf8"));
   forEachAgent((name, content, source) => {
     writeFileEnsuring(join(out, "agents", name.replace(/\.md$/, ".agent.md")), copilotAgentMarkdown(content, source));
@@ -267,12 +268,12 @@ function writeCopilotPlugin(version) {
 
 // Portable: tool-agnostic manual-install bundle — no plugin manifest or marketplace.
 // Ships raw canonical agents, path-normalized command prompts, the full skills tree,
-// the runtime MCP config, the operating guidance, and a manual-setup README. Packed
-// into a single zip by build/pack-portable.mjs.
+// the operating guidance, and a manual-setup README (which carries the runtime MCP
+// setup instructions instead of a bundled config). Packed into a single zip by
+// build/pack-portable.mjs.
 function writePortable(version) {
   const out = join(DIST, "portable");
   writeFileEnsuring(join(out, "CLAUDE.md"), instructions);
-  writeFileEnsuring(join(out, "mcp.json"), readFileSync(join(SRC, ".mcp.json"), "utf8"));
   forEachAgent((name, content) => {
     writeFileEnsuring(join(out, "agents", name), content);
   });

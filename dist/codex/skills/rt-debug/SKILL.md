@@ -89,8 +89,9 @@ If the error is about a panel callback, also pull the callback's scope:
 | `JOIN not supported across HISTORICAL and NON-HISTORICAL tables` | Stage HISTORICAL data into a FAST `_staging` table first. |
 | `HISTORICAL does not support USE option: Broadcast` | Drop `Broadcast="true"` — historicals can't be broadcast. |
 | `Streamable HTTP error: Error POSTing to endpoint` | Claude Code's MCP client transport bug, NOT the AMI plugin. The server is fine via curl. Retry; if still failing fall back to raw HTTP to `https://localhost:33333/3forge_rest/mcp` (with `Authorization: Basic <base64(user:pass)>`). |
-| `401` on every MCP call | No/!bad Basic auth. `AmiMcpPlugin.requiresAuth()` is `true`. Set `AMI_MCP_AUTH=$(printf 'user:pass' \| base64)` and relaunch. |
-| Connection fails outright, no HTTP status | Wrong scheme or TLS. The endpoint is **HTTPS**; plain `http://` on the web HTTPS port never answers. A self-signed AMI cert also fails client-side TLS verification — trust it or use a CA-signed host. |
+| `401` on every MCP call | Missing/wrong Basic auth. `AmiMcpPlugin.requiresAuth()` is `true`. Re-register the server with `Authorization: Basic <base64(user:pass)>`. |
+| Connection fails outright, no HTTP status | Wrong scheme, or TLS. The endpoint is **HTTPS**; plain `http://` on the web HTTPS port never answers. |
+| `DEPTH_ZERO_SELF_SIGNED_CERT` | AMI is using a self-signed cert and the MCP client verifies TLS with no per-server opt-out. Trust the cert in the client's trust store, or use a CA-signed host. `curl -k` working while plain `curl` fails confirms it. |
 
 ## One-shot debugger — `web_editor(op=debugInspectAt)`
 

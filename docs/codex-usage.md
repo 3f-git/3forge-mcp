@@ -10,7 +10,7 @@ bundled agent roles.
 Codex plugins can bundle reusable skills, MCP server configuration, and optional
 app integrations. This plugin currently gives Codex:
 
-- 1 bundled MCP server configuration: `3forge-runtime`, from `dist/codex/.mcp.json`
+- 0 bundled MCP server configurations: register `3forge-runtime` in your own Codex config
 - 28 3forge skills under `3forge-mcp/skills`
 - A Codex command-equivalent skill named `commands`
 - Generated Codex custom-agent TOML under `dist/codex/.codex/agents`
@@ -50,7 +50,7 @@ points back to the standalone `dist/codex` plugin tree when that tree is used
 as the marketplace root.
 
 After installing or updating, start a new Codex thread so the plugin skills and
-bundled MCP tools are loaded.
+MCP tools are loaded.
 
 Verify install state:
 
@@ -67,41 +67,49 @@ Expected:
 
 ## Runtime MCP Configuration
 
-The Codex plugin bundles `3forge-runtime` through `dist/codex/.mcp.json` and
-`mcpServers: "./.mcp.json"` in `dist/codex/.codex-plugin/plugin.json`.
+**No MCP connection is bundled.** You register `3forge-runtime` yourself against your
+own AMI deployment — the endpoint host, port, credentials, and certificate trust are
+all deployment-specific.
 
-Default endpoint:
+AMI's `AmiMcpPlugin` serves MCP as an authenticated REST plugin on the AMI web
+**HTTPS** port of the JVM running `amimcp`:
 
-```text
-http://localhost:33333/3forge_rest/mcp
+```
+https://<host>:<webHttpsPort>/3forge_rest/mcp        # webHttpsPort defaults to 33333
 ```
 
-Codex does not expand Claude-style `${AMI_MCP_URL:-...}` syntax in plugin-provided
-HTTP MCP URLs, so the bundled Codex config uses the literal localhost URL. To
-target another host or port, disable the plugin-provided server and add your own
-Codex MCP config:
+Three things are mandatory, and each fails in a distinct way:
+
+| Requirement | Symptom if wrong |
+|---|---|
+| **HTTPS**, not HTTP | Connection fails with no HTTP status — plain `http://` never answers |
+| **HTTP Basic auth** on every call | `401` — the MCP tools are high-privilege, so everything is authenticated |
+| **Trusted certificate** | `DEPTH_ZERO_SELF_SIGNED_CERT` if AMI uses a self-signed cert |
+
+Verify the endpoint before configuring the client:
+
+```bash
+curl -sk -u '<user>:<pass>' -X POST https://<host>:33333/3forge_rest/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.0.1"}}}'
+```
+
+`401` means credentials. Working only with `-k` means the cert is self-signed — trust it
+or use a CA-signed host; MCP clients verify TLS with no per-server opt-out.
+
+Register it in your Codex MCP config:
 
 ```toml
-[plugins."3forge-mcp@3forge-mcp-codex".mcp_servers.3forge-runtime]
-enabled = false
-
 [mcp_servers.3forge-runtime]
-url = "http://ami-host:33333/3forge_rest/mcp"
+url = "https://<host>:33333/3forge_rest/mcp"
 startup_timeout_sec = 60
+
+[mcp_servers.3forge-runtime.headers]
+Authorization = "Basic <base64(user:pass)>"
 ```
 
-Then open a new Codex thread and run `/mcp` to confirm `3forge-runtime` is
-connected. If `/mcp` shows a different server name such as `ami-runtime` timing
-out, disable that stale user/project MCP config entry:
-
-```toml
-[mcp_servers.ami-runtime]
-enabled = false
-```
-
-Close old Codex/Claude sessions after changing MCP config. They can keep
-existing HTTP connections open against `localhost:33333`; if the AMI MCP endpoint
-still hangs after the clients exit, restart the AMI Web JVM that hosts `amimcp`.
+Generate the credential with `printf '<user>:<pass>' | base64`. Start a fresh Codex
+thread afterwards so the tools are discovered.
 
 ## First Prompt
 
@@ -226,7 +234,7 @@ Use 3forge MCP to review this .ami layout before I commit it.
 
 ## MCP Tool Families
 
-When reachable, the bundled `3forge-runtime` MCP server reflects live AMI console
+When reachable, the `3forge-runtime` MCP server reflects live AMI console
 methods as 37 consolidated tools. Use `ami_console(view=components)` first to
 find valid component IDs such as `center`, `web`, or `relay`.
 

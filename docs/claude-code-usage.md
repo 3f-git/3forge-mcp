@@ -4,7 +4,7 @@ This guide explains how to use the `3forge-mcp` plugin from **Claude Code**: wha
 it installs, how the bundled live MCP connection behaves, and how to invoke the
 slash commands, subagents, and skills it ships. Claude Code is the first-class
 target for this plugin — commands are native slash commands, agents are native
-subagents, and the `3forge-runtime` MCP connection is bundled and auto-connects.
+subagents. The `3forge-runtime` MCP connection is configured by you (see below).
 
 > Working from Codex, Copilot, Gemini, or Cursor instead? See
 > [`docs/codex-usage.md`](./codex-usage.md) — those tools treat the same source
@@ -14,8 +14,8 @@ subagents, and the `3forge-runtime` MCP connection is bundled and auto-connects.
 
 When the plugin is enabled, Claude Code loads all of these as native surfaces:
 
-- **1 bundled MCP server** — `3forge-runtime` (HTTP), from `3forge-mcp/.mcp.json`.
-  Auto-connects on install; no `claude mcp add` needed.
+- **0 bundled MCP servers** — register `3forge-runtime` yourself with
+  `claude mcp add` against your own AMI instance (see Runtime MCP Connection).
 - **6 slash commands** — from `3forge-mcp/commands/*.md`, exposed as
   `/3forge-mcp:3forge-init`, `/3forge-mcp:runtime`, etc.
 - **10 subagents** — from `3forge-mcp/agents/*.md`, spawnable via the Task tool.
@@ -52,22 +52,45 @@ Manage the plugin any time with `/plugin`.
 
 ## Runtime MCP Connection
 
-Claude Code bundles the `3forge-runtime` MCP connection in the plugin
-(`3forge-mcp/.mcp.json`), so live tools connect automatically once the plugin is
-installed — **no manual `claude mcp add`**. It defaults to:
+**No MCP connection is bundled.** You register `3forge-runtime` yourself against your
+own AMI deployment — the endpoint host, port, credentials, and certificate trust are
+all deployment-specific.
+
+AMI's `AmiMcpPlugin` serves MCP as an authenticated REST plugin on the AMI web
+**HTTPS** port of the JVM running `amimcp`:
 
 ```
-http://localhost:33333/3forge_rest/mcp
+https://<host>:<webHttpsPort>/3forge_rest/mcp        # webHttpsPort defaults to 33333
 ```
 
-To target another host/port, set `AMI_MCP_URL` before launching Claude Code:
+Three things are mandatory, and each fails in a distinct way:
+
+| Requirement | Symptom if wrong |
+|---|---|
+| **HTTPS**, not HTTP | Connection fails with no HTTP status — plain `http://` never answers |
+| **HTTP Basic auth** on every call | `401` — the MCP tools are high-privilege, so everything is authenticated |
+| **Trusted certificate** | `DEPTH_ZERO_SELF_SIGNED_CERT` if AMI uses a self-signed cert |
+
+Verify the endpoint before configuring the client:
 
 ```bash
-AMI_MCP_URL=http://ami-host:33333/3forge_rest/mcp claude
+curl -sk -u '<user>:<pass>' -X POST https://<host>:33333/3forge_rest/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.0.1"}}}'
 ```
 
-The endpoint is the in-process Java MCP plugin running inside AMI Web on port
-33333. If AMI Web is not running with the `amimcp` plugin, the runtime tools will
+`401` means credentials. Working only with `-k` means the cert is self-signed — trust it
+or use a CA-signed host; MCP clients verify TLS with no per-server opt-out.
+
+Register it:
+
+```bash
+claude mcp add --transport http 3forge-runtime https://<host>:33333/3forge_rest/mcp \
+  --header "Authorization: Basic $(printf '<user>:<pass>' | base64)"
+```
+
+The endpoint is the in-process Java MCP plugin running inside AMI Web on the web
+HTTPS port (default 33333). If AMI Web is not running with the `amimcp` plugin, the runtime tools will
 be unavailable — authoring skills and agents (file output) still work, but live
 mutation tools will not.
 
@@ -352,8 +375,8 @@ formulas, named ranges, inputs, and outputs, and propose an AMI migration plan.
 - Don't mutate live layouts without the doc → verify → apply workflow.
 - Don't commit or save transient Web changes without explicit confirmation.
 - Don't create headless sessions during `/3forge-init` unless you asked for one.
-- Don't assume live tools work without AMI Web running the `amimcp` plugin on
-  the configured `AMI_MCP_URL` (default `http://localhost:33333/3forge_rest/mcp`).
+- Don't assume live tools work without AMI Web running the `amimcp` plugin and a
+  registered `3forge-runtime` MCP server (HTTPS + Basic auth + trusted cert).
 - Don't hand-edit `dist/`; edit sources under `3forge-mcp/` and run
   `node build/generate.mjs`.
 - Don't hand-edit the generated trees under `dist/` (e.g.
