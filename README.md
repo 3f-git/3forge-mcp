@@ -6,19 +6,22 @@ agents for 3forge AMI authoring and live instance workflows.
 The plugin ships **no offline 3forge documentation** — all conceptual knowledge is fetched
 at runtime from the live instance via `aidoc_getDocumentation`. **Claude Code, Codex, and
 Copilot** are first-class plugin targets and bundle the `3forge-runtime` MCP connection,
-so live tools connect automatically on install when AMI Web is reachable. Claude Code
-defaults to `http://localhost:33333/3forge_rest/mcp` and overrides the endpoint with the
-`AMI_MCP_URL` env var; Codex and Copilot connect to the same default literal URL.
-Gemini and Cursor configure the runtime MCP separately. Nothing here duplicates what
-your instance already knows.
+so live tools connect once AMI Web is reachable **and credentials are configured** — the
+endpoint is HTTPS and authenticated, so it never works out of the box with no setup.
+Claude Code defaults to `https://localhost:33333/3forge_rest/mcp`, takes the credential from
+`AMI_MCP_AUTH`, and overrides the endpoint with `AMI_MCP_URL`; Codex and Copilot use the same
+literal default URL with a hand-edited `Authorization` header. Gemini and Cursor configure the
+runtime MCP separately. Nothing here duplicates what your instance already knows.
 
 ---
 
 ## Prerequisites
 
 - Optional for live-runtime workflows: a running **3forge** deployment with the
-  `3forge-runtime` MCP plugin (`amimcp`) loaded in the Web JVM, reachable over HTTP.
-  The standard in-process port is `33333`, i.e. `http://<host>:33333/3forge_rest/mcp`.
+  `3forge-runtime` MCP plugin (`amimcp`) loaded in the Web JVM, reachable over HTTPS.
+  The standard in-process port is the web HTTPS port `33333`, i.e.
+  `https://<host>:33333/3forge_rest/mcp`, plus an AMI username/password — the endpoint
+  authenticates every call.
 - One of the supported AI tools: Claude Code, Codex, GitHub Copilot, Gemini CLI, or Cursor.
 - For contributors only: **Node.js** (the build script is plain ESM, no dependencies).
 
@@ -43,34 +46,71 @@ your instance already knows.
 
 ### 1. Runtime MCP connection
 
-**Claude Code** bundles the `3forge-runtime` MCP connection in the plugin (`3forge-mcp/.mcp.json`),
-so it connects automatically once the plugin is installed — no `claude mcp add` needed. It
-defaults to `http://localhost:33333/3forge_rest/mcp`; to target another host/port, set `AMI_MCP_URL`
-before launching Claude Code:
+The MCP endpoint is served by AMI's `AmiMcpPlugin` as an authenticated REST plugin on the AMI
+web **HTTPS** port — `https://<host>:<webHttpsPort>/3forge_rest/mcp` (default `33333`). Both of
+these are mandatory:
+
+- **HTTPS, not HTTP.** Plain `http://` on that port does not answer at all — you get a
+  connection failure with no HTTP status, not a redirect.
+- **HTTP Basic auth on every call.** The MCP tools are high-privilege (SQL exec, component
+  management, layout deploy), so the plugin authenticates every request and returns `401`
+  without credentials. Use an AMI user that has the permissions you intend the agent to have.
+
+No credential ships in this repo. Supply your own:
 
 ```bash
-export AMI_MCP_URL=http://ami-host:33333/3forge_rest/mcp
+export AMI_MCP_AUTH=$(printf '<user>:<pass>' | base64)
+```
+
+**Claude Code** bundles the `3forge-runtime` MCP connection in the plugin (`3forge-mcp/.mcp.json`),
+so it connects once the plugin is installed and `AMI_MCP_AUTH` is set — no `claude mcp add`
+needed. To target another host/port, also set `AMI_MCP_URL` before launching Claude Code:
+
+```bash
+export AMI_MCP_AUTH=$(printf '<user>:<pass>' | base64)
+export AMI_MCP_URL=https://ami-host:33333/3forge_rest/mcp   # optional
 ```
 
 **Codex** bundles the same `3forge-runtime` connection in its generated plugin MCP config
-(`dist/codex/.mcp.json`). It defaults to `http://localhost:33333/3forge_rest/mcp`. Codex does not
-expand Claude-style `${AMI_MCP_URL:-...}` syntax in plugin-provided HTTP URLs; to target
-another host/port, disable the plugin-provided server and add your own Codex MCP config:
+(`dist/codex/.mcp.json`), defaulting to `https://localhost:33333/3forge_rest/mcp` with a
+placeholder `Authorization` header. Codex does not expand Claude-style `${...}` syntax in
+plugin-provided config, so **you must edit the header by hand** — or disable the
+plugin-provided server and add your own Codex MCP config:
 
 ```toml
 [plugins."3forge-mcp@3forge-mcp-codex".mcp_servers.3forge-runtime]
 enabled = false
 
 [mcp_servers.3forge-runtime]
-url = "http://ami-host:33333/3forge_rest/mcp"
+url = "https://ami-host:33333/3forge_rest/mcp"
 startup_timeout_sec = 60
+
+[mcp_servers.3forge-runtime.headers]
+Authorization = "Basic <base64(user:pass)>"
 ```
 
 **Copilot** also bundles the connection, in its own generated plugin MCP config
-(`dist/copilot/.mcp.json`), so it connects automatically on install. Copilot does not
-support the `${AMI_MCP_URL:-…}` substitution syntax, so the URL is the literal default
-`http://localhost:33333/3forge_rest/mcp`. To target another host for a single session, launch Copilot with
-`--additional-mcp-config` pointing at a config that overrides the `3forge-runtime` url.
+(`dist/copilot/.mcp.json`). Copilot does not support `${...}` substitution either, so the URL is
+the literal default `https://localhost:33333/3forge_rest/mcp` and the `Authorization` header is a
+placeholder you must replace. To target another host for a single session, launch Copilot with
+`--additional-mcp-config` pointing at a config that overrides the `3forge-runtime` entry.
+
+#### Self-signed certificates
+
+Many AMI deployments (and every default dev instance) use a self-signed certificate. A
+TLS-verifying MCP client refuses that connection, usually surfacing as a connection failure with
+no HTTP status. Either trust the AMI certificate in your client's trust store, or point
+`AMI_MCP_URL` at a host with a CA-signed certificate. To confirm the certificate is the culprit,
+test with and without `curl -k`:
+
+```bash
+curl -sk -u <user>:<pass> -X POST https://localhost:33333/3forge_rest/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.0.1"}}}'
+```
+
+If that succeeds only with `-k`, the certificate is the problem. If it returns `401`, the
+credentials are.
 
 **Gemini and Cursor** don't consume a bundled `.mcp.json` — configure the
 `3forge-runtime` MCP server in those tools' own configs if you need live tools.
@@ -194,8 +234,9 @@ copilot plugin install 3forge-mcp@3forge-mcp-copilot
 ```
 
 This installs the skills, the 10 agents, and the bundled `3forge-runtime` MCP connection
-(auto-connects to `http://localhost:33333/3forge_rest/mcp`). Start a fresh Copilot session so the plugin is
-discovered.
+(defaults to `https://localhost:33333/3forge_rest/mcp`; replace the placeholder `Authorization`
+header in `.mcp.json` with your own `Basic <base64(user:pass)>`). Start a fresh Copilot session
+so the plugin is discovered.
 
 For day-to-day Copilot usage — skills, agents, MCP tool families, and the doc → verify →
 apply workflow — see [`docs/copilot-usage.md`](docs/copilot-usage.md).
@@ -267,11 +308,14 @@ Follow its `README.md` to install by hand.
   `3forge-debug`. The generator also syncs these into the `commands` skill as command-equivalent
   workflows for harnesses that do not load Claude slash commands.
 - **Bundled MCP server config (Claude Code + Codex + Copilot)** — `3forge-mcp/.mcp.json` registers the
-  `3forge-runtime` HTTP server for Claude Code (endpoint defaults to `http://localhost:33333/3forge_rest/mcp`,
-  overridable via the `AMI_MCP_URL` env var). Codex gets its own generated `dist/codex/.mcp.json`
-  with a literal localhost default because Codex does not expand `${...}` in plugin-provided HTTP
-  URLs. Copilot gets its own generated `dist/copilot/.mcp.json` with a literal default URL
-  (Copilot lacks the `${AMI_MCP_URL:-…}` substitution syntax). Gemini and Cursor configure the
+  `3forge-runtime` HTTPS server for Claude Code (endpoint defaults to `https://localhost:33333/3forge_rest/mcp`,
+  overridable via `AMI_MCP_URL`; Basic-auth credential supplied via `AMI_MCP_AUTH`). Codex gets its
+  own generated `dist/codex/.mcp.json` with a literal localhost default and a placeholder
+  `Authorization` header, because Codex does not expand `${...}` in plugin-provided config.
+  Copilot gets its own generated `dist/copilot/.mcp.json` on the same terms
+  (Copilot lacks the `${AMI_MCP_URL:-…}` substitution syntax). No credential is ever committed —
+  `build/verify.mjs` fails if the placeholder is filled in or a URL embeds inline
+  credentials. Gemini and Cursor configure the
   runtime MCP in their own config.
 - **Portable bundle (`dist/portable/`)** — a tool-agnostic, manual-install copy for any tool
   that can't install marketplace plugins at all. Prebuilt and committed — see
@@ -442,19 +486,21 @@ You can verify the plugin end-to-end against a running server with plain `curl` 
 the streamable-HTTP transport):
 
 ```bash
-URL=http://localhost:33333/3forge_rest/mcp
+URL=https://localhost:33333/3forge_rest/mcp
+AUTH=<user>:<pass>        # the endpoint 401s without this
+# -k trusts a self-signed AMI certificate; drop it if the host has a CA-signed cert.
 
 # 1. initialize and capture the session id
-SID=$(curl -s -D - -o /dev/null -X POST "$URL" \
+SID=$(curl -sk -u "$AUTH" -D - -o /dev/null -X POST "$URL" \
   -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.0.1"}}}' \
   | awk 'tolower($1)=="mcp-session-id:"{print $2}' | tr -d '\r')
 
 # 2. say hello, then list tools
-curl -s -o /dev/null -X POST "$URL" -H 'Content-Type: application/json' \
+curl -sk -u "$AUTH" -o /dev/null -X POST "$URL" -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' -H "Mcp-Session-Id: $SID" \
   -d '{"jsonrpc":"2.0","method":"notifications/initialized"}'
-curl -s -X POST "$URL" -H 'Content-Type: application/json' \
+curl -sk -u "$AUTH" -X POST "$URL" -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' -H "Mcp-Session-Id: $SID" \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
 ```

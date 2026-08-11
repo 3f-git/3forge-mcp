@@ -1,6 +1,6 @@
 {
   "name": "3forge-mcp",
-  "description": "3forge AMI authoring and runtime workflow skills and agents. Bundles the 3forge-runtime MCP connection (HTTP; auto-connects to http://localhost:33333/3forge_rest/mcp on install). All 3forge knowledge is served by the live instance via aidoc.",
+  "description": "3forge AMI authoring and runtime workflow skills and agents. Bundles the 3forge-runtime MCP connection (HTTPS; defaults to https://localhost:33333/3forge_rest/mcp). The endpoint requires HTTP Basic auth: edit the Authorization placeholder in .mcp.json after install. All 3forge knowledge is served by the live instance via aidoc.",
   "author": {
     "name": "3forge"
   },
@@ -14,5 +14,5 @@
   "skills": "skills/",
   "agents": "agents/",
   "mcpServers": ".mcp.json",
-  "version": "0.5.0"
+  "version": "0.5.2"
 }

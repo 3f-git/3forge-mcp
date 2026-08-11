@@ -13,9 +13,29 @@ instance is the source of truth.
 
 ## Runtime MCP Connection
 
-Claude Code defaults to `http://localhost:33333/3forge_rest/mcp` and can be pointed at another
-endpoint by setting `AMI_MCP_URL` before launching the tool. Codex and Copilot use
-the literal default `http://localhost:33333/3forge_rest/mcp`.
+The endpoint is served by AMI's `AmiMcpPlugin` as an authenticated REST plugin on the AMI web
+**HTTPS** port — `https://<host>:<webHttpsPort>/3forge_rest/mcp` (default `33333`). Two things
+follow, and both are required:
+
+- **HTTPS, not HTTP.** Plain `http://` on that port does not answer.
+- **Basic auth on every call.** The MCP tools are high-privilege (SQL exec, component
+  management, layout deploy), so `AmiMcpPlugin.requiresAuth()` is `true` and an unauthenticated
+  request gets `401`. The client must send `Authorization: Basic <base64(user:pass)>`.
+
+Claude Code reads both from the environment before launch — `AMI_MCP_URL` for the endpoint and
+`AMI_MCP_AUTH` for the base64 credential:
+
+```bash
+export AMI_MCP_AUTH=$(printf 'myuser:mypass' | base64)
+export AMI_MCP_URL=https://ami-host:33333/3forge_rest/mcp   # optional; defaults to localhost
+```
+
+Codex and Copilot do not expand `${...}`, so their bundled `.mcp.json` ships a placeholder
+`Authorization` value that must be edited by hand after install.
+
+If the AMI instance uses a self-signed certificate (the common dev setup), a TLS-verifying MCP
+client will refuse the connection. Trust the certificate in the client's trust store, or point
+`AMI_MCP_URL` at a host with a CA-signed certificate.
 
 ## The one rule for AMI knowledge
 

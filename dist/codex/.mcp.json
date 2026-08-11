@@ -2,7 +2,10 @@
   "mcpServers": {
     "3forge-runtime": {
       "type": "http",
-      "url": "http://localhost:33333/3forge_rest/mcp",
+      "url": "https://localhost:33333/3forge_rest/mcp",
+      "headers": {
+        "Authorization": "Basic REPLACE_WITH_BASE64_USER_COLON_PASS"
+      },
       "startup_timeout_sec": 60
     }
   }

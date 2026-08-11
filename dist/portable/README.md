@@ -1,4 +1,4 @@
-# 3forge-mcp — portable bundle (v0.5.0)
+# 3forge-mcp — portable bundle (v0.5.2)
 
 A tool-agnostic copy of everything the **3forge-mcp** plugin provides — skills, agents,
 command prompts, and the runtime MCP connection config — in a plain folder you can install
@@ -26,31 +26,51 @@ runtime MCP connection below.
 ## 1. Connect the runtime MCP (the important part)
 
 `mcp.json` defines an HTTP MCP server named `3forge-runtime`, defaulting to
-`http://localhost:33333/3forge_rest/mcp` and overridable with the `AMI_MCP_URL` env var:
+`https://localhost:33333/3forge_rest/mcp` and overridable with the `AMI_MCP_URL` env var:
 
 ```json
 {
   "mcpServers": {
     "3forge-runtime": {
       "type": "http",
-      "url": "${AMI_MCP_URL:-http://localhost:33333/3forge_rest/mcp}"
+      "url": "${AMI_MCP_URL:-https://localhost:33333/3forge_rest/mcp}",
+      "headers": {
+        "Authorization": "Basic ${AMI_MCP_AUTH:-}"
+      }
     }
   }
 }
 ```
 
 Point it at the AMI Web JVM that has the `3forge-runtime` MCP plugin (`amimcp`) loaded.
+Two requirements are easy to miss:
+
+- **HTTPS, not HTTP.** The endpoint is served on the AMI web **HTTPS** port. Plain `http://`
+  on that port does not answer at all.
+- **Basic auth is mandatory.** The MCP tools are high-privilege, so the plugin authenticates
+  every call and returns `401` without credentials.
 
 **Claude Code** — add it from this folder:
 
 ```bash
-export AMI_MCP_URL=http://<ami-host>:33333/3forge_rest/mcp     # optional; defaults to localhost:33333
-claude mcp add --transport http 3forge-runtime "$AMI_MCP_URL"
+export AMI_MCP_AUTH=$(printf '<user>:<pass>' | base64)         # required
+export AMI_MCP_URL=https://<ami-host>:33333/3forge_rest/mcp    # optional; defaults to localhost:33333
+claude mcp add --transport http 3forge-runtime "$AMI_MCP_URL" \
+  --header "Authorization: Basic $AMI_MCP_AUTH"
 ```
 
 **Codex / Copilot / Gemini / Cursor** — copy the `3forge-runtime` block from `mcp.json` into
-your tool's MCP configuration. If your tool does not expand `${AMI_MCP_URL:-…}`, replace the
-`url` with the literal endpoint (e.g. `http://localhost:33333/3forge_rest/mcp`).
+your tool's MCP configuration. If your tool does not expand `${...}` (Codex and Copilot do
+not), replace `url` with the literal endpoint and `Authorization` with a literal
+`Basic <base64(user:pass)>` value.
+
+### Self-signed certificates
+
+Many AMI deployments use a self-signed certificate. A TLS-verifying MCP client will refuse
+that connection — typically a connection failure with no HTTP status. Either trust the AMI
+certificate in your client's trust store, or point `AMI_MCP_URL` at a host with a CA-signed
+certificate. Verify independently with `curl -k -u <user>:<pass> <url>`; if `-k` is what makes
+it work, the certificate is the problem.
 
 ## 2. Load the skills, agents, and commands
 

@@ -88,7 +88,9 @@ If the error is about a panel callback, also pull the callback's scope:
 | Stored strings 1 char shorter than inserted | **Doc bug — `aidoc("amisql")` is wrong (issue #17).** You used single-quote literals because the doc said to. Switch to double quotes — that's the actual AMI SQL rule. Fix is to correct the doc, not the parser. |
 | `JOIN not supported across HISTORICAL and NON-HISTORICAL tables` | Stage HISTORICAL data into a FAST `_staging` table first. |
 | `HISTORICAL does not support USE option: Broadcast` | Drop `Broadcast="true"` — historicals can't be broadcast. |
-| `Streamable HTTP error: Error POSTing to endpoint` | Claude Code's MCP client transport bug, NOT the AMI plugin. The server is fine via curl. Retry; if still failing fall back to raw HTTP to `http://localhost:33333/3forge_rest/mcp`. |
+| `Streamable HTTP error: Error POSTing to endpoint` | Claude Code's MCP client transport bug, NOT the AMI plugin. The server is fine via curl. Retry; if still failing fall back to raw HTTP to `https://localhost:33333/3forge_rest/mcp` (with `Authorization: Basic <base64(user:pass)>`). |
+| `401` on every MCP call | No/!bad Basic auth. `AmiMcpPlugin.requiresAuth()` is `true`. Set `AMI_MCP_AUTH=$(printf 'user:pass' \| base64)` and relaunch. |
+| Connection fails outright, no HTTP status | Wrong scheme or TLS. The endpoint is **HTTPS**; plain `http://` on the web HTTPS port never answers. A self-signed AMI cert also fails client-side TLS verification — trust it or use a CA-signed host. |
 
 ## One-shot debugger — `web_editor(op=debugInspectAt)`
 

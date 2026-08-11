@@ -13,7 +13,8 @@ Activate when the user wants to interact with a running AMI deployment: query da
 
 All runtime interaction goes through the **`3forge-runtime` MCP server** — an in-process Java plugin (`amimcp`) loaded inside the AMI Web JVM on port 33333. It reflects every `@Console(MCP|ALL)` method as an MCP tool. There is no SSH, no paramiko, no Python sidecar.
 
-- Server URL: `http://localhost:33333/3forge_rest/mcp`
+- Server URL: `https://localhost:33333/3forge_rest/mcp` (HTTPS on the AMI web HTTPS port; plain `http://` does not answer)
+- Auth: **required** — `Authorization: Basic <base64(user:pass)>` on every call, else `401`
 - Tool count: **37** (consolidated surface — call `tools/list` to refresh)
 - Self-documented: `aidoc_getDocumentation("admin")` — Admin console (port 3285): connection protocol, MCP tool conventions, componentId rules, and the `ami`-object method reference
 

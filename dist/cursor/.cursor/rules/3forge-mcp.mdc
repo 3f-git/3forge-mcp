@@ -11,18 +11,34 @@ concept documentation** - the live instance is the source of truth.
 
 ## Runtime MCP Connection
 
-**Claude Code and Codex:** the plugin bundles the `3forge-runtime` MCP connection
-(see `.mcp.json` at the plugin root). It connects automatically when the plugin is
-enabled. Claude Code can point at another host or port by setting `AMI_MCP_URL`
-before launch. Codex uses the literal default `http://localhost:33333/3forge_rest/mcp` because
-it does not expand `${...}` in plugin-provided HTTP URLs.
+The endpoint is served by AMI's `AmiMcpPlugin` as an authenticated REST plugin on the AMI
+web **HTTPS** port — `https://<host>:<webHttpsPort>/3forge_rest/mcp` (default `33333`).
+Two things follow, and both are required:
 
-**Copilot:** the generated Copilot plugin also bundles `3forge-runtime`, but Copilot
-uses a literal default URL because it does not support `${AMI_MCP_URL:-...}` syntax.
+- **HTTPS, not HTTP.** Plain `http://` on that port does not answer.
+- **Basic auth on every call.** The MCP tools are high-privilege (SQL exec, component
+  management, layout deploy), so `AmiMcpPlugin.requiresAuth()` is `true` and an
+  unauthenticated request gets `401`. The client must send
+  `Authorization: Basic <base64(user:pass)>`.
 
-**Gemini and Cursor:** configure `3forge-runtime` in the consuming tool's own MCP
-config when live tools are needed, then start a fresh thread so the MCP tools are
-discovered.
+**Claude Code:** the plugin bundles the connection (see `.mcp.json` at the plugin root) and
+reads both values from the environment before launch:
+
+```bash
+export AMI_MCP_AUTH=$(printf 'myuser:mypass' | base64)
+export AMI_MCP_URL=https://ami-host:33333/3forge_rest/mcp   # optional; defaults to localhost
+```
+
+**Codex and Copilot:** both bundle `3forge-runtime` too, but neither expands `${...}`, so
+their `.mcp.json` ships a literal URL and a placeholder `Authorization` header that must be
+edited by hand after install.
+
+**Gemini and Cursor:** configure `3forge-runtime` in the consuming tool's own MCP config
+when live tools are needed, then start a fresh thread so the MCP tools are discovered.
+
+**Self-signed certificates:** if the AMI instance uses one (the common dev setup), a
+TLS-verifying MCP client will refuse the connection. Trust the certificate in the client's
+trust store, or point at a host with a CA-signed certificate.
 
 ## The one rule for AMI knowledge
 
