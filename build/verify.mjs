@@ -17,6 +17,7 @@ import {
 import { dirname, join, relative, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
+import { codexMarkdown } from "./codex/markdown.mjs";
 
 const ROOT = resolve(dirname(new URL(import.meta.url).pathname), "..");
 const SRC = join(ROOT, "3forge-mcp");
@@ -72,7 +73,7 @@ function compareDirsWithTransform(sourceDir, targetDir, label, transform) {
   for (const file of targetFiles) if (!sourceSet.has(file)) fail(`${label}: unexpected ${file}`);
   for (const file of sourceFiles) {
     if (!targetSet.has(file)) continue;
-    if (transform(read(join(sourceDir, file))) !== read(join(targetDir, file))) {
+    if (transform(read(join(sourceDir, file)), file) !== read(join(targetDir, file))) {
       fail(`${label}: ${file} differs`);
     }
   }
@@ -150,6 +151,8 @@ function verifyManifests() {
     join(DIST, "codex", ".mcp.json"),
     join(DIST, "copilot", ".mcp.json"),
     join(DIST, "portable", "mcp.json"),
+    join(DIST, "opencode", ".mcp.json"),
+    join(DIST, "opencode", ".opencode", "mcp.json"),
   ];
   for (const path of forbiddenMcpConfigs) {
     expect(!existsSync(path),
@@ -170,6 +173,19 @@ function verifyManifests() {
   expect(copilot.agents === "agents/", "Copilot plugin.json agents must be agents/");
   expect(copilot.mcpServers === undefined, "Copilot plugin.json must not declare mcpServers");
   expect(typeof copilot.version === "string", "Copilot plugin.json must have a version");
+
+  // opencode bundle: opencode.json ships a DISABLED, placeholder-hosted 3forge_runtime MCP entry.
+  // The endpoint is user-configured, so the shipped config must carry no real host and stay off.
+  const opencodeConfig = readJson(join(DIST, "opencode", "opencode.json"));
+  const opencodeMcp = opencodeConfig.mcp?.["3forge_runtime"];
+  expect(!!opencodeMcp, "opencode.json must declare a 3forge_runtime MCP entry");
+  expect(opencodeMcp?.enabled === false, "opencode.json 3forge_runtime MCP must ship disabled (enabled: false)");
+  expect(typeof opencodeMcp?.url === "string" && opencodeMcp.url.includes("YOUR-HOST"),
+    "opencode.json 3forge_runtime url must keep the YOUR-HOST placeholder (no committed endpoint)");
+  expect(opencodeConfig.subagent_depth === 2, "opencode.json must set subagent_depth: 2 for orchestrator delegation");
+  expect(existsSync(join(DIST, "opencode", ".opencode", "agents")) && existsSync(join(DIST, "opencode", ".opencode", "skills")),
+    "opencode bundle must contain .opencode/agents and .opencode/skills");
+  expect(existsSync(join(DIST, "opencode", "AGENTS.md")), "opencode bundle must contain AGENTS.md");
 
   // Version parity: generated manifests match the canonical Claude version.
   const claudeVersion = readJson(join(SRC, ".claude-plugin", "plugin.json")).version;
@@ -210,16 +226,20 @@ function verifyManifests() {
 // 4. Coverage parity across every generated tree.
 function verifyParity() {
   const skills = join(SRC, "skills");
-  compareDirs(skills, join(DIST, "codex", "skills"), "dist/codex/skills");
+  compareDirsWithTransform(skills, join(DIST, "codex", "skills"), "dist/codex/skills",
+    (content, file) => file.endsWith(".md") ? codexMarkdown(content) : content);
   compareDirsWithTransform(skills, join(DIST, "copilot", "skills"), "dist/copilot/skills", copilotToolDiscovery);
   compareDirs(skills, join(DIST, "gemini", "skills"), "dist/gemini/skills");
   compareDirs(skills, join(DIST, "cursor", "skills"), "dist/cursor/skills");
+  compareDirs(skills, join(DIST, "opencode", ".opencode", "skills"), "dist/opencode/.opencode/skills");
 
   const agentCount = listFiles(join(SRC, "agents")).filter((p) => p.endsWith(".md")).length;
   const codexToml = listFiles(join(DIST, "codex", ".codex", "agents")).filter((p) => p.endsWith(".toml")).length;
   const copilotMd = listFiles(join(DIST, "copilot", "agents")).filter((p) => p.endsWith(".agent.md")).length;
+  const opencodeMd = listFiles(join(DIST, "opencode", ".opencode", "agents")).filter((p) => p.endsWith(".md")).length;
   expect(codexToml === agentCount, `Codex agent count ${codexToml} != source ${agentCount}`);
   expect(copilotMd === agentCount, `Copilot agent count ${copilotMd} != source ${agentCount}`);
+  expect(opencodeMd === agentCount, `opencode agent count ${opencodeMd} != source ${agentCount}`);
 }
 
 // 5. Source skill frontmatter + README counts.
@@ -252,6 +272,8 @@ function verifyHygiene() {
     join(DIST, "copilot", "skills", "commands", "reference"),
     join(DIST, "gemini", "skills", "commands", "reference"),
     join(DIST, "cursor", "skills", "commands", "reference"),
+    join(DIST, "opencode", ".opencode", "agents"),
+    join(DIST, "opencode", ".opencode", "commands"),
   ];
   const patterns = [
     [/mcp__3forge-runtime__/, "hyphenated MCP tool namespace"],
@@ -269,12 +291,49 @@ function verifyHygiene() {
   }
 }
 
+// 7. Codex instructions must work after installing the plugin and copying its
+// custom agents into a project or personal .codex/agents directory.
+function verifyCodexCompatibility() {
+  const pluginRoot = join(DIST, "codex");
+  const agentFiles = listFiles(join(pluginRoot, ".codex", "agents"));
+  const codexFiles = [...agentFiles, ...listFiles(join(pluginRoot, "skills"))];
+  const patterns = [
+    [/\bToolSearch\b/, "Claude-only ToolSearch instructions"],
+    [/\bselect:/, "Claude-only tool discovery select syntax"],
+    [/\.\.\/skills\//, "agent-relative skill path"],
+    [/\$\{CLAUDE_PLUGIN_ROOT\}/, "Claude plugin-root variable"],
+  ];
+  for (const file of codexFiles) {
+    if (!/\.(md|toml)$/.test(file)) continue;
+    const content = read(file);
+    for (const [pattern, label] of patterns) {
+      expect(!pattern.test(content), `${relativePath(file)} contains ${label}`);
+    }
+  }
+  for (const file of agentFiles.filter((path) => path.endsWith(".toml"))) {
+    for (const [, skillPath] of read(file).matchAll(/`(skills\/[^`\s]+\.md)`/g)) {
+      const reference = resolve(pluginRoot, skillPath);
+      expect(relative(pluginRoot, reference).startsWith("skills/") &&
+        existsSync(reference) && statSync(reference).isFile(),
+        `${relativePath(file)} has an unresolved plugin skill reference: ${skillPath}`);
+    }
+  }
+  for (const path of [join(ROOT, "README.md"), join(ROOT, "docs", "codex-usage.md")]) {
+    const content = read(path);
+    expect(!/\[mcp_servers\.3forge-runtime\.headers\]/.test(content),
+      `${relativePath(path)} uses headers instead of Codex http_headers`);
+    expect(/\[mcp_servers\.3forge-runtime\.http_headers\]\s*Authorization\s*=/.test(content),
+      `${relativePath(path)} must document Authorization under Codex http_headers`);
+  }
+}
+
 verifyNoDrift();
 verifyCommandReference();
 verifyManifests();
 verifyParity();
 verifySkillMetadata();
 verifyHygiene();
+verifyCodexCompatibility();
 
 if (failures.length > 0) {
   console.error("Verification failed:");

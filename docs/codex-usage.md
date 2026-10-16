@@ -104,7 +104,7 @@ Register it in your Codex MCP config:
 url = "https://<host>:33333/3forge_rest/mcp"
 startup_timeout_sec = 60
 
-[mcp_servers.3forge-runtime.headers]
+[mcp_servers.3forge-runtime.http_headers]
 Authorization = "Basic <base64(user:pass)>"
 ```
 
@@ -371,6 +371,10 @@ cp path/to/3forge-mcp/dist/codex/.codex/agents/*.toml .codex/agents/
 ```
 
 After that, start a new Codex thread and ask Codex to spawn the agent by name.
+Keep the `3forge-mcp` plugin installed: the generated agents resolve `skills/...`
+references from its installed root, located using the skill paths in the session
+catalog. These references keep working when the TOML files are copied or symlinked
+into a project's or user's `.codex/agents/` directory.
 If you do not install the TOML files into a Codex agent directory, use the same
 names as role prompts or rely on the matching skill/workflow.
 
@@ -495,7 +499,7 @@ codex plugin marketplace list
 node build/verify.mjs
 conda run -n forge python /home/ethan/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py dist/codex
 conda run -n forge python /home/ethan/.codex/skills/.system/skill-creator/scripts/quick_validate.py 3forge-mcp/skills/commands
-diff -qr 3forge-mcp/skills dist/codex/skills
+# Codex skills are adapted by the generator; node build/verify.mjs checks their parity.
 cmp -s 3forge-mcp/CLAUDE.md dist/codex/AGENTS.md
 git diff --check
 ```

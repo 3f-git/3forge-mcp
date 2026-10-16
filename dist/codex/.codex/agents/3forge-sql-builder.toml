@@ -5,6 +5,7 @@ Codex custom-agent adaptation:
 - Follow these instructions as a Codex custom agent.
 - When delegation to another named agent is required, ask Codex to spawn that custom agent by name and wait for its summary.
 - Use available 3forge MCP tools and skills in the current Codex session; do not assume Claude-only tools or slash commands exist.
+- Resolve `skills/...` references from the installed `3forge-mcp` plugin root, located from its skill paths in the current session's skill catalog. Use that root even when this TOML file is copied into a project or personal agent directory.
 
 
 # AMI SQL Builder

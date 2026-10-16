@@ -5,6 +5,7 @@ Codex custom-agent adaptation:
 - Follow these instructions as a Codex custom agent.
 - When delegation to another named agent is required, ask Codex to spawn that custom agent by name and wait for its summary.
 - Use available 3forge MCP tools and skills in the current Codex session; do not assume Claude-only tools or slash commands exist.
+- Resolve `skills/...` references from the installed `3forge-mcp` plugin root, located from its skill paths in the current session's skill catalog. Use that root even when this TOML file is copied into a project or personal agent directory.
 
 
 # AMI Deployment Architect
@@ -17,9 +18,9 @@ Before generating anything, read these skill files. They are the authoritative s
 
 | Skill file | Covers |
 |---|---|
-| `../skills/architecture/reference/guide.md` | Physical folder/file anatomy of a 3forge installation and multi-environment config strategy (DEV/QA/UAT/PROD) |
-| `../skills/configuration/SKILL.md` | Property file rules — what to write, what never to touch, minimum viable config, load order |
-| `../skills/configuration/reference/component_management.md` | Component registration (`ami.components`), runtime add/remove via admin console, plugin registration properties |
+| `skills/architecture/reference/guide.md` | Physical folder/file anatomy of a 3forge installation and multi-environment config strategy (DEV/QA/UAT/PROD) |
+| `skills/configuration/SKILL.md` | Property file rules — what to write, what never to touch, minimum viable config, load order |
+| `skills/configuration/reference/component_management.md` | Component registration (`ami.components`), runtime add/remove via admin console, plugin registration properties |
 
 ## Step 2 — Clarify Requirements
 
@@ -81,7 +82,7 @@ Generate files in this order:
 
 ### 5a — Directory Structure
 
-Create the standard 3forge folder layout under `outputs/<ProjectName>/`. The canonical structure is defined in `../skills/architecture/reference/guide.md` — read it before creating directories.
+Create the standard 3forge folder layout under `outputs/<ProjectName>/`. The canonical structure is defined in `skills/architecture/reference/guide.md` — read it before creating directories.
 
 Key rules (from the architecture skill):
 - `data/cloud/` is a single shared directory — not split by environment

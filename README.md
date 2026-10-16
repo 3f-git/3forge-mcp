@@ -1,11 +1,13 @@
 # 3forge-mcp
 
-Give your AI coding tool (Claude Code, Codex, Copilot, Gemini, Cursor) the skills and
+Give your AI coding tool (Claude Code, Codex, Copilot, opencode, Gemini, Cursor) the skills and
 agents for 3forge AMI authoring and live instance workflows.
 
 The plugin ships **no offline 3forge documentation** — all conceptual knowledge is fetched
 at runtime from the live instance via `aidoc_getDocumentation`. **Claude Code, Codex, and
-Copilot** are first-class plugin targets. No MCP connection is bundled — the endpoint, port,
+Copilot** are first-class plugin targets; **opencode** is a first-class generated target (a
+drop-in `.opencode/` bundle, since opencode has no plugin marketplace). No MCP connection is
+bundled — the endpoint, port,
 credentials, and certificate trust are all deployment-specific, so you register
 `3forge-runtime` against your own AMI instance in your tool's own MCP config
 ([setup](#1-runtime-mcp-connection)). Authoring skills and agents work without it. Nothing
@@ -20,7 +22,7 @@ here duplicates what your instance already knows.
   The standard in-process port is the web HTTPS port `33333`, i.e.
   `https://<host>:33333/3forge_rest/mcp`, plus an AMI username/password — the endpoint
   authenticates every call.
-- One of the supported AI tools: Claude Code, Codex, GitHub Copilot, Gemini CLI, or Cursor.
+- One of the supported AI tools: Claude Code, Codex, GitHub Copilot, opencode, Gemini CLI, or Cursor.
 - For contributors only: **Node.js** (the build script is plain ESM, no dependencies).
 
 ---
@@ -31,7 +33,7 @@ here duplicates what your instance already knows.
 > Claude Code installs plugins directly from a git repo, so for Claude Code **no clone is needed** —
 > jump to [Claude Code (first-class)](#claude-code-first-class).
 >
-> Codex, Gemini, and Cursor install from generated `dist/` trees, so for those you clone the repo and
+> Codex, opencode, Gemini, and Cursor install from generated `dist/` trees, so for those you clone the repo and
 > run commands from its root. The repo is public, so no auth is required:
 >
 > ```bash
@@ -105,12 +107,27 @@ claude mcp add --transport http 3forge-runtime https://<host>:33333/3forge_rest/
 url = "https://<host>:33333/3forge_rest/mcp"
 startup_timeout_sec = 60
 
-[mcp_servers.3forge-runtime.headers]
+[mcp_servers.3forge-runtime.http_headers]
 Authorization = "Basic <base64(user:pass)>"
 ```
 
 **Copilot** — launch with `--additional-mcp-config` pointing at a config that defines
 `3forge-runtime` with the same URL and `Authorization` header.
+
+**opencode** — in your `opencode.json`, name the server `3forge_runtime` (opencode prefixes MCP
+tools with the server key, and the bundle's agents/skills reference `3forge_runtime_*`):
+
+```jsonc
+"mcp": {
+  "3forge_runtime": {
+    "type": "remote",
+    "url": "https://<host>:33333/3forge_rest/mcp",
+    "enabled": true,
+    "oauth": false,
+    "headers": { "Authorization": "Basic <base64(user:pass)>" }
+  }
+}
+```
 
 **Gemini and Cursor** — configure `3forge-runtime` in those tools' own MCP configs.
 
@@ -239,7 +256,25 @@ separately ([setup](#1-runtime-mcp-connection)), then start a fresh Copilot sess
 plugin is discovered.
 
 For day-to-day Copilot usage — skills, agents, MCP tool families, and the doc → verify →
-apply workflow — see [`docs/copilot-usage.md`](docs/copilot-usage.md).
+ apply workflow — see [`docs/copilot-usage.md`](docs/copilot-usage.md).
+
+#### opencode
+
+opencode has no plugin marketplace, so the repo ships a **drop-in bundle** under `dist/opencode/`
+(`.opencode/{agents,commands,skills}`, an `opencode.json`, and `AGENTS.md`). Generate it, then copy
+it into your project root (or `~/.config/opencode/`):
+
+```bash
+node build/generate.mjs opencode
+cp -r dist/opencode/.opencode .
+cp dist/opencode/opencode.json dist/opencode/AGENTS.md .
+```
+
+The generated `opencode.json` ships the `3forge_runtime` MCP entry **disabled** with a placeholder
+host — edit it to your instance and set `enabled: true` ([setup](#1-runtime-mcp-connection)). Agents
+are opencode subagents and MCP tools resolve as `3forge_runtime_*`; the bundle sets
+`subagent_depth: 2` so the `3forge-runtime` orchestrator can spawn specialists. Start a fresh
+opencode session so everything is discovered.
 
 #### Gemini / Cursor
 
@@ -352,10 +387,12 @@ so `aidoc` cannot serve it. That content is bundled read-only under:
 │   ├── tools.json                      # Gemini/Cursor mirror config
 │   ├── codex/                          # Codex scaffolding (plugin.json, marketplace.json)
 │   ├── copilot/                        # Copilot scaffolding (plugin.json, marketplace.json)
+│   ├── opencode/                       # opencode scaffolding (opencode.json, README.md templates)
 │   └── portable/                       # Portable bundle scaffolding (README.md template)
 ├── dist/                               # ← GENERATED (never hand-edit)
 │   ├── codex/                          # standalone Codex plugin (.codex-plugin, .agents/plugins, .codex/agents, skills, AGENTS.md)
 │   ├── copilot/                        # standalone Copilot plugin (plugin.json, agents, skills)
+│   ├── opencode/                       # opencode manual-install bundle (.opencode/{agents,commands,skills}, opencode.json, AGENTS.md, README.md)
 │   ├── gemini/                         # mirror (GEMINI.md + skills)
 │   ├── cursor/                         # mirror (.cursor rules + skills)
 │   └── portable/                       # tool-agnostic manual-install bundle (agents, commands, skills, CLAUDE.md, README.md)
@@ -428,6 +465,7 @@ To regenerate only selected outputs (without rewriting the other `dist/*` trees)
 ```bash
 node build/generate.mjs copilot
 node build/generate.mjs codex
+node build/generate.mjs opencode
 node build/generate.mjs --target=copilot,codex
 ```
 
@@ -443,7 +481,10 @@ the target repo root, commits, and force-pushes the branch.
 
 Adding a new **mirror** target (like Gemini/Cursor) is a config-only change in
 `build/tools.json`. Adding a new **first-class plugin** target adds a `build/<tool>/` template
-set (manifest, marketplace, optional MCP) and a writer function in `build/generate.mjs`.
+set (manifest, marketplace, optional MCP) and a writer function in `build/generate.mjs`. A
+first-class **non-plugin** target (like opencode, which has no marketplace) is the same shape minus
+the manifest/marketplace — a `build/<tool>/` template set plus a writer that emits a manual-install
+tree.
 
 ### Validate before committing
 

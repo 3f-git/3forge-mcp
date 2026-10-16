@@ -5,6 +5,7 @@ Codex custom-agent adaptation:
 - Follow these instructions as a Codex custom agent.
 - When delegation to another named agent is required, ask Codex to spawn that custom agent by name and wait for its summary.
 - Use available 3forge MCP tools and skills in the current Codex session; do not assume Claude-only tools or slash commands exist.
+- Resolve `skills/...` references from the installed `3forge-mcp` plugin root, located from its skill paths in the current session's skill catalog. Use that root even when this TOML file is copied into a project or personal agent directory.
 
 
 # AMI Configuration Writer
@@ -17,18 +18,18 @@ Before writing any file, read the authoritative references:
 
 | File | When to read |
 |---|---|
-| `../skills/configuration/reference/guide.md` | Always — index of all configuration knowledge files |
-| `../skills/architecture/reference/guide.md` | Always — property chain load order, file naming, deployment structure |
-| `../skills/configuration/reference/common.md` | Always — shared properties: AES, auth, AMIScript defaults, REST, port reference |
-| `../skills/configuration/reference/center.md` | Center component is in deployment |
-| `../skills/configuration/reference/relay.md` | Relay component is in deployment |
-| `../skills/configuration/reference/web.md` | Web component is in deployment |
-| `../skills/configuration/reference/webbalancer.md` | WebBalancer is in deployment |
-| `../skills/configuration/reference/webmanager.md` | WebManager is in deployment |
-| `../skills/configuration/reference/overrides.md` | When setting custom ports, AES encryption, schema paths, relay feed handler, or plugins |
-| `../skills/configuration/reference/component_management.md` | When configuring which components load (`ami.components`), multi-component deployments, or registering plugin classes |
-| `../skills/configuration/reference/ssl.md` | When configuring SSL/TLS — keystore properties, HTTPS port, unified vs split patterns |
-| `../skills/configuration/reference/ldap.md` | When configuring LDAP authentication — correct property names, class path, optional SSL properties |
+| `skills/configuration/reference/guide.md` | Always — index of all configuration knowledge files |
+| `skills/architecture/reference/guide.md` | Always — property chain load order, file naming, deployment structure |
+| `skills/configuration/reference/common.md` | Always — shared properties: AES, auth, AMIScript defaults, REST, port reference |
+| `skills/configuration/reference/center.md` | Center component is in deployment |
+| `skills/configuration/reference/relay.md` | Relay component is in deployment |
+| `skills/configuration/reference/web.md` | Web component is in deployment |
+| `skills/configuration/reference/webbalancer.md` | WebBalancer is in deployment |
+| `skills/configuration/reference/webmanager.md` | WebManager is in deployment |
+| `skills/configuration/reference/overrides.md` | When setting custom ports, AES encryption, schema paths, relay feed handler, or plugins |
+| `skills/configuration/reference/component_management.md` | When configuring which components load (`ami.components`), multi-component deployments, or registering plugin classes |
+| `skills/configuration/reference/ssl.md` | When configuring SSL/TLS — keystore properties, HTTPS port, unified vs split patterns |
+| `skills/configuration/reference/ldap.md` | When configuring LDAP authentication — correct property names, class path, optional SSL properties |
 
 ## Step 2 — Understand the Project Requirements
 
@@ -160,13 +161,13 @@ For all override patterns, read the relevant knowledge file loaded in Step 1 —
 
 | Pattern | Knowledge file |
 |---|---|
-| Custom ports | `../skills/configuration/reference/overrides.md` |
-| AES encryption | `../skills/configuration/reference/overrides.md` |
-| Schema file locations | `../skills/configuration/reference/overrides.md` |
-| Relay feed handler | `../skills/configuration/reference/overrides.md` |
-| Plugin registration | `../skills/configuration/reference/overrides.md` |
-| SSL / TLS | `../skills/configuration/reference/ssl.md` |
-| LDAP authentication | `../skills/configuration/reference/ldap.md` |
+| Custom ports | `skills/configuration/reference/overrides.md` |
+| AES encryption | `skills/configuration/reference/overrides.md` |
+| Schema file locations | `skills/configuration/reference/overrides.md` |
+| Relay feed handler | `skills/configuration/reference/overrides.md` |
+| Plugin registration | `skills/configuration/reference/overrides.md` |
+| SSL / TLS | `skills/configuration/reference/ssl.md` |
+| LDAP authentication | `skills/configuration/reference/ldap.md` |
 
 ## Step 6 — Self-Review and Correct
 

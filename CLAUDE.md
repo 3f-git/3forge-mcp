@@ -47,11 +47,21 @@ Understanding the target tiers is the key to this repo:
   `.claude-plugin/marketplace.json` points at `./3forge-mcp`.
 - **Codex & Copilot (first-class, generated standalone plugins)** — full plugin trees written to
   `dist/codex/` and `dist/copilot/`. The generator transforms the canonical Markdown for each tool's
-  conventions: e.g. `ToolSearch` → Codex `tool_search` / Copilot tool-discovery, `mcp__3forge-runtime__`
+  conventions: e.g. `ToolSearch` → each tool's available MCP discovery capability, `mcp__3forge-runtime__`
   → `mcp__3forge_runtime__`, and `Agent`-tool delegation rewritten to each tool's subagent workflow
-  (see `codexAgentInstructions` / `copilotAgentInstructions`). Agents become `.toml` (Codex) or
+  (see `codexAgentInstructions` / `copilotAgentInstructions`). Codex also adapts skill Markdown
+  via `build/codex/markdown.mjs` and resolves agent skill references from the installed plugin root.
+  Agents become `.toml` (Codex) or
   `.agent.md` (Copilot); the root `AGENTS.md` / `.github/copilot-instructions.md` is the plain
   `3forge-mcp/CLAUDE.md`.
+- **opencode (first-class, non-plugin manual-install bundle)** — `dist/opencode/` holds an
+  `.opencode/{agents,commands,skills}` tree, an `opencode.json` (with a **disabled** `3forge_runtime`
+  MCP placeholder — never a real endpoint), `AGENTS.md`, and a README (templates: `build/opencode/`,
+  writer: `writeOpencodeBundle`). opencode has no plugin marketplace, so this is a copy-in bundle.
+  Agents become subagent Markdown (filename = frontmatter `name`); the generator rewrites
+  `mcp__3forge-runtime__` → `3forge_runtime_` (opencode names MCP tools `<server>_<tool>`, and the
+  server is named `3forge_runtime` so refs resolve), plus `ToolSearch`/`Agent` prose (see
+  `opencodeAgentInstructions` / `opencodeAgentMarkdown`). Skills are copied verbatim from the source.
 - **Gemini & Cursor (mirrors)** — instruction-file + `skills/` copies only, configured entirely in
   `build/tools.json` (adding a new mirror is a config-only change). No plugin manifest, no MCP bundle.
 - **Portable (tool-agnostic manual-install bundle)** — `dist/portable/` holds raw canonical agents,
@@ -63,7 +73,8 @@ Understanding the target tiers is the key to this repo:
 
 Adding a new **first-class** target means adding a `build/<tool>/` template set (manifest, marketplace,
 optional MCP) plus a writer function in `generate.mjs` (`writeCodexPlugin` / `writeCopilotPlugin` are
-the templates). Adding a new **mirror** is just a `build/tools.json` entry (`writeMirror` handles it).
+the templates; `writeOpencodeBundle` is the non-plugin variant — same shape minus manifest/marketplace).
+Adding a new **mirror** is just a `build/tools.json` entry (`writeMirror` handles it).
 
 ## Two files that must stay in sync
 
