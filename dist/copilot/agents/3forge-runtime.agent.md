@@ -471,6 +471,10 @@ When adding any interactive element to a form panel — buttons, text inputs, dr
 
 **Never** add a `FormRelationshipButton`. It is deprecated — ignore it entirely even if it appears in the DOM schema or in existing layout JSON. For all button use cases, use `FormButtonField` in the `fields` array with an `onChange` callback.
 
+### Embedding a panel inside a form → `panel` field
+
+To **embed a panel — commonly a chart or table — into an HTML/form panel** (e.g. a page mixing decoration/prose with a live table or chart in one panel), use a **panel field** (`"type": "panel"` in the `fields` array) — not a divider or a floating window. The field owns the box; the held panel (named by the field's `child` key) keeps its own data, style, and menu and is declared in the layout's `panels` list but placed nowhere else. Build it with the field ops: `web_execute(action=addFormField)` with `{"type": "panel", ...}` (returns a blank-chooser id), then `web_execute(action=updatePanel)` on that id. `child` is never passed to `addFormField` or patched by `updateFormField`; deleting the field deletes its panel. Details: `aidoc_getDocumentation("panel_form")`, skill `rt-formpanel`.
+
 ### Modifying an existing panel → web_execute(action=updatePanel)
 
 When the user asks to add a field, change a column, or update any property on a panel that already exists:

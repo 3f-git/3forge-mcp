@@ -16,5 +16,12 @@
         "Authorization": "Basic {env:AMI_MCP_BASIC_AUTH}"
       }
     }
+  },
+  "lsp": {
+    "3forge": {
+      "disabled": true,
+      "command": ["YOUR-3FORGE-LSP-BINARY", "--stdio"],
+      "extensions": [".ami", ".amisql"]
+    }
   }
 }

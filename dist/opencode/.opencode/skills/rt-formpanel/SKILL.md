@@ -1,6 +1,6 @@
 ---
 name: rt-formpanel
-description: Use when working with AMI FormPanel (type "form") — input forms, embedded HTML, JS bridges. Documents what FormPanel actually is, what it supports, and the long list of standard web features it does NOT support.
+description: Use when working with AMI FormPanel (type "form") — input forms, inline nested panels (panel fields), embedded HTML, JS bridges. Documents what FormPanel actually is, what it supports, and the long list of standard web features it does NOT support.
 ---
 
 # AMI FormPanel — what it is and what it isn't
@@ -49,7 +49,26 @@ If you'd rather think in pixels, use the absolute `left` / `top` / `width` / `he
 | `amiJsCallback` bridge | The supported way for embedded JS to talk back to AMI. Fires the panel's `onAmiJsCallback` AMIScript callback with `action` (String) and `params` (List) in scope. |
 | Template interpolation (`${field}`) | In `htmlTemplate2`, `${fieldName}` is substituted with values from the bound feed or DM. |
 | Coexistence with form fields | A FormPanel can hold both injected HTML and normal form fields. The HTML renders behind fields; fields stay interactive. |
+| **Panel fields (`type: "panel"`)** | A field whose box hosts a nested panel — inline a table, chart, or another form inside the form. See below. |
 | `setCssClass()` | Toggle classes on form fields or the panel via AMIScript at runtime. |
+
+## Panel fields — a panel inlined inside a form
+
+A `"panel"` field is a slot on the form that **holds another panel**. An important, common use case is **embedding a chart or a table into an HTML/form panel** — a dashboard mixing prose/decoration with a live table or chart in one panel, no dividers or floating windows needed. Any panel type works, including a second form. The field owns the box — position, anchoring, and group membership work like any other field's — and the panel inside keeps its own data, style, and menu.
+
+- The field's `child` key names the held panel. That panel is declared in the layout's `panels` list like any other and is **placed nowhere else** (no window, no divider).
+- A panel already placed elsewhere, or claimed by a second panel field, leaves the field **vacant with a log warning** — one panel, one home.
+- Deleting the field **deletes its panel with it**; a field holding a committed panel is refused on delete until you deal with the panel.
+- Type changes cannot go into or out of `"panel"` — remove the field and add the new one.
+
+Over MCP, build one with the field ops rather than by hand:
+
+```
+web_execute(action=addFormField, field={"type": "panel", ...})   → creates the field with a blank panel chooser, returns its id
+web_execute(action=updatePanel, panelId=<chooser id>, ...)       → puts the real panel in
+```
+
+`child` is never given to `addFormField` and can't be patched by `updateFormField` — the panel stays in the field and moves with it. Full contract: `aidoc_getDocumentation("panel_form")`.
 
 ## What FormPanel does NOT support (the trap list)
 
@@ -97,6 +116,7 @@ Use this when you need a third-party JS library loaded per session (date picker,
 |---|---|
 | Display text / images / static markup with light styling | `setHtml()` or `htmlTemplate2` in a `form` panel |
 | User input field (text, dropdown, date, button, etc.) | AMI FormField inside the same `form` panel |
+| Embed a chart or table into an HTML/form panel | `panel` field (`type: "panel"`, `child` = the held panel's id) |
 | Section headers / backgrounds behind fields | `htmlTemplate2` (renders behind fields automatically) |
 | Cross-panel CSS theme | Dashboard-wide Custom CSS (`public_` prefixed classes) |
 | Dynamic HTML based on a row/feed value | `setHtml(...)` in an `onProcess` / `onChange` callback |

@@ -1,4 +1,4 @@
-# 3forge-mcp — opencode bundle (v0.7.0)
+# 3forge-mcp — opencode bundle (v0.8.0)
 
 A drop-in bundle that gives [opencode](https://opencode.ai) the skills, agents, and commands for
 authoring and operating **3forge AMI** deployments. opencode has no plugin/marketplace install
@@ -12,7 +12,7 @@ Everything here is plain Markdown/JSON. There is nothing to build.
 opencode/
 ├── README.md          ← this file
 ├── AGENTS.md          ← operating guidance (auto-loaded by opencode)
-├── opencode.json      ← config: subagent_depth + a DISABLED 3forge_runtime MCP placeholder
+├── opencode.json      ← config: subagent_depth + DISABLED 3forge_runtime MCP and 3forge LSP placeholders
 └── .opencode/
     ├── agents/        ← subagents (3forge-runtime, sql-builder, layout-architect, reviewer, …)
     ├── commands/      ← slash commands (/3forge-init, /3forge-plan, /3forge-query, …)
@@ -79,7 +79,31 @@ A healthy server returns a JSON-RPC result with `serverInfo`. To avoid putting t
 the file, keep `"Authorization": "Basic {env:AMI_MCP_BASIC_AUTH}"` and export
 `AMI_MCP_BASIC_AUTH=$(printf '<user>:<pass>' | base64)`.
 
-## 3. Tool naming & delegation notes
+## 3. Connect the 3forge LSP (optional)
+
+opencode can also use a Language Server Protocol server: it starts the server when a matching file
+is opened and feeds its **diagnostics back into the agent loop**. This complements the MCP — the LSP
+gives fast, position-accurate, offline file feedback (and navigation via the experimental `lsp`
+tool: `OPENCODE_EXPERIMENTAL_LSP_TOOL=true` enables goToDefinition/findReferences/hover), while the
+MCP remains the source of live-instance truth and mutation.
+
+`opencode.json` ships a `3forge` LSP entry that is **disabled** with a placeholder command. Fill in
+the real launch command from your 3forge install, adjust `extensions` to the ones the server owns,
+and drop the `disabled` key (or set it to `false`):
+
+```jsonc
+"lsp": {
+  "3forge": {
+    "command": ["<3forge-lsp-binary>", "--stdio"],
+    "extensions": [".ami", ".amisql"]
+  }
+}
+```
+
+The server must speak LSP over **stdio** on its stdout (log output goes to stderr). Set
+`"lsp": false` to turn all LSP handling off.
+
+## 4. Tool naming & delegation notes
 
 - MCP tools appear as **`3forge_runtime_<tool>`** (e.g. `3forge_runtime_ami_console`,
   `3forge_runtime_web_verify`) — opencode prefixes every MCP tool with the server key from
