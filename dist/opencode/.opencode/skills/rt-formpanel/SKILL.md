@@ -91,6 +91,49 @@ The instinct from web development is to reach for these. None of them work witho
 | **Drag-and-drop API, File API** | Not supported in embedded HTML | Use `formuploadfield` for uploads; AMI provides its own drag/drop for layout editing |
 | **`setHtml()` preserving JS state** | **Calling `setHtml()` resets ALL JavaScript state for that panel.** Variables, event listeners, timers — wiped each time. | Don't call `setHtml()` on every event; build the HTML once and use `amiJsCallback` to update state. |
 
+## Performance — live KPIs: prefer a styled realtime table over DataModel + `setHtml`
+
+The instinct for a live KPI tile or status card is to run a DataModel, build an HTML string in `onProcess`, and push it with `setHtml()`. It works, but **every changed HTML string costs a full panel rebuild**:
+- The DM's whole `onProcess` runs again.
+- The server re-parses the HTML as a template.
+- The browser receives `reset()` + `setHtmlLayout(<the entire HTML>)` + `repaint()`, so the panel's DOM is replaced, its form fields are removed and re-added, and its JS state is wiped.
+
+**Usually better:** use a **realtime table panel** bound to the Center table, with the styling in `"type": "html"` columns. A realtime table sends only the cells whose values changed, as one `srd(...)` call per row. No script runs and nothing is rebuilt.
+
+**Measured on a live instance:** four KPI cards, with a Center row updated 40 times at 250 ms intervals.
+
+| Per update | Realtime table | DM + `setHtml` |
+|---|---|---|
+| One of four values changes | 388 B, 1 cell | 1,780 B in 2 responses (full HTML + DM spinner) |
+| All four values change | 1,132 B, 4 cells | 1,780 B in 2 responses |
+| Browser JS time (40 updates) | 29–46 ms | 99–102 ms |
+
+The gap grows with the size of the HTML and the number of values that stay unchanged per tick. `setHtml` always re-sends everything.
+
+**How to build it:**
+- Column: `{"type": "html", "value": "\"<div style='position:relative'>...\" + col + \"</div>\""}`. Without `"type": "html"` the markup shows as literal text.
+- Panel `style`, to strip the chrome down to just the row(s):
+  ```json
+  { "hideMode": "hideSearch", "searchBarHt": 0, "headerHt": 0, "columnFilterHide": true, "rowHt": 60 }
+  ```
+  - `searchBarHt: 0` collapses the title/search bar.
+  - `headerHt: 0` hides the column titles.
+  - `columnFilterHide: true` hides the quick-filter row.
+  - `hideMode` has no "hide both" value, so pair it with `searchBarHt: 0`.
+- **Put `position:relative` on every `div` in the cell HTML.** AMI absolutely positions bare `div`s, so stacked divs pile on top of each other inside the cell.
+- **Good fit:** KPIs, headline numbers, status badges, and any small fixed set of live values.
+
+**⚠️ Caution — vertical scaling is poor:**
+- Every row is exactly `rowHt` pixels tall (one value for the whole table). Cells are `overflow:hidden; white-space:nowrap`, so taller HTML is clipped, not grown.
+- Rows do not stretch when the panel gets taller. To fill vertical space you have to pick `rowHt` by hand (panel height ÷ row count), and it breaks when the panel is resized.
+- Keep to a few rows of compact content. When the display must fill or grow vertically, use `setHtml` or a `panel` field instead.
+
+**When `setHtml` is fine anyway:**
+- `setHtml` with an *identical* string is nearly free, because it short-circuits.
+- DM reruns are coalesced: at most one per browser poll and one in flight, and `minRequery` (ms) throttles further.
+- Content that changes rarely therefore doesn't need the table trick.
+- On the table side, adding or removing rows, or a sort that moves a row, re-sends all visible rows. A fixed set of KPI rows avoids both.
+
 ## Three escape hatches for full control
 
 When `setHtml` / `htmlTemplate2` / inline JS aren't enough, AMI gives you three deeper integration points — each with its own cost:
@@ -119,6 +162,7 @@ Use this when you need a third-party JS library loaded per session (date picker,
 | Embed a chart or table into an HTML/form panel | `panel` field (`type: "panel"`, `child` = the held panel's id) |
 | Section headers / backgrounds behind fields | `htmlTemplate2` (renders behind fields automatically) |
 | Cross-panel CSS theme | Dashboard-wide Custom CSS (`public_` prefixed classes) |
+| Live KPI / tile / status card (a few rows, ticking values) | **Realtime table panel** with `"type": "html"` columns and the chrome hidden (`searchBarHt: 0`, `headerHt: 0`, `columnFilterHide: true`). Sends only changed cells instead of rebuilding the panel, but scales badly vertically. See Performance. |
 | Dynamic HTML based on a row/feed value | `setHtml(...)` in an `onProcess` / `onChange` callback |
 | A bit of embedded JS for a one-off interaction | Enable `ami.web.allow.javascript.embedded.in.html=true` + `amiJsCallback` |
 | A third-party JS library or persistent JS state | **GuiServicePlugin** (Java) |
@@ -132,6 +176,8 @@ Use this when you need a third-party JS library loaded per session (date picker,
 |---|---|
 | `setHTML()` (uppercase HTML) in AMIScript | Method does not exist; use `setHtml` |
 | Calling `setHtml()` repeatedly on every event | Each call wipes JS state for that panel — listeners, timers, variables gone |
+| DataModel + `setHtml()` for a live, frequently-ticking KPI | Full DM rerun, full HTML re-send, and full panel rebuild on every change. Use a chrome-less realtime table with `"type": "html"` columns instead, keeping its vertical-scaling limit in mind. |
+| Bare stacked `<div>`s inside an `html` table cell | AMI absolutely positions them, so they overlap. Add `position:relative` to each one. |
 | Omitting `position: relative` on injected elements | Layout collapses or layers wrong |
 | Loading `<script src="https://cdn...">` | Not supported in embedded HTML; use GuiServicePlugin with self-hosted JS |
 | Using `localStorage` / `sessionStorage` for state | Use `session.setValue(...)` / `session.putCustomPreference(...)` instead |

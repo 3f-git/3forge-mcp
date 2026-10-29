@@ -1,4 +1,4 @@
-# 3forge-mcp — opencode bundle (v0.8.0)
+# 3forge-mcp — opencode bundle (v0.8.1)
 
 A drop-in bundle that gives [opencode](https://opencode.ai) the skills, agents, and commands for
 authoring and operating **3forge AMI** deployments. opencode has no plugin/marketplace install
