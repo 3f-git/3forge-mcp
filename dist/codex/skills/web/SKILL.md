@@ -19,4 +19,4 @@ Activate when writing client-side AMI Web code involving:
 
 ## Knowledge
 
-Full patterns, examples, and pitfalls: call `aidoc_getDocumentation("web")` on the live instance.
+Full patterns, examples, and pitfalls: call `aidoc_get_documentation("web")` on the live instance (no argument lists every topic).

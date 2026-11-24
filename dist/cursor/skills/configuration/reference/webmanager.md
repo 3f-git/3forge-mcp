@@ -1,7 +1,7 @@
 # AMI WebManager Configuration Properties
 
-> **Version note:** Reflects **`//depot/dev/` (latest dev)**. May differ on `stable`, `qa`, and `prod` branches.
-> Source: `AmiWebManagerProperties` in `//depot/dev/java/ami/`
+> **Version note:** Reflects **latest AMI development**. May differ on `stable`, `qa`, and `prod` branches.
+> Source: `AmiWebManagerProperties` (AMI source)
 
 WebManager provides centralized file serving and remote management for a cluster of Web instances.
 

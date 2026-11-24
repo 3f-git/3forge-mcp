@@ -1,14 +1,14 @@
 # Using the 3forge MCP Plugin with Claude Code
 
 This guide explains how to use the `3forge-mcp` plugin from **Claude Code**: what
-it installs, how the bundled live MCP connection behaves, and how to invoke the
+it installs, how to connect the `3forge-runtime` MCP server, and how to invoke the
 slash commands, subagents, and skills it ships. Claude Code is the first-class
 target for this plugin — commands are native slash commands, agents are native
 subagents. The `3forge-runtime` MCP connection is configured by you (see below).
 
-> Working from Codex, Copilot, Gemini, or Cursor instead? See
-> [`docs/codex-usage.md`](./codex-usage.md) — those tools treat the same source
-> differently (skills-only, MCP configured separately).
+> Working from Codex or Copilot instead? See [`docs/codex-usage.md`](./codex-usage.md) or
+> [`docs/copilot-usage.md`](./copilot-usage.md). For opencode, Gemini, or Cursor, see the
+> [README](../README.md). Those tools treat the same source differently (MCP configured separately).
 
 ## What Claude Code Loads
 
@@ -18,11 +18,12 @@ When the plugin is enabled, Claude Code loads all of these as native surfaces:
   `claude mcp add` against your own AMI instance (see Runtime MCP Connection).
 - **6 slash commands** — from `3forge-mcp/commands/*.md`, exposed as
   `/3forge-mcp:3forge-init`, `/3forge-mcp:runtime`, etc.
-- **10 subagents** — from `3forge-mcp/agents/*.md`, spawnable via the Task tool.
-- **28 skills** — from `3forge-mcp/skills/*/SKILL.md`, invoked automatically when
+- **10 subagents** — from `3forge-mcp/agents/*.md`, spawnable via the Agent tool.
+- **29 skills** — from `3forge-mcp/skills/*/SKILL.md`, invoked automatically when
   a task matches, or explicitly with the Skill tool.
-- **Operating guidance** — `3forge-mcp/CLAUDE.md` (the canonical doc → verify →
-  apply rules and tool-naming conventions).
+- **Operating guidance** — the `using-3forge-runtime` skill (the doc → verify → apply
+  rules and tool-naming conventions). Claude Code plugins don't load a plugin-root
+  `CLAUDE.md`, so `3forge-mcp/CLAUDE.md` only feeds the other tools' instruction files.
 
 The plugin ships **no AMI concept documentation of its own**. The live instance
 is the source of truth — all 3forge knowledge comes from `aidoc_*` tools.
@@ -43,10 +44,10 @@ Claude Code tracks the repo's default branch (`main`); pull later releases with
 
 The repo is public, so no auth is required for the git install. To hack on the
 plugin itself, clone it and register the local clone instead:
-`claude plugin marketplace add ../3forge-mcp` from the repo root.
+`claude plugin marketplace add ./` from the repo root (a bare `.` is rejected).
 
 After installing or updating, **start a fresh session** so the plugin's skills,
-commands, agents, and MCP tools are discovered.
+commands, and agents are discovered.
 
 Manage the plugin any time with `/plugin`.
 
@@ -56,37 +57,48 @@ Manage the plugin any time with `/plugin`.
 own AMI deployment — the endpoint host, port, credentials, and certificate trust are
 all deployment-specific.
 
-AMI's `AmiMcpPlugin` serves MCP as an authenticated REST plugin on the AMI web
-**HTTPS** port of the JVM running `amimcp`:
+The bundled **`setup-3forge-runtime`** skill walks through all of this interactively. Ask for
+it, or say *"set up the 3forge runtime connection"*. The short version is below.
+
+AMI's `AmiMcpPlugin` serves MCP as an authenticated REST plugin on the AMI Web **HTTPS** port:
 
 ```
-https://<host>:<webHttpsPort>/3forge_rest/mcp        # webHttpsPort defaults to 33333
+https://<host>:<https.port>/3forge_rest/mcp        # AmiOne default https.port=33333
 ```
 
-Three things are mandatory, and each fails in a distinct way:
+A fresh AMI install needs these before any MCP client works:
 
 | Requirement | Symptom if wrong |
 |---|---|
-| **HTTPS**, not HTTP | Connection fails with no HTTP status — plain `http://` never answers |
-| **HTTP Basic auth** on every call | `401` — the MCP tools are high-privilege, so everything is authenticated |
-| **Trusted certificate** | `DEPTH_ZERO_SELF_SIGNED_CERT` if AMI uses a self-signed cert |
+| **`MCP_TOOLS` grant** for the AMI user — tools are **off by default** (`MCP_TOOLS=*` in `access.txt`, or `ami.web.default.MCP_TOOLS`) | Connects and authenticates, but lists **zero tools** |
+| **Trusted certificate** — AMI ships a self-signed cert for `CN=MyServer`; install your own, or trust that one and connect as `https://MyServer:<port>` | `DEPTH_ZERO_SELF_SIGNED_CERT`; `ERR_TLS_CERT_ALTNAME_INVALID` when connecting by another name |
+| **HTTPS URL** | `http://` to the web port gets a `302`; to the HTTPS port, no valid HTTP response |
+| **HTTP Basic auth** on every call | `401` |
 
-Verify the endpoint before configuring the client:
+Verify the endpoint before configuring the client, **without `-k`**, using the URL the client
+will use:
 
 ```bash
-curl -sk -u '<user>:<pass>' -X POST https://<host>:33333/3forge_rest/mcp \
-  -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.0.1"}}}'
+URL='https://<host>:33333/3forge_rest/mcp'          # exactly the URL your client will use
+CA=/abs/path/ca-or-ami-myserver.pem                 # the certificate or CA file your client trusts
+printf 'AMI password: '; read -rs AMI_PASS; echo    # not echoed, not saved in shell history
+
+curl -sS --cacert "$CA" -u "<user>:$AMI_PASS" -X POST "$URL" \
+  -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+  -o mcp-probe.json -w 'HTTP %{http_code}\n'
+python3 -c 'import json; print(len(json.load(open("mcp-probe.json"))["result"]["tools"]), "tools")'
 ```
 
-`401` means credentials. Working only with `-k` means the cert is self-signed — trust it
-or use a CA-signed host; MCP clients verify TLS with no per-server opt-out.
+Leave out `--cacert "$CA"` if the OS trust store already trusts the certificate. curl does not
+read `NODE_EXTRA_CA_CERTS`. `HTTP 200` then `0 tools` means no `MCP_TOOLS` grant. `HTTP 401`
+means credentials. curl error 60 means the certificate is untrusted or the name does not match
+it. MCP clients verify TLS with no per-server opt-out.
 
 Register it:
 
 ```bash
-claude mcp add --transport http 3forge-runtime https://<host>:33333/3forge_rest/mcp \
-  --header "Authorization: Basic $(printf '<user>:<pass>' | base64)"
+claude mcp add --transport http --scope user 3forge-runtime https://<host>:33333/3forge_rest/mcp \
+  --header "Authorization: Basic $(printf '%s' "<user>:$AMI_PASS" | base64 | tr -d '\n')"
 ```
 
 The endpoint is the in-process Java MCP plugin running inside AMI Web on the web
@@ -109,9 +121,9 @@ This one-time primer:
 - Lists active Web sessions and confirms AMIScript class introspection.
 - Reports available doc topics and the full agent roster.
 
-If there is no active Web session, `web_console(view=amiScriptClass)` can return
-`Session not found: null`. That is expected — Web-context method introspection
-needs an active session ID. `/3forge-init` does **not** create a headless session
+If there is no active Web session, `web_console(op=amiScriptClass)` is refused with
+`missing required argument '__SESSIONID'`. That is expected — Web-context method
+introspection needs an active session ID. `/3forge-init` does **not** create a headless session
 just to satisfy this unless you explicitly ask for one.
 
 ## Slash Commands
@@ -166,7 +178,8 @@ fall into four groups.
 | Skill | Use when |
 |---|---|
 | `using-3forge-runtime` | Start of any live runtime work — loads the doc → verify → apply loop, tool naming, transient-vs-committed rule, and which agent to dispatch. |
-| `runtime` | General live-instance interaction; routes to the matching `rt-*` subdomain skill. |
+| `runtime-router` | General live-instance interaction; routes to the matching `rt-*` subdomain skill. |
+| `setup-3forge-runtime` | Connecting to an AMI instance the first time, or when the runtime tools are missing, failing TLS, returning 401, or listing zero tools. |
 | `commands` | Slash-command-equivalent execution of `/3forge-init`, `/runtime`, `/3forge-plan`, `/3forge-query`, `/3forge-review`, `/3forge-debug`. |
 | `workflows` | Cross-cutting routing for the required doc → verify → apply workflow and Excel migration. |
 | `excel` (`workflows/excel`) | Analyzing or reverse-engineering Excel workbooks for AMI migration. |
@@ -189,7 +202,7 @@ fall into four groups.
 
 ### Live runtime subdomain skills
 
-These own the `3forge-runtime` MCP tool surfaces. `runtime` routes to them.
+These own the `3forge-runtime` MCP tool surfaces. `runtime-router` routes to them.
 
 | Skill | Owns |
 |---|---|
@@ -197,7 +210,7 @@ These own the `3forge-runtime` MCP tool surfaces. `runtime` routes to them.
 | `rt-panels` | `web_*` panels/layouts/windows/datamodels; the doc → validate → apply ritual and transient-vs-committed lifecycle. |
 | `rt-dm` | Live Web DataModels — output tables, `queryMode`, `onProcess`, `${WHERE}` substitution, `reprocess()`, the DM editor flow. |
 | `rt-relations` | Cross-panel filtering / drill-down relationships and their two clause dialects. |
-| `rt-script` | Live AMIScript — `web_script`/`web_verify(kind=script)` and the AMIScript introspection tools. |
+| `rt-script` | Live AMIScript — `web_script`/`web_verify(op=script)` and the AMIScript introspection tools. |
 | `rt-style` | Live panel/layout styling — `amiStyle`, `styleSets`, column color formulas, HTML templates. |
 | `rt-formpanel` | AMI FormPanel (`type "form"`) behavior, what it supports, and what it does **not**. |
 | `rt-sessions` | Web session lifecycle — list, kill, diagnose, headless creation, autosave recovery. |
@@ -209,25 +222,26 @@ These own the `3forge-runtime` MCP tool surfaces. `runtime` routes to them.
 ## MCP Tool Families
 
 When `3forge-runtime` is connected, the server reflects live AMI console methods
-as MCP tools (37 consolidated tools across 6 subdomains). Call
-`ami_console(view=components)` first to find valid component IDs such as
+as MCP tools (the count depends on the AMI build, the components running, and the user's
+`MCP_TOOLS` grant). Call
+`ami_console(op=components)` first to find valid component IDs such as
 `center`, `web`, or `relay`.
 
 | Prefix | Scope | Typical use |
 |---|---|---|
-| `aidoc_*` | Global docs & patterns | `aidoc_getDocumentation("amisql")`, `aidoc_search_patterns("master detail table")` |
+| `aidoc_*` | Global docs & patterns | `aidoc_get_documentation("amisql")`, `aidoc_search_patterns("master detail table")` |
 | `ami_*` | Component/plugin lifecycle | Show/add/remove/restart components; inspect plugin registry, ports, files, stats. |
 | `center_*` | Center component | AMI SQL, tables, indexes, triggers, timers, procedures, datasources, replication. |
 | `web_*` | Web component/session | Sessions, panels, layouts, DataModels, validation, live AMIScript editors, styling. |
 | `relay_*` | Relay component | Feedhandlers, routes, transforms, custom methods, dictionaries. |
 | `log_*` | Global logs | Show sinks, tail logs, scan for `[ERR]`/`[WRN]`. |
-| `web_balancer_*` | WebBalancer component | Load-balancer pools and connection status (only present when a WebBalancer is connected). |
+| `webbalancer_*` | WebBalancer component | Load-balancer pools and connection status (only present when a WebBalancer is connected). |
 
 **Naming note:** global frames use `ami_`/`aidoc_`/`log_` prefixes. Component
-tools require `componentId` as the first argument. The consolidated tools fold
-many per-operation calls into a few action/view-based tools; the action and view
-names are camelCase (e.g. `web_execute(action=setDividerOffset)`,
-`web_execute(action=addPanelNextTo)`) — use the exact name and argument from the
+tools take an optional `componentId` (needed only when several components of that
+type run in one JVM). The consolidated tools fold many per-operation calls into a
+few tools with an `op` selector; op names are camelCase (e.g. `web_execute(op=setDividerOffset)`,
+`web_execute(op=addPanelNextTo)`) — use the exact name and argument from the
 catalog.
 
 **Finding built-in methods:** to search AMIScript's built-in methods, use
@@ -243,12 +257,12 @@ that component.
 
 For **every** live mutation, follow the mandatory three-step workflow:
 
-1. **Doc** — read `aidoc_getDocumentation(topic)` or `aidoc_search_patterns(query)`.
+1. **Doc** — read `aidoc_get_documentation(topic)` or `aidoc_search_patterns(query)`.
    Never answer AMI syntax questions from model memory.
-2. **Verify** — run a validator when one exists: `web_verify(kind=panelJson)`,
-   `web_verify(kind=script)`, `web_verify(kind=datamodel)`, `center_verify` (AMI
-   SQL syntax), `web_debug(kind=chartSchemaWarnings)`,
-   `web_debug(kind=tableSchemaWarnings)`, `web_console(view=callbackVariables)`.
+2. **Verify** — run a validator when one exists: `web_verify(op=panelJson)`,
+   `web_verify(op=script)`, `web_verify(op=datamodel)`, `center_verify` (AMI
+   SQL syntax), `web_debug(op=chartSchemaWarnings)`,
+   `web_debug(op=tableSchemaWarnings)`, `web_console(op=callbackVariables)`.
 3. **Apply** — call the mutating tool only after validation passes.
 
 ### Transient vs committed
@@ -256,22 +270,22 @@ For **every** live mutation, follow the mandatory three-step workflow:
 Web panel/layout changes are **session-scoped and not persisted** until you
 explicitly commit them. These tools produce transient changes:
 
-- `web_execute(action=addPanelNextTo)`, `web_execute(action=addTabToTabsPanel)`, `web_execute(action=wrapPanelInTab)`
-- `web_execute(action=updatePanel)`, `web_danger(action=deletePanel)`
-- `web_execute(action=importDatamodel)`, `web_danger(action=deleteDatamodel)`
-- `web_execute(action=addRelationship)`
-- `web_execute(action=setLayoutStyle)`, `web_execute(action=setPanelStyle)`, `web_execute(action=setDividerOffset)`,
-  `web_execute(action=distributeDividers)`, `web_execute(action=flipPanels)`, `web_execute(action=rotatePanels)`
+- `web_execute(op=addPanelNextTo)`, `web_execute(op=addTabToTabsPanel)`, `web_execute(op=wrapPanelInTab)`
+- `web_execute(op=updatePanel)`, `web_danger(op=deletePanel)`
+- `web_execute(op=importDatamodel)`, `web_danger(op=deleteDatamodel)`
+- `web_execute(op=addRelationship)`
+- `web_execute(op=setLayoutStyle)`, `web_execute(op=setPanelStyle)`, `web_execute(op=setDividerOffset)`,
+  `web_execute(op=distributeDividers)`, `web_execute(op=flipPanels)`, `web_execute(op=rotatePanels)`
 
 Persist them only after showing the user and getting confirmation:
 
 | Persist tool | Scope |
 |---|---|
-| `web_execute(action=commitPanel)` | A single panel's pending changes |
-| `web_execute(action=commitSession)` | All pending changes in a session |
+| `web_execute(op=commitPanel)` | A single panel's pending changes |
+| `web_execute(op=commitSession)` | All pending changes in a session |
 
 **Rule:** stage the change, show the user (screenshot or
-`web_console(view=exportPanel)` / `web_console(view=exportLayout)`), and **wait
+`web_console(op=exportPanel)` / `web_console(op=exportLayout)`), and **wait
 for explicit confirmation** before committing.
 Never auto-commit.
 
@@ -371,12 +385,12 @@ formulas, named ranges, inputs, and outputs, and propose an AMI migration plan.
 ## Common Pitfalls
 
 - Don't let Claude answer 3forge syntax questions from model memory — it must
-  use `aidoc_getDocumentation(...)` from the live instance.
+  use `aidoc_get_documentation(...)` from the live instance.
 - Don't mutate live layouts without the doc → verify → apply workflow.
 - Don't commit or save transient Web changes without explicit confirmation.
 - Don't create headless sessions during `/3forge-init` unless you asked for one.
 - Don't assume live tools work without AMI Web running the `amimcp` plugin and a
-  registered `3forge-runtime` MCP server (HTTPS + Basic auth + trusted cert).
+  registered `3forge-runtime` MCP server (HTTPS + Basic auth + trusted cert + an `MCP_TOOLS` grant; see `setup-3forge-runtime`).
 - Don't hand-edit `dist/`; edit sources under `3forge-mcp/` and run
   `node build/generate.mjs`.
 - Don't hand-edit the generated trees under `dist/` (e.g.

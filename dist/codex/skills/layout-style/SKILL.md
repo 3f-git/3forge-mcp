@@ -12,8 +12,8 @@ Activate when:
 - Choosing colors, themes, or a style palette for a dashboard
 - Configuring `amiStyle` properties on panels (backgrounds, borders, title bars)
 - Defining or modifying a `styleSets` / `LAYOUT_DEFAULT` theme
-- Writing custom CSS (`amiCustomCss` or `css` in a styleSet)
-- Coloring table/tree columns using `fg`, `bg`, `sy` cell formulas
+- Writing custom CSS (the layout's top-level `css`, or `css` in a styleSet)
+- Coloring table/tree columns using `color`, `bg`, `style` cell formulas (legacy aliases `fg`, `sy`)
 - Designing `htmlTemplate2` HTML banners or styled sections inside form panels
 - Deciding whether to show or hide panel chrome (title bars, search bars, column filters)
 - Choosing row height, flash behavior, or scrollbar width
@@ -23,10 +23,10 @@ Activate when:
 ## Knowledge
 
 Full styling reference, theme patterns, and design principles:
-call `aidoc_getDocumentation("layout_style")` on the live instance.
+call `aidoc_get_documentation("layout_style")` on the live instance.
 
 Layout structure and panel type reference (required context):
-call `aidoc_getDocumentation("layout_structure")`, and use `web_console(view=domSchema)` for exact style property names per panel type.
+call `aidoc_get_documentation("layout_structure")`, and use `web_console(op=domSchema)` for exact style property names per panel type.
 
 ---
 
@@ -38,9 +38,10 @@ call `aidoc_getDocumentation("layout_structure")`, and use `web_console(view=dom
 "amiStyle": {
   "pt": "LAYOUT_DEFAULT",
   "titlePnlFontSz": 0.0,
-  "searchHide": true,
+  "hideMode": "hideSearch",
+  "searchBarHt": 0,
   "columnFilterHide": true,
-  "headerDivHide": true
+  "headerHt": 0
 }
 ```
 
@@ -53,10 +54,12 @@ call `aidoc_getDocumentation("layout_structure")`, and use `web_console(view=dom
 ### Traffic-light column coloring
 
 ```json
-{ "id": "Pnl", "fg": "Pnl > 0 ? \"$pos\" : (Pnl < 0 ? \"$neg\" : \"$text2\")", "sy": "\"right\"" }
+{ "id": "Pnl", "color": "Pnl > 0 ? \"$pos\" : (Pnl < 0 ? \"$neg\" : \"$text2\")", "style": "\"right\"" }
 ```
 
-### Minimum viable color palette (in `vl.colors`)
+(`fg` and `sy` are legacy aliases of `color` and `style`; accepted on load, but write the modern keys.)
+
+### Minimum viable color palette (in the styleSet's `vars.colors`)
 
 ```json
 [

@@ -43,7 +43,7 @@ Compile the findings from Steps 1-4. Ensure the tone is objective, architectural
 
 Use the report from Steps 1-5 to drive an AMI dashboard build:
 
-- **Data model** — map source sheets to Center tables (`aidoc_getDocumentation("schema_design")`) and DataModels (`aidoc_getDocumentation("datamodel")`)
-- **Layout** — translate Output/Dashboard sheets to panels (`aidoc_getDocumentation("layout_structure")`)
-- **Business logic** — implement extracted formulas as AmiScript triggers or DataModel `onProcess` callbacks (`aidoc_getDocumentation("center")`)
-- **Starting point** — call `aidoc_search_patterns(query)` → `aidoc_getPattern(name)` for copy-paste scaffolding of common patterns (table panel, form panel, form-to-center write, row selection)
+- **Data model** — map source sheets to Center tables (`aidoc_get_documentation("schema_design")`) and DataModels (`aidoc_get_documentation("datamodel")`)
+- **Layout** — translate Output/Dashboard sheets to panels (`aidoc_get_documentation("layout_structure")`)
+- **Business logic** — implement extracted formulas as AmiScript triggers or DataModel `onProcess` callbacks (`aidoc_get_documentation("center")`)
+- **Starting point** — call `aidoc_search_patterns(query)` → `aidoc_get_pattern(name)` for copy-paste scaffolding of common patterns (table panel, form panel, form-to-center write, row selection)

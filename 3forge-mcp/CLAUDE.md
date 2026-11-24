@@ -1,79 +1,73 @@
 # 3forge-runtime — Live 3forge AMI MCP
 
 This plugin gives your AI coding tool the skills and agents for operating and building on
-3forge AMI. Live instance work uses the `3forge-runtime` MCP server. It ships **no AMI
-concept documentation** - the live instance is the source of truth.
+3forge AMI. Live instance work uses the `3forge-runtime` MCP server, which every tool
+configures outside this plugin — see below. It ships **no AMI concept documentation** - the
+live instance is the source of truth.
 
 ## Runtime MCP Connection
 
-**This plugin bundles no MCP connection.** The endpoint is specific to your deployment —
-host, port, credentials, and certificate trust all vary — so you configure `3forge-runtime`
-yourself, in your tool's own MCP config. The authoring skills and agents work without it;
-only live-instance tools need it.
+**This plugin bundles no MCP connection.** AMI runs on your own host with its own ports,
+users, and certificates, so you register `3forge-runtime` yourself in your tool's MCP config.
+The authoring skills and agents work without it; only live-instance tools need it. For the
+guided walkthrough (AMI-side grants, certificates, endpoint probe, per-tool config,
+troubleshooting), load the **`setup-3forge-runtime`** skill.
 
-The endpoint is served by AMI's `AmiMcpPlugin` as an authenticated REST plugin on the AMI
-web **HTTPS** port:
+The endpoint is AMI's `AmiMcpPlugin`, an authenticated REST plugin on the AMI Web HTTPS port:
 
 ```
-https://<host>:<webHttpsPort>/3forge_rest/mcp        # webHttpsPort defaults to 33333
+https://<host>:<https.port>/3forge_rest/mcp     # AmiOne default https.port=33333
 ```
 
-Three things are mandatory, and each fails in its own way:
+Before any MCP client can use a fresh AMI install, all four of these must be right:
 
 | Requirement | If you get it wrong |
 |---|---|
-| **HTTPS**, not HTTP | Connection fails with no HTTP status — plain `http://` on that port never answers |
-| **Basic auth** on every call | `401`. The tools are high-privilege (SQL exec, component management, layout deploy), so `requiresAuth()` is `true` |
-| **Trusted certificate** | Connection fails with `DEPTH_ZERO_SELF_SIGNED_CERT` if AMI uses a self-signed cert |
+| **`MCP_TOOLS` grant** — tools are off by default; grant the AMI user `MCP_TOOLS=*` (or a narrower list) in `access.txt`, or set `ami.web.default.MCP_TOOLS` | Connects and authenticates, but lists **zero tools** |
+| **Trusted certificate** — AMI ships a self-signed cert for `CN=MyServer`; install your own, or trust that one and connect as `https://MyServer:<port>` | `DEPTH_ZERO_SELF_SIGNED_CERT`, or `ERR_TLS_CERT_ALTNAME_INVALID` when connecting by another name |
+| **HTTPS URL** — plain `http://` to the web port gets a `302` redirect, and to the HTTPS port no valid HTTP response | Connection fails |
+| **Basic auth** on every call | `401` |
 
-Register it with your tool. For Claude Code:
-
-```bash
-claude mcp add --transport http 3forge-runtime https://<host>:33333/3forge_rest/mcp \
-  --header "Authorization: Basic $(printf '<user>:<pass>' | base64)"
-```
-
-Confirm the endpoint independently before blaming the client:
+Register it under the exact key `3forge-runtime` (opencode: `3forge_runtime`). For Claude Code:
 
 ```bash
-curl -sk -u '<user>:<pass>' -X POST https://<host>:33333/3forge_rest/mcp \
-  -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.0.1"}}}'
+printf 'AMI password: '; read -rs AMI_PASS; echo   # keeps the password out of shell history
+claude mcp add --transport http --scope user 3forge-runtime https://<host>:33333/3forge_rest/mcp \
+  --header "Authorization: Basic $(printf '%s' "<user>:$AMI_PASS" | base64 | tr -d '\n')"
 ```
 
-`401` means credentials. Working only with `-k` means the certificate is self-signed — trust
-it in your client's trust store, or use a host with a CA-signed certificate. MCP clients
-generally verify TLS with no per-server opt-out.
-
-After registering, start a fresh session so the MCP tools are discovered.
+Then start a fresh session so the MCP tools are discovered.
 
 ## The one rule for AMI knowledge
 
 **Never answer AMI/3forge questions from training data.** Get everything from the live
-instance: call `aidoc_getDocumentation(topic)`, `aidoc_search_patterns(query)`, and
-`aidoc_getPattern(name)`. For built-in AMIScript method signatures, search instead of
+instance: call `aidoc_get_documentation(topic)`, `aidoc_search_patterns(query)`, and
+`aidoc_get_pattern(name)`. For built-in AMIScript method signatures, search instead of
 guessing — `aidoc_findMethodByName(method_name)` (fuzzy, typo-tolerant),
 `aidoc_findMethodByDesc(method_desc)` (natural-language intent), or
 `aidoc_listMethodsInClass(class_name)` (browse a whole class/bucket); each takes an
 optional `context` filter (`center`/`web`/`relay`). For the layout DOM schema, call
-`web_console(view=domSchema)`.
+`web_console(op=domSchema)`.
 
 ## Tool naming
 
 - Global frames: `ami_`, `aidoc_`, `log_`.
-- Component tools require `componentId` first: `center_`, `web_`, `relay_`,
-  `web_balancer_`. List IDs with `ami_console(view=components)`.
+- Component tools: `center_`, `web_`, `relay_`, `webbalancer_`. Their `componentId` is
+  optional — needed only when more than one component of that type runs in the JVM. List
+  IDs with `ami_console(op=components)`.
+- Multi-action tools take an `op` selector (e.g. `web_console(op=sessions)`); the live
+  `tools/list` schema gives each op's parameters.
 
 ## Mandatory workflow: doc → verify → apply
 
 Before any mutating tool call:
-1. **Doc** — `aidoc_getDocumentation(topic)` / `aidoc_search_patterns`.
-2. **Verify** — a validation tool if one exists (`web_verify(kind=panelJson)`,
-   `web_verify(kind=script)`, `web_verify(kind=datamodel)`, `center_verify`, ...).
+1. **Doc** — `aidoc_get_documentation(topic)` / `aidoc_search_patterns`.
+2. **Verify** — a validation tool if one exists (`web_verify(op=panelJson)`,
+   `web_verify(op=script)`, `web_verify(op=datamodel)`, `center_verify`, ...).
 3. **Apply** — the mutating tool.
 
-Panels/layouts created via `web_execute(action=addPanelNextTo)` / `web_execute(action=updatePanel)`
-are **transient** until `web_execute(action=commitPanel)` / `web_execute(action=commitSession)`.
+Panels/layouts created via `web_execute(op=addPanelNextTo)` / `web_execute(op=updatePanel)`
+are **transient** until `web_execute(op=commitPanel)` / `web_execute(op=commitSession)`.
 Never auto-commit without user confirmation.
 
 ## Agents

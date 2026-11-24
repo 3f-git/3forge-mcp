@@ -18,4 +18,4 @@ Activate when writing server-side AMI Center code involving:
 
 ## Knowledge
 
-Full patterns, examples, and pitfalls: call `aidoc_getDocumentation("center")` on the live instance.
+Full patterns, examples, and pitfalls: call `aidoc_get_documentation("center")` on the live instance.

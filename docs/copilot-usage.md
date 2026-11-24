@@ -1,7 +1,7 @@
 # Using the 3forge MCP Plugin with GitHub Copilot CLI
 
 This guide explains how to use the `3forge-mcp` plugin from **GitHub Copilot CLI**:
-what it installs, how the bundled live MCP connection behaves, and how to use the
+what it installs, how to connect the `3forge-runtime` MCP server, and how to use the
 skills, agents, and runtime tools it ships. Copilot CLI is a first-class plugin
 target — skills and agents install natively, and the `3forge-runtime` MCP
 connection is configured by you (see below).
@@ -19,11 +19,11 @@ tree and is left untouched). When the plugin is installed, Copilot loads:
 - **0 bundled MCP servers** — declare `3forge-runtime` in your own Copilot MCP
   config (see Runtime MCP Connection).
 - **10 agents** — from generated `dist/copilot/agents/*.agent.md`.
-- **27 skills** — from `dist/copilot/skills/<name>/SKILL.md` (generated from the
-  canonical `3forge-mcp/skills/`), invoked when a task matches or referenced explicitly.
-  The repo has 28 skill files, but Copilot registers one per top-level skill
-  directory; the nested `workflows/excel` skill ships inside the `workflows` skill
-  directory and is reached through it rather than counted separately.
+- **29 skills** — from `dist/copilot/skills/` (generated from the canonical
+  `3forge-mcp/skills/`), invoked when a task matches or referenced explicitly. They sit
+  in 28 top-level directories because the `workflows/excel` skill is nested inside
+  `workflows`, so a per-directory listing shows 28. The Codex plugin has the same
+  29-in-28 layout.
 
 The plugin ships **no AMI concept documentation of its own**. The live instance is
 the source of truth — all 3forge knowledge comes from `aidoc_*` tools.
@@ -44,10 +44,10 @@ copilot plugin marketplace add <owner>/<copilot-marketplace-repo>
 copilot plugin install 3forge-mcp@3forge-mcp-copilot
 ```
 
-Local development fallback (from this repo root):
+Local fallback (from a clone's root). `dist/copilot` is committed, so no build step is
+needed. Contributors who changed `3forge-mcp/` run `node build/generate.mjs copilot` first:
 
 ```bash
-node build/generate.mjs copilot
 copilot plugin marketplace add ./dist/copilot
 copilot plugin install 3forge-mcp@3forge-mcp-copilot
 ```
@@ -56,14 +56,14 @@ Verify and manage the plugin:
 
 ```bash
 copilot plugin list                      # confirm 3forge-mcp is installed
-copilot plugin update 3forge-mcp         # pull the latest after a repo update
+copilot plugin update 3forge-mcp@3forge-mcp-copilot   # pull the latest after a repo update
 copilot plugin uninstall 3forge-mcp      # remove it
 ```
 
 You can also manage plugins from inside a session with the `/plugin` slash command.
 
 After installing or updating, **start a fresh Copilot session** so the plugin's
-skills, agents, and MCP tools are discovered.
+skills and agents are discovered.
 
 ### Maintainers: publish the Copilot marketplace repo/branch
 
@@ -82,36 +82,49 @@ standalone plugin tree to the target branch root, commits, and pushes.
 own AMI deployment — the endpoint host, port, credentials, and certificate trust are
 all deployment-specific.
 
-AMI's `AmiMcpPlugin` serves MCP as an authenticated REST plugin on the AMI web
-**HTTPS** port of the JVM running `amimcp`:
+The bundled **`setup-3forge-runtime`** skill walks through all of this interactively. Ask for
+it, or say *"set up the 3forge runtime connection"*. The short version is below.
+
+AMI's `AmiMcpPlugin` serves MCP as an authenticated REST plugin on the AMI Web **HTTPS** port:
 
 ```
-https://<host>:<webHttpsPort>/3forge_rest/mcp        # webHttpsPort defaults to 33333
+https://<host>:<https.port>/3forge_rest/mcp        # AmiOne default https.port=33333
 ```
 
-Three things are mandatory, and each fails in a distinct way:
+A fresh AMI install needs these before any MCP client works:
 
 | Requirement | Symptom if wrong |
 |---|---|
-| **HTTPS**, not HTTP | Connection fails with no HTTP status — plain `http://` never answers |
-| **HTTP Basic auth** on every call | `401` — the MCP tools are high-privilege, so everything is authenticated |
-| **Trusted certificate** | `DEPTH_ZERO_SELF_SIGNED_CERT` if AMI uses a self-signed cert |
+| **`MCP_TOOLS` grant** for the AMI user — tools are **off by default** (`MCP_TOOLS=*` in `access.txt`, or `ami.web.default.MCP_TOOLS`) | Connects and authenticates, but lists **zero tools** |
+| **Trusted certificate** — AMI ships a self-signed cert for `CN=MyServer`; install your own, or trust that one and connect as `https://MyServer:<port>` | `DEPTH_ZERO_SELF_SIGNED_CERT`; `ERR_TLS_CERT_ALTNAME_INVALID` when connecting by another name |
+| **HTTPS URL** | `http://` to the web port gets a `302`; to the HTTPS port, no valid HTTP response |
+| **HTTP Basic auth** on every call | `401` |
 
-Verify the endpoint before configuring the client:
+Verify the endpoint before configuring the client, **without `-k`**, using the URL the client
+will use:
 
 ```bash
-curl -sk -u '<user>:<pass>' -X POST https://<host>:33333/3forge_rest/mcp \
-  -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.0.1"}}}'
+URL='https://<host>:33333/3forge_rest/mcp'          # exactly the URL your client will use
+CA=/abs/path/ca-or-ami-myserver.pem                 # the certificate or CA file your client trusts
+printf 'AMI password: '; read -rs AMI_PASS; echo    # not echoed, not saved in shell history
+
+curl -sS --cacert "$CA" -u "<user>:$AMI_PASS" -X POST "$URL" \
+  -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+  -o mcp-probe.json -w 'HTTP %{http_code}\n'
+python3 -c 'import json; print(len(json.load(open("mcp-probe.json"))["result"]["tools"]), "tools")'
 ```
 
-`401` means credentials. Working only with `-k` means the cert is self-signed — trust it
-or use a CA-signed host; MCP clients verify TLS with no per-server opt-out.
+Leave out `--cacert "$CA"` if the OS trust store already trusts the certificate. curl does not
+read `NODE_EXTRA_CA_CERTS`. `HTTP 200` then `0 tools` means no `MCP_TOOLS` grant. `HTTP 401`
+means credentials. curl error 60 means the certificate is untrusted or the name does not match
+it. MCP clients verify TLS with no per-server opt-out.
 
-Register it by launching Copilot with an MCP config that declares `3forge-runtime`:
+Register it in `~/.copilot/mcp-config.json`, or put the same JSON in a file and pass it for
+one session (the `@` marks a file path; without it Copilot parses the argument as JSON).
+The header holds the credential, so keep that file outside any git repository:
 
 ```bash
-copilot --additional-mcp-config ./my-ami-mcp.json
+copilot --additional-mcp-config @./my-ami-mcp.json
 ```
 
 ```json
@@ -127,7 +140,8 @@ copilot --additional-mcp-config ./my-ami-mcp.json
 }
 ```
 
-Generate the credential with `printf '<user>:<pass>' | base64`. Start a fresh Copilot
+Generate the credential in the same shell with
+`printf '%s' "<user>:$AMI_PASS" | base64 | tr -d '\n'`, which keeps the password out of shell history. Start a fresh Copilot
 session afterwards so the tools are discovered.
 
 ## First Prompt
@@ -142,9 +156,9 @@ components, and load the doc → verify → apply workflow.
 This verifies `3forge-runtime` connectivity, lists live components, loads the
 runtime tool catalog, and reports available doc topics and the agent roster.
 
-If there is no active Web session, `web_console(view=amiScriptClass)` can return
-`Session not found: null`. That is expected — Web-context method introspection
-needs an active session ID. Don't create a headless session just to satisfy this
+If there is no active Web session, `web_console(op=amiScriptClass)` can return
+`missing required argument '__SESSIONID'`. That is expected — Web-context method
+introspection needs an active session ID. Don't create a headless session just to satisfy this
 unless you explicitly ask for one.
 
 ## Agents
@@ -176,7 +190,8 @@ description, or that you can reference explicitly. They fall into four groups.
 | Skill | Use when |
 |---|---|
 | `using-3forge-runtime` | Start of any live runtime work — loads the doc → verify → apply loop, tool naming, transient-vs-committed rule, and which agent to dispatch. |
-| `runtime` | General live-instance interaction; routes to the matching `rt-*` subdomain skill. |
+| `runtime-router` | General live-instance interaction; routes to the matching `rt-*` subdomain skill. |
+| `setup-3forge-runtime` | Connecting to an AMI instance the first time, or when the runtime tools are missing, failing TLS, returning 401, or listing zero tools. |
 | `commands` | Command-equivalent execution of `3forge-init`, `runtime`, `3forge-plan`, `3forge-query`, `3forge-review`, `3forge-debug`. |
 | `workflows` | Cross-cutting routing for the required doc → verify → apply workflow and Excel migration. |
 | `excel` (`workflows/excel`) | Analyzing or reverse-engineering Excel workbooks for AMI migration. |
@@ -199,7 +214,7 @@ description, or that you can reference explicitly. They fall into four groups.
 
 ### Live runtime subdomain skills
 
-These own the `3forge-runtime` MCP tool surfaces. `runtime` routes to them.
+These own the `3forge-runtime` MCP tool surfaces. `runtime-router` routes to them.
 
 | Skill | Owns |
 |---|---|
@@ -207,7 +222,7 @@ These own the `3forge-runtime` MCP tool surfaces. `runtime` routes to them.
 | `rt-panels` | `web_*` panels/layouts/windows/datamodels; the doc → validate → apply ritual and transient-vs-committed lifecycle. |
 | `rt-dm` | Live Web DataModels — output tables, `queryMode`, `onProcess`, `${WHERE}` substitution, `reprocess()`, the DM editor flow. |
 | `rt-relations` | Cross-panel filtering / drill-down relationships and their two clause dialects. |
-| `rt-script` | Live AMIScript — `web_script`/`web_verify(kind=script)` and the AMIScript introspection tools. |
+| `rt-script` | Live AMIScript — `web_script`/`web_verify(op=script)` and the AMIScript introspection tools. |
 | `rt-style` | Live panel/layout styling — `amiStyle`, `styleSets`, column color formulas, HTML templates. |
 | `rt-formpanel` | AMI FormPanel (`type "form"`) behavior, what it supports, and what it does **not**. |
 | `rt-sessions` | Web session lifecycle — list, kill, diagnose, headless creation, autosave recovery. |
@@ -219,25 +234,26 @@ These own the `3forge-runtime` MCP tool surfaces. `runtime` routes to them.
 ## MCP Tool Families
 
 When `3forge-runtime` is connected, the server reflects live AMI console methods
-as MCP tools (37 consolidated tools across 6 subdomains). Call
-`ami_console(view=components)` first to find valid component IDs such as
+as MCP tools (the count depends on the AMI build, the components running, and the user's
+`MCP_TOOLS` grant). Call
+`ami_console(op=components)` first to find valid component IDs such as
 `center`, `web`, or `relay`.
 
 | Prefix | Scope | Typical use |
 |---|---|---|
-| `aidoc_*` | Global docs & patterns | `aidoc_getDocumentation("amisql")`, `aidoc_search_patterns("master detail table")` |
+| `aidoc_*` | Global docs & patterns | `aidoc_get_documentation("amisql")`, `aidoc_search_patterns("master detail table")` |
 | `ami_*` | Component/plugin lifecycle | Show/add/remove/restart components; inspect plugin registry, ports, files, stats. |
 | `center_*` | Center component | AMI SQL, tables, indexes, triggers, timers, procedures, datasources, replication. |
 | `web_*` | Web component/session | Sessions, panels, layouts, DataModels, validation, live AMIScript editors, styling. |
 | `relay_*` | Relay component | Feedhandlers, routes, transforms, custom methods, dictionaries. |
 | `log_*` | Global logs | Show sinks, tail logs, scan for `[ERR]`/`[WRN]`. |
-| `web_balancer_*` | WebBalancer component | Load-balancer pools and connection status (only present when a WebBalancer is connected). |
+| `webbalancer_*` | WebBalancer component | Load-balancer pools and connection status (only present when a WebBalancer is connected). |
 
 **Naming note:** global frames use `ami_`/`aidoc_`/`log_` prefixes. Component
-tools require `componentId` as the first argument. The consolidated tools fold
-many per-operation calls into a few action/view-based tools; the action and view
-names are camelCase (e.g. `web_execute(action=setDividerOffset)`,
-`web_execute(action=addPanelNextTo)`) — use the exact name and argument from the
+tools take an optional `componentId` (needed only when several components of that
+type run in one JVM). The consolidated tools fold many per-operation calls into a
+few tools with an `op` selector; op names are camelCase (e.g. `web_execute(op=setDividerOffset)`,
+`web_execute(op=addPanelNextTo)`) — use the exact name and argument from the
 catalog.
 
 **Finding built-in methods:** to search AMIScript's built-in methods, use
@@ -253,30 +269,30 @@ that component.
 
 For **every** live mutation, follow the mandatory three-step workflow:
 
-1. **Doc** — read `aidoc_getDocumentation(topic)` or `aidoc_search_patterns(query)`.
+1. **Doc** — read `aidoc_get_documentation(topic)` or `aidoc_search_patterns(query)`.
    Never answer AMI syntax questions from model memory.
-2. **Verify** — run a validator when one exists: `web_verify(kind=panelJson)`,
-   `web_verify(kind=script)`, `web_verify(kind=datamodel)`, `center_verify` (AMI
-   SQL syntax), `web_debug(kind=chartSchemaWarnings)`,
-   `web_debug(kind=tableSchemaWarnings)`, `web_console(view=callbackVariables)`.
+2. **Verify** — run a validator when one exists: `web_verify(op=panelJson)`,
+   `web_verify(op=script)`, `web_verify(op=datamodel)`, `center_verify` (AMI
+   SQL syntax), `web_debug(op=chartSchemaWarnings)`,
+   `web_debug(op=tableSchemaWarnings)`, `web_console(op=callbackVariables)`.
 3. **Apply** — call the mutating tool only after validation passes.
 
 ### Transient vs committed
 
 Web panel/layout changes are **session-scoped and not persisted** until you
-explicitly commit them. Tools like `web_execute(action=addPanelNextTo)`,
-`web_execute(action=updatePanel)`, `web_danger(action=deletePanel)`,
-`web_execute(action=importDatamodel)`, `web_execute(action=addRelationship)`, and
+explicitly commit them. Tools like `web_execute(op=addPanelNextTo)`,
+`web_execute(op=updatePanel)`, `web_danger(op=deletePanel)`,
+`web_execute(op=importDatamodel)`, `web_execute(op=addRelationship)`, and
 the styling actions produce transient changes. Persist only after showing the
 user and getting confirmation:
 
 | Persist tool | Scope |
 |---|---|
-| `web_execute(action=commitPanel)` | A single panel's pending changes |
-| `web_execute(action=commitSession)` | All pending changes in a session |
+| `web_execute(op=commitPanel)` | A single panel's pending changes |
+| `web_execute(op=commitSession)` | All pending changes in a session |
 
 **Rule:** stage the change, show the user (screenshot or
-`web_console(view=exportPanel)` / `web_console(view=exportLayout)`), and **wait
+`web_console(op=exportPanel)` / `web_console(op=exportLayout)`), and **wait
 for explicit confirmation** before committing.
 Never auto-commit.
 
@@ -348,21 +364,21 @@ named ranges, inputs, and outputs, and propose an AMI migration plan.
 
 1. Ensure AMI Web is running with the `amimcp` plugin, reachable at
    `https://<host>:33333/3forge_rest/mcp` (the endpoint you registered).
-2. To target another host, launch Copilot with
-   `--additional-mcp-config ./my-ami-mcp.json` (see **Runtime MCP Connection**).
+2. Confirm `3forge-runtime` is registered, in `~/.copilot/mcp-config.json` or via
+   `--additional-mcp-config @./my-ami-mcp.json` (see **Runtime MCP Connection**).
 3. Start a fresh Copilot session so the plugin's tools are re-discovered.
 4. Confirm the plugin is installed with `copilot plugin list`.
 
 ### Tool call fails
 
-- Check the MCP server logs for errors (`log_search(mode=tail)`, `log_search(mode=grepErrors)`).
+- Check the MCP server logs for errors (`log_search(op=tail)`, `log_search(op=grepErrors)`).
 - Verify your instance has the `3forge-runtime` MCP plugin loaded (`amimcp`).
-- Confirm the component ID is valid with `ami_console(view=components)`.
+- Confirm the component ID is valid with `ami_console(op=components)`.
 
 ## Common Pitfalls
 
 - Don't let Copilot answer 3forge syntax questions from model memory — it must
-  use `aidoc_getDocumentation(...)` from the live instance.
+  use `aidoc_get_documentation(...)` from the live instance.
 - Don't mutate live layouts without the doc → verify → apply workflow.
 - Don't commit or save transient Web changes without explicit confirmation.
 - Don't assume live tools work without AMI Web running the `amimcp` plugin on the

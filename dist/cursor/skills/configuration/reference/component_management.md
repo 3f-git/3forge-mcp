@@ -233,8 +233,8 @@ This is useful for confirming what the property would need to be set to in order
 
 | Reference | Relevance |
 |---|---|
-| `aidoc_getDocumentation("admin")` | Admin console (port 3285): connection protocol, MCP tool conventions, componentId rules, and the `ami`-object method reference |
+| `aidoc_get_documentation("admin")` | Admin console (port 3285): connection protocol, MCP tool conventions, componentId rules, and the `ami`-object method reference |
 | [`guide.md`](guide.md) | All `.properties` config keys by component |
 | [`../../architecture/reference/guide.md`](../../architecture/reference/guide.md) | Deployment structure, multi-environment config patterns |
-| `aidoc_getDocumentation("datasource")` | Datasource and feedhandler integration patterns |
+| `aidoc_get_documentation("datasource")` | Datasource and feedhandler integration patterns |
 | [`overrides.md`](overrides.md) | Custom ports, plugin registration, and common property overrides |

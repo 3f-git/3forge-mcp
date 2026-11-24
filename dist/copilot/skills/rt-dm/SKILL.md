@@ -12,21 +12,21 @@ DataModels are the per-session staging layer between live Center feeds and stati
 Companion skills:
 - **`datamodel`** — conceptual model (when to use a DM at all, blender vs. filter patterns)
 - **`rt-script`** — owns the live editor surface (`web_editor` with `op=getCode`/`edit`/`validate`/`apply`) that this skill chains to for AMIScript-inside-a-DM changes
-- **`rt-panels`** — structural panel/window flow; DMs registered alongside panels via `web_execute(action=importWindow)`
+- **`rt-panels`** — structural panel/window flow; DMs registered alongside panels via `web_execute(op=importWindow)`
 - [`../workflows/doc-verify-apply.md`](../workflows/doc-verify-apply.md) — the mandatory doc → validate → apply ritual
 
 ## The non-negotiable ritual
 
 ```
-1. aidoc_getDocumentation("datamodel")  — confirm field shape + queryMode values
-2. center_console(view=describeTable, tableName=sourceTable)  — confirm source columns + types
+1. aidoc_get_documentation("datamodel")  — confirm field shape + queryMode values
+2. center_console(op=describeTable, tableName=sourceTable)  — confirm source columns + types
 3. (build DM JSON)
-4. web_verify(kind=datamodel, ...)                       — must return "OK"
-5. web_execute(action=importDatamodel, ...)             ← TRANSIENT
-6. web_execute(action=executeDatamodel, ...) or web_editor(op=dmExecute, ...) — verify it runs
-7. web_console(view=datamodelTables) / web_console(view=datamodelTableSchema)  — verify output shape
+4. web_verify(op=datamodel, ...)                       — must return "OK"
+5. web_execute(op=importDatamodel, ...)             ← TRANSIENT
+6. web_execute(op=executeDatamodel, ...) or web_editor(op=dmExecute, ...) — verify it runs
+7. web_console(op=datamodelTables)  — verify output shape (all output tables + columns)
 8. Show user. WAIT for confirmation.
-9. web_execute(action=commitSession, ...)                                    ← PERSISTED
+9. web_execute(op=commitSession, ...)                                    ← PERSISTED
 ```
 
 Never skip step 4. Never auto-commit (step 8).
@@ -62,11 +62,11 @@ Required fields:
 | Field | Notes |
 |---|---|
 | `id` | DM identifier. Referenced from panel `dm` property. |
-| `datasources` | Array of feed aliases. DM subscribes to these; rows flow into `onProcess`. |
+| `datasources` | Array of Center datasource names (e.g. `"AMI"`) the `onProcess` may `USE`. Realtime feed subscriptions go in the separate `subscribe` array (`["FEED:TableName"]`), not here. |
 | `queryMode` | When the DM evaluates. See below. |
 | `callbacks` | Array. Must contain at least `onProcess`. |
-| `callbacks[].name` | `onProcess`, `onLoad`. |
-| `callbacks[].defaultDs` | The feed alias the SQL implicitly references when unqualified. |
+| `callbacks[].name` | `onProcess`, `onComplete`. |
+| `callbacks[].defaultDs` | The datasource name (e.g. `"AMI"`) used when a statement doesn't name one. |
 | `callbacks[].amiscript` | Array of strings (joined by AMI). Surround in `{ }`. |
 | `callbacks[].schema` | One entry per output table the callback creates. **Required** — without it, the output table isn't visible to bound panels. |
 
@@ -84,15 +84,16 @@ For most static-table use cases `startup` or `visible` is correct. Use `none` wh
 
 ## `${WHERE}` substitution
 
-The placeholder `${WHERE}` inside the DM's SQL is substituted with the DM's current filter expression. It defaults to `true`. AMIScript callbacks update it dynamically:
+The placeholder `${WHERE}` inside the DM's SQL is substituted with the DM's current filter expression. It defaults to `true`. Relationships set it; from AMIScript, pass it in the `process` map (`WHERE` is the same as `wheres.get("WHERE")` inside `onProcess`). There is no `setWhere` method on `Datamodel`:
 
 ```amiscript
 Datamodel dm = layout.getDatamodel("dm_trades");
-dm.setWhere("symbol == \"AAPL\"");
-dm.reprocess();
+Map m = new Map();
+m.put("WHERE", "symbol == \"AAPL\"");
+dm.process(m);
 ```
 
-Other placeholders: `${ORDER}`, `${LIMIT}` — same defaults, same setter pattern. Only `${WHERE}` is needed for the common filter case.
+`${WHERE}` is the only template variable a DM query may name — a query naming any other `${...}` variable (e.g. `${ORDER}`, `${LIMIT}`, `${WHERE2}`) fails to import. Read extra values out of the `wheres` map instead.
 
 ## Output table naming and panel binding
 
@@ -111,7 +112,7 @@ A common bug: SELECT-aliasing a column but forgetting to update the panel column
 
 ## ⚠️ DM SQL uses double-quoted string literals
 
-DM `onProcess` SQL runs through the same AMI SQL parser as `center_execute`. **Single-quoted strings silently corrupt the last character.** Always:
+DM `onProcess` SQL runs through the same AMI SQL parser as `center_execute`. **A single-quoted literal is not equivalent:** it skips `${...}` interpolation, and a one-character `'X'` parses as a `char`, not a `String`. Always:
 
 ```amiscript
 CREATE TABLE _Out AS EXECUTE SELECT * FROM Trades WHERE symbol == "AAPL";
@@ -126,53 +127,52 @@ Once a DM is in the session, you can run and inspect it without rebuilding panel
 
 | Tool | Purpose |
 |---|---|
-| `web_execute(action=executeDatamodel, params:{componentId, sessionId, dmName})` | Force a reprocess outside the editor flow. |
-| `web_console(view=datamodelTables, componentId, sessionId, dmName)` | List output tables currently produced. |
-| `web_console(view=datamodelTableSchema, componentId, sessionId, dmName, tableName)` | Columns + types for one output table. |
-| `web_execute(action=initDatamodelSchema, params:{componentId, sessionId, dmName})` | Populate `callbacks[].schema` from the actual output tables — useful when you wrote `onProcess` first and want the schema filled in from runtime. |
-| `web_verify(kind=datamodel, componentId, sessionId, json)` | Pre-import structural validation. Returns "OK" or a list of errors. |
-| `web_console(view=datamodels, componentId, sessionId)` | List all DMs in the session. |
+| `web_execute(op=executeDatamodel, __SESSIONID_or_HEADLESSNAME, dmName)` | Force a reprocess outside the editor flow. |
+| `web_console(op=datamodelTables, componentId, __SESSIONID_or_HEADLESSNAME, dmName)` | Output tables currently produced, with each table's columns + types. |
+| `web_execute(op=initDatamodelSchema, componentId, __SESSIONID_or_HEADLESSNAME, dmName)` | Populate `callbacks[].schema` from the actual output tables — useful when you wrote `onProcess` first and want the schema filled in from runtime. |
+| `web_verify(op=datamodel, componentId, __SESSIONID, dmJson)` | Pre-import structural validation. Returns "OK" or a list of errors. |
+| `web_console(op=datamodels, componentId, __SESSIONID)` | List all DMs in the session. |
 
 ## Editing AMIScript inside an existing DM — do NOT re-import
 
 If the only change is the AMIScript body of `onProcess` (or another callback), **do not patch the layout on disk and bounce the session, and do not re-import the DM** (that would reset its in-memory state). Use the live editor flow owned by `rt-script`:
 
 ```
-1. web_editor(op=openDatamodel, componentId, sessionId, dmName="dm_xyz")  ← returns handle (DATAMODEL: ARI added automatically)
-2. web_editor(op=getCode, handle)                     ← returns {code, revision}
-3. web_editor(op=edit, handle, oldText, newText, expectedRevision=<from step 2>)
-4. web_editor(op=validate, handle)                    ← compile check
-5. web_editor(op=apply, handle)                       ← live, in-memory
-6. web_editor(op=dmExecute, handle)                   ← reprocess to see the new code run
-7. web_editor(op=dmGetStatus, handle)                 ← state, errors, output tables
+1. web_editor(op=openDatamodel, componentId, __SESSIONID, dmName="dm_xyz")  ← returns handle (DATAMODEL: ARI added automatically)
+2. web_editor(op=getCode, __SESSIONID, handle)                     ← returns {code, revision}
+3. web_editor(op=edit, __SESSIONID, handle, oldText, newText, expectedRevision=<from step 2>)
+4. web_editor(op=validate, __SESSIONID, handle)                    ← compile check
+5. web_editor(op=apply, __SESSIONID, handle)                       ← live, in-memory
+6. web_editor(op=dmExecute, __SESSIONID, handle)                   ← reprocess to see the new code run
+7. web_editor(op=dmGetStatus, __SESSIONID, handle)                 ← state, errors, output tables
 ```
 
 DM-specific editor extensions:
 
 | Tool | Purpose |
 |---|---|
-| `web_editor(op=dmExecute, handle)` | Trigger the DM to reprocess (typically right after `op=apply`). |
-| `web_editor(op=dmGetStatus, handle)` | One-stop status: `state`, `evalsCompleted`, `errorsCount`, `currentlyRunning`, `outputTables`, compile + runtime errors. |
-| `web_editor(op=dmOutputTables, handle)` | Tables produced by the most recent run. |
-| `web_editor(op=dmOutputTableSchema, handle, tableName)` | Columns + types for one output table. |
+| `web_editor(op=dmExecute, __SESSIONID, handle)` | Trigger the DM to reprocess (typically right after `op=apply`). |
+| `web_editor(op=dmGetStatus, __SESSIONID, handle)` | One-stop status: `state`, `evalsCompleted`, `errorsCount`, `currentlyRunning`, `outputTables`, compile + runtime errors. |
+| `web_editor(op=dmOutputTables, __SESSIONID, handle)` | Tables produced by the most recent run. |
+| `web_editor(op=dmOutputTableSchema, __SESSIONID, handle, tableName)` | Columns + types for one output table. |
 
-After `op=apply` the change lives in the in-memory DOM. If you also want it on disk, follow with `web_execute(action=commitSession)`.
+After `op=apply` the change lives in the in-memory DOM. If you also want it on disk, follow with `web_execute(op=commitSession)`.
 
-**Editor scope:** AMIScript inside an existing DM only. To add or remove a DM, change `datasources`, change `queryMode`, or change `callbacks[].schema`, you still need `web_execute(action=importDatamodel)` / `web_danger(action=deleteDatamodel)` + the rt-panels commit-save flow.
+**Editor scope:** AMIScript inside an existing DM only. To add or remove a DM, change `datasources`, change `queryMode`, or change `callbacks[].schema`, you still need `web_execute(op=importDatamodel)` / `web_danger(op=deleteDatamodel)` + the rt-panels commit-save flow.
 
 ## Transient lifecycle
 
 These tools produce session-scoped, **uncommitted** state:
 
-`web_execute(action=importDatamodel)`, `web_danger(action=deleteDatamodel)`, `web_editor(op=apply)` (DM editor).
+`web_execute(op=importDatamodel)`, `web_danger(op=deleteDatamodel)`, `web_editor(op=apply)` (DM editor).
 
 Persist with:
 
 | Tool | Scope |
 |---|---|
-| `web_execute(action=commitSession, ...)` | All pending changes in the session, including DMs |
+| `web_execute(op=commitSession, ...)` | All pending changes in the session, including DMs |
 
-`web_execute(action=commitPanel)` does **not** cover DMs that aren't panel-bound — `web_execute(action=commitSession)` is the safe DM-aware commit.
+`web_execute(op=commitPanel)` does **not** cover DMs that aren't panel-bound — `web_execute(op=commitSession)` is the safe DM-aware commit.
 
 ## Common pitfalls (gotchas first)
 
@@ -180,34 +180,34 @@ Persist with:
 |---|---|
 | Missing `callbacks[].schema` entry for an output table | Bound panel has no columns to bind to; table looks empty. |
 | `schema` column `name` doesn't match the SELECT alias | Column binds blank. |
-| Single-quoted strings in DM SQL | Silent last-char truncation — see `rt-center`. |
+| Single-quoted strings in DM SQL | `${...}` not interpolated; a one-char `'X'` is a `char`, not a `String` — use double quotes. |
 | Re-importing a DM to change its AMIScript | Resets in-memory state. Use the editor flow instead. |
 | `queryMode: "none"` without ever calling `reprocess()` | DM never runs; output table stays empty. |
-| Forgetting to call `dm.reprocess()` after `setWhere(...)` | Filter changes but no re-evaluation; stale rows shown. |
+| `dm.setWhere(...)` | Method doesn't exist — pass `WHERE` in the map: `dm.process(m)` with `m.put("WHERE", ...)`. |
 | `layout.getDataModel("x")` (capital M) | Method doesn't exist — use `getDatamodel` (lowercase m). |
 | `dm.process()` without an argument | Required arg — pass `new Map()`. |
-| Calling `web_execute(action=commitPanel)` and expecting the DM to persist | `commitPanel` is scoped to the panel subtree; use `web_execute(action=commitSession)` for DMs. |
+| Calling `web_execute(op=commitPanel)` and expecting the DM to persist | `commitPanel` is scoped to the panel subtree; use `web_execute(op=commitSession)` for DMs. |
 
 ## Tools owned by this skill
 
-- `web_console(view=datamodels)`
-- `web_execute(action=importDatamodel)`, `web_danger(action=deleteDatamodel)`
-- `web_verify(kind=datamodel)`
-- `web_execute(action=executeDatamodel)`
-- `web_console(view=datamodelTables)`, `web_console(view=datamodelTableSchema)`
-- `web_execute(action=initDatamodelSchema)`
+- `web_console(op=datamodels)`
+- `web_execute(op=importDatamodel)`, `web_danger(op=deleteDatamodel)`
+- `web_verify(op=datamodel)`
+- `web_execute(op=executeDatamodel)`
+- `web_console(op=datamodelTables)`
+- `web_execute(op=initDatamodelSchema)`
 - `web_editor(op=openDatamodel)` (the DM-specific shortcut into the editor surface owned by `rt-script`)
 - `web_editor(op=dmExecute)`, `web_editor(op=dmGetStatus)`, `web_editor(op=dmOutputTables)`, `web_editor(op=dmOutputTableSchema)`
 
-Always pass `componentId="web"` (or the actual Web component name from `ami_console(view=components)`) and `__SESSIONID` (from `web_console(view=sessions)`).
+Always pass `componentId="web"` (or the actual Web component name from `ami_console(op=components)`) and `__SESSIONID` (from `web_console(op=sessions)`).
 
 ## Authoritative doc references
 
-- `aidoc_getDocumentation("datamodel")` — DM fields, callbacks, queryMode (canonical source for this skill)
-- `aidoc_getDocumentation("data_loading")` — how rows arrive into `onProcess`
-- `aidoc_getDocumentation("callbacks")` — `onProcess` / `onLoad` semantics
-- `aidoc_getDocumentation("amisql")` — SQL dialect used inside `onProcess`
-- `aidoc_getDocumentation("transient_objects")` — commit/save lifecycle
+- `aidoc_get_documentation("datamodel")` — DM fields, callbacks, queryMode (canonical source for this skill)
+- `aidoc_get_documentation("data_loading")` — how rows arrive into `onProcess`
+- `aidoc_get_documentation("callbacks")` — `onProcess` / `onComplete` semantics
+- `aidoc_get_documentation("amisql")` — SQL dialect used inside `onProcess`
+- `aidoc_get_documentation("transient_objects")` — commit/save lifecycle
 - `datamodel` — conceptual patterns (when DMs are the right tool)
 - `rt-script` — live editor mechanics (`web_editor` with `op=getCode`/`edit`/`validate`/`apply`)
 - `rt-panels` — binding a static table panel to a DM output table

@@ -15,7 +15,7 @@
   "interface": {
     "displayName": "3forge MCP",
     "shortDescription": "Operate and build on a live 3forge instance.",
-    "longDescription": "Provide Codex with reusable skills for 3forge AMI authoring, operations guidance, and live-runtime workflows. Live-instance tools need a `3forge-runtime` MCP server, which you configure yourself against your own AMI deployment — see the plugin README for the endpoint, auth, and TLS setup.",
+    "longDescription": "Provide Codex with reusable skills for 3forge AMI authoring, operations guidance, and live-runtime workflows. Live-instance tools need a `3forge-runtime` MCP server, which you configure yourself against your own AMI deployment — the bundled `setup-3forge-runtime` skill walks through the AMI-side grant, TLS, and client config.",
     "developerName": "3forge",
     "category": "Productivity",
     "capabilities": [
@@ -30,5 +30,5 @@
     ],
     "brandColor": "#2F6FED"
   },
-  "version": "0.8.1"
+  "version": "0.9.0"
 }

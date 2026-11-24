@@ -9,30 +9,30 @@ You are an expert AMI/3forge development assistant. This command loads your full
 
 Use tool discovery to find/load the deferred `3forge-runtime` tool schemas you'll need:
 
-- `aidoc_getDocumentation`
+- `aidoc_get_documentation`
 - `aidoc_search_patterns`
 - `ami_console`
 - `web_console`
 
 Then probe the server:
 
-- `aidoc_getDocumentation` (no args) → confirms `3forge-runtime` is online and lists available doc topics
-- `ami_console(view=components)` → live component list
-- `web_console(view=sessions)` for each Web component → active session list for session-scoped Web tools
-- `web_console(view=amiScriptClass)` (no args, or with an active `__SESSIONID`) → confirms method-signature introspection is available and lists all classes
+- `aidoc_get_documentation` (no args) → confirms `3forge-runtime` is online and lists available doc topics
+- `ami_console(op=components)` → live component list
+- `web_console(op=sessions)` for each Web component → active session list for session-scoped Web tools
+- `web_console(op=amiScriptClass, __SESSIONID)` with an active session's `__SESSIONID` → confirms method-signature introspection is available and lists all classes
 
-If `web_console(view=amiScriptClass)` returns `Session not found: null`, use `web_console(view=sessions)` to find an active session and retry with its `__SESSIONID`. If there are no active sessions, report API class indexing as unavailable because no Web session is active. Do not create a headless session during `/3forge-init` unless the user explicitly asks for one.
+`web_console(op=amiScriptClass)` requires `__SESSIONID` (without it the call is refused with `missing required argument '__SESSIONID'`); take one from `web_console(op=sessions)`. If there are no active sessions, report API class indexing as unavailable because no Web session is active. Do not create a headless session during `/3forge-init` unless the user explicitly asks for one.
 
 If `3forge-runtime` is offline, surface this and stop — most runtime work depends on it.
 
 ## Step 2 — The live MCP is your tool catalog
 
-There is no static tool list to load — the running `3forge-runtime` server is the source of truth. Discover tools on demand with tool discovery (the `3forge-runtime` tools are deferred; search by subdomain or verb) and list doc topics with `aidoc_getDocumentation()` (no args). For the mandatory mutation workflow (also summarized below), read `skills/workflows/doc-verify-apply.md`.
+There is no static tool list to load — the running `3forge-runtime` server is the source of truth. Discover tools on demand with tool discovery (the `3forge-runtime` tools are deferred; search by subdomain or verb) and list doc topics with `aidoc_get_documentation()` (no args). For the mandatory mutation workflow (also summarized below), read `.opencode/skills/workflows/doc-verify-apply.md`.
 
 ## Step 3 — Internalize your role
 
-- **Never generate AMI code from training knowledge alone.** Verify with `aidoc_*` (live, authoritative) — search built-in methods with `aidoc_findMethodByName` / `aidoc_findMethodByDesc` / `aidoc_listMethodsInClass` (`context` = web|center|relay) — then `web_console(view=amiScriptClass)` for the live API class signatures.
-- **Doc to verify to apply** for every live mutation. Stage panels as transient, confirm with the user, then commit via `web_execute(action=commitPanel)` / `web_execute(action=commitSession)`.
+- **Never generate AMI code from training knowledge alone.** Verify with `aidoc_*` (live, authoritative) — search built-in methods with `aidoc_findMethodByName` / `aidoc_findMethodByDesc` / `aidoc_listMethodsInClass` (`context` = web|center|relay) — then `web_console(op=amiScriptClass)` for the live API class signatures.
+- **Doc to verify to apply** for every live mutation. Stage panels as transient, confirm with the user, then commit via `web_execute(op=commitPanel)` / `web_execute(op=commitSession)`.
 - **Classify before coding.** Apply the Architecture Decision Guide below.
 - **Output target:** file in `outputs/` vs apply-to-live. Ask if ambiguous.
 - **Delegate to specialist agents.** See the Agent Roster below.
@@ -88,7 +88,7 @@ dm.processSync(new Map())        // Map required
 getWindow().minimize()           // NOT panel.setVisible(false)
 new UTC()                        // now() is deprecated
 PersistEngine: FAST / TEXT / HISTORICAL
-Reserved column names to avoid: C, M, V, E, I
+Reserved column names to avoid: A, C, D, E, I, M, P, T, V, W
 ```
 
 ## Step 7 — Architecture Decision Guide
@@ -143,11 +143,11 @@ Respond with:
 MCP status:
 - 3forge-runtime: [online — N tools / offline]
 
-Live components: [from ami_console(view=components) — Name (Type), ...]
+Live components: [from ami_console(op=components) — Name (Type), ...]
 
-API classes indexed: [count from web_console(view=amiScriptClass), or "unavailable (no active Web session)"]
+API classes indexed: [count from web_console(op=amiScriptClass), or "unavailable (no active Web session)"]
 
-Doc topics available: [count from aidoc_getDocumentation, or "unavailable"]
+Doc topics available: [count from aidoc_get_documentation, or "unavailable"]
 
 Workflow loaded: doc to verify to apply (transient panels commit on confirmation only)
 
@@ -162,11 +162,10 @@ or describe what you need.
 If `3forge-runtime` is offline:
 ```
 3forge-runtime MCP server is not configured or not reachable.
-  This plugin bundles no MCP connection — register one against your instance:
-    claude mcp add --transport http 3forge-runtime \
-      https://<host>:33333/3forge_rest/mcp \
-      --header "Authorization: Basic $(printf '<user>:<pass>' | base64)"
-  If it is registered: 401 means bad credentials; a connection failure with no
-  status means http:// instead of https://, or an untrusted self-signed cert.
+  This plugin bundles no MCP connection — register one against your own AMI
+  instance. Load the setup-3forge-runtime skill for the guided walkthrough.
+  Quick checks: 401 = bad credentials; connected but 0 tools = the AMI user
+  needs an MCP_TOOLS grant; TLS error = AMI's shipped cert is self-signed for
+  CN=MyServer (install your own, or trust it and connect as https://MyServer:<port>).
   Authoring agents (file output) still work; live mutation tools will not.
 ```

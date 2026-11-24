@@ -1,6 +1,6 @@
 # AMI Common Override Patterns
 
-> **Version note:** Property names on this page reflect the **`//depot/dev/` (latest dev)** branch.
+> **Version note:** Property names on this page reflect the **latest AMI development** branch.
 > They may differ on `stable`, `qa`, and `prod` branches — verify against the deployed version's
 > property source classes before applying to non-dev environments.
 >

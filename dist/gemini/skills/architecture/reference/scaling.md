@@ -121,7 +121,7 @@ Source Center handles writes; child Centers receive replicated data and serve re
 
 > Filtering replicated data with a `WHERE` clause is not currently supported at the replication level. As a workaround, apply filtering in triggers or downstream Center logic.
 
-Call `aidoc_getDocumentation("center")` for replication configuration.
+Call `aidoc_get_documentation("center")` for replication configuration.
 
 ---
 

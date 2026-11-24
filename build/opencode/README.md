@@ -25,7 +25,8 @@ instance via the `3forge_runtime_aidoc_*` tools. That is the point of the MCP co
 ## 1. Install
 
 Copy the bundle's contents into your project root (for a per-project install) or into
-`~/.config/opencode/` (for a global install):
+`~/.config/opencode/` (for a global install). If an `opencode.json` or `AGENTS.md` already
+exists there, merge into it instead of overwriting it:
 
 ```bash
 # per-project (run from your project root)
@@ -36,6 +37,7 @@ cp /path/to/opencode/AGENTS.md .
 # OR global
 cp -r /path/to/opencode/.opencode/* ~/.config/opencode/
 cp /path/to/opencode/opencode.json ~/.config/opencode/
+cp /path/to/opencode/AGENTS.md ~/.config/opencode/
 ```
 
 opencode auto-discovers `.opencode/agents/`, `.opencode/commands/`, and `.opencode/skills/`, and
@@ -45,7 +47,8 @@ auto-loads `AGENTS.md`. Start a fresh session so everything is discovered.
 
 `opencode.json` ships a `3forge_runtime` MCP entry that is **disabled** and points at a placeholder
 host — the endpoint is deployment-specific (host, port, credentials, TLS trust all vary), so there
-is no default worth committing. Edit it to your instance and set `enabled: true`:
+is no default worth committing. Set the URL to your instance and set `enabled: true`. Keep the
+shipped `{env:...}` header, so the credential stays out of the file (which a project may commit):
 
 ```jsonc
 "mcp": {
@@ -54,30 +57,45 @@ is no default worth committing. Edit it to your instance and set `enabled: true`
     "url": "https://<your-host>:33333/3forge_rest/mcp",
     "enabled": true,
     "oauth": false,
-    "headers": { "Authorization": "Basic <base64(user:pass)>" }
+    "headers": { "Authorization": "Basic {env:AMI_MCP_BASIC_AUTH}" }
   }
 }
 ```
 
-Three things are mandatory, and each fails in a distinct way:
+The bundled `setup-3forge-runtime` skill walks through all of this; ask your agent to
+load it. A fresh AMI install needs these before any MCP client works:
 
 | Requirement | Symptom if wrong |
 |---|---|
-| **HTTPS**, not HTTP | Connection fails with no HTTP status — plain `http://` on that port never answers |
-| **HTTP Basic auth** on every call | `401` — the MCP tools are high-privilege, so the plugin authenticates everything |
-| **Trusted certificate** | `DEPTH_ZERO_SELF_SIGNED_CERT` if AMI uses a self-signed cert |
+| **`MCP_TOOLS` grant** for the AMI user — tools are **off by default** (`MCP_TOOLS=*` in `access.txt`, or `ami.web.default.MCP_TOOLS`) | Connects and authenticates, but lists **zero tools** |
+| **Trusted certificate** — AMI ships a self-signed cert for `CN=MyServer`; install your own, or trust that one and connect as `https://MyServer:<port>` | `DEPTH_ZERO_SELF_SIGNED_CERT`; `ERR_TLS_CERT_ALTNAME_INVALID` when connecting by another name |
+| **HTTPS URL** | `http://` to the web port gets a `302`; to the HTTPS port, no valid HTTP response |
+| **HTTP Basic auth** on every call | `401` |
 
 Verify the endpoint before blaming the client:
 
 ```bash
-curl -sk -u '<user>:<pass>' -X POST https://<host>:33333/3forge_rest/mcp \
-  -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.0.1"}}}'
+URL='https://<host>:33333/3forge_rest/mcp'          # exactly the URL your client will use
+CA=/abs/path/ca-or-ami-myserver.pem                 # the certificate or CA file your client trusts
+printf 'AMI password: '; read -rs AMI_PASS; echo    # not echoed, not saved in shell history
+
+curl -sS --cacert "$CA" -u "<user>:$AMI_PASS" -X POST "$URL" \
+  -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+  -o mcp-probe.json -w 'HTTP %{http_code}\n'
+python3 -c 'import json; print(len(json.load(open("mcp-probe.json"))["result"]["tools"]), "tools")'
 ```
 
-A healthy server returns a JSON-RPC result with `serverInfo`. To avoid putting the credential in
-the file, keep `"Authorization": "Basic {env:AMI_MCP_BASIC_AUTH}"` and export
-`AMI_MCP_BASIC_AUTH=$(printf '<user>:<pass>' | base64)`.
+Run it **without `-k`**, with the URL opencode will use. Leave out `--cacert "$CA"` if the OS
+trust store already trusts the certificate. opencode itself, like other Node/Bun-based clients,
+ignores the OS store and reads `NODE_EXTRA_CA_CERTS=/abs/path/<file>.pem` instead. `HTTP 200`
+then `0 tools` means no `MCP_TOOLS` grant; `HTTP 401` means credentials; curl error 60 means the
+certificate is untrusted or the name does not match it.
+
+Then, in the same shell, export the credential the `{env:...}` header reads and start opencode:
+
+```bash
+export AMI_MCP_BASIC_AUTH=$(printf '%s' "<user>:$AMI_PASS" | base64 | tr -d '\n')
+```
 
 ## 3. Connect the 3forge LSP (optional)
 

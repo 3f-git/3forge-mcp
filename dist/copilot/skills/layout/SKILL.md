@@ -18,8 +18,8 @@ Activate when:
 
 ## Knowledge
 
-Full patterns, examples, and pitfalls: call `aidoc_getDocumentation("layout_structure")` on the live instance.
+Full patterns, examples, and pitfalls: call `aidoc_get_documentation("layout_structure")` on the live instance.
 
-Full syntax reference: the live DOM schema via `web_console(view=domSchema)` (or `web_console(view=domSchema, typeName=<type>)` for a single panel/object type).
+Full syntax reference: the live DOM schema via `web_console(op=domSchema)` (or `web_console(op=domSchema, typeName=<type>)` for a single panel/object type).
 
-Common deployment patterns (filter bar, form-to-table, row select, cascading dropdowns): call `aidoc_search_patterns(query)` → `aidoc_getPattern(name)` for prebuilt skeletons.
+Common deployment patterns (filter bar, form-to-table, row select, cascading dropdowns): call `aidoc_search_patterns(query)` → `aidoc_get_pattern(name)` for prebuilt skeletons.

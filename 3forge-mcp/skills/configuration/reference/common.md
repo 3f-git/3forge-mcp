@@ -1,7 +1,7 @@
 # AMI Common Configuration Properties
 
-> **Version note:** Reflects **`//depot/dev/` (latest dev)**. May differ on `stable`, `qa`, and `prod` branches.
-> Source: `AmiCommonProperties`, `amicommon` in `//depot/dev/java/ami/`
+> **Version note:** Reflects **latest AMI development**. May differ on `stable`, `qa`, and `prod` branches.
+> Source: `AmiCommonProperties`, `amicommon` (AMI source)
 
 Shared across all components. Set these in `local.properties` or the shared base file.
 

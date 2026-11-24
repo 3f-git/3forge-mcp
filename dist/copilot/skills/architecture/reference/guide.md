@@ -483,6 +483,6 @@ logs/
 | Reference | Relevance |
 |---|---|
 | [`../../configuration/reference/guide.md`](../../configuration/reference/guide.md) | All `.properties` config keys by component |
-| `aidoc_getDocumentation("center")` | Center-side patterns — triggers, timers, procedures |
-| `aidoc_getDocumentation("datasource")` | Datasource and feedhandler integration patterns |
-| `aidoc_getDocumentation("admin")` | Admin console (port 3285): connection protocol, MCP tool conventions, componentId rules, and the `ami`-object method reference |
+| `aidoc_get_documentation("center")` | Center-side patterns — triggers, timers, procedures |
+| `aidoc_get_documentation("datasource")` | Datasource and feedhandler integration patterns |
+| `aidoc_get_documentation("admin")` | Admin console (port 3285): connection protocol, MCP tool conventions, componentId rules, and the `ami`-object method reference |

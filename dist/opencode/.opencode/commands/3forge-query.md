@@ -12,8 +12,8 @@ Write, optimize, or fix AMI SQL queries.
 2. **Load knowledge** — Read the `sql` skill for AMI SQL syntax rules, operators, query patterns, and known pitfalls before writing any SQL.
 
 3. **Query the live instance for syntax confirmation** — Do NOT spawn a subagent:
-   - **First**, if MCP tools have not been used yet in this conversation, use tool discovery to find/load the `3forge-runtime` `aidoc_getDocumentation` tool schema before calling it.
-   - Call `aidoc_getDocumentation("amisql")` for any syntax pattern you need to confirm.
+   - **First**, if MCP tools have not been used yet in this conversation, use tool discovery to find/load the `3forge-runtime` `aidoc_get_documentation` tool schema before calling it.
+   - Call `aidoc_get_documentation("amisql")` for any syntax pattern you need to confirm.
 
 4. **Write the query** applying rules from the loaded documentation.
 

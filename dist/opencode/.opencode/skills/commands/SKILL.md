@@ -1,12 +1,12 @@
 ---
 name: commands
-description: "Use when the user asks for a 3forge command workflow or Claude slash-command equivalent: /3forge-init, /runtime, /3forge-plan, /3forge-query, /3forge-review, or /3forge-debug. Provides Codex-compatible execution of the command prompts bundled from `3forge-mcp/commands`."
+description: "Use when the user asks for a 3forge command workflow or Claude slash-command equivalent: /3forge-init, /runtime, /3forge-plan, /3forge-query, /3forge-review, or /3forge-debug. Runs the bundled command prompts in harnesses that do not load Claude Code slash commands (Codex, Copilot, Gemini, Cursor, and others)."
 ---
 
 # 3forge Command Workflows
 
-Codex plugins do not load Claude Code slash commands as plugin slash commands. Use this skill as
-the Codex-compatible entry point for those workflows.
+Only Claude Code loads this plugin's slash commands. In other harnesses (Codex, Copilot, Gemini,
+Cursor, …) use this skill as the entry point for those workflows.
 
 ## Dispatch
 

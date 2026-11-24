@@ -92,5 +92,5 @@ method_name(param1, param2, ...);
 
 ## See Also
 
-- `aidoc_getDocumentation("datasource")` — feed handler architecture and adapter patterns
+- `aidoc_get_documentation("datasource")` — feed handler architecture and adapter patterns
 - [`custom-java-plugins.md`](custom-java-plugins.md) — building and deploying plugin JARs

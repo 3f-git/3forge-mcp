@@ -9,7 +9,7 @@ skills, agents, commands, and runtime-MCP config that give an AI coding tool (Cl
 Copilot, Gemini, Cursor) the ability to author and operate **3forge AMI** deployments.
 
 The plugin ships **no offline 3forge documentation**. All AMI conceptual knowledge is fetched at
-runtime from a live instance via the `3forge-runtime` MCP server (`aidoc_getDocumentation`, etc.).
+runtime from a live instance via the `3forge-runtime` MCP server (`aidoc_get_documentation`, etc.).
 
 ## The one build rule
 
@@ -92,30 +92,32 @@ Note: this repo-root `CLAUDE.md` (contributor guidance) is distinct from `3forge
 - **Skills:** `3forge-mcp/skills/<name>/SKILL.md` with YAML frontmatter; `name:` must equal the
   directory name and `description:` must be a "Use when…" trigger, or the skill isn't discoverable.
   Bundle offline `reference/` content only for pre-deployment topics `aidoc` can't serve (`.properties`
-  syntax, deployment anatomy, SSL/LDAP/SAML, Excel migration); otherwise link to `aidoc_getDocumentation`.
+  syntax, deployment anatomy, SSL/LDAP/SAML, Excel migration); otherwise link to `aidoc_get_documentation`.
 - **Agents:** `3forge-mcp/agents/<name>.md` with frontmatter (`name`, `description`, optional `tools`,
   `model`). Only reference other agents/skills that exist in this package.
 - **Commands:** `3forge-mcp/commands/<name>.md` are Claude Code slash commands and the canonical source
   for the generated `3forge-mcp/skills/commands/reference/*.md` copies (synced by `syncCommandSkillReferences`
   during a real build) used by non-Claude harnesses that don't load slash commands.
 - **Tool names are not static.** The live `3forge-runtime` server is the authoritative tool catalog;
-  the plugin ships no snapshot. If you hardcode a tool name in a skill, confirm it against a live server.
+  the plugin ships no snapshot. If you hardcode a tool name, `op` value, or argument in a skill, confirm
+  it against a live server's `tools/list` (each `op`'s description lists its required/optional args).
 
 ## Runtime operating rules (the guidance this plugin delivers)
 
 When operating a live AMI instance through the `3forge-runtime` MCP:
 
 - **Never answer AMI/3forge questions from training data.** Get everything from the live instance via
-  `aidoc_getDocumentation(topic)`, `aidoc_search_patterns(query)`, `aidoc_getPattern(name)`. For built-in
+  `aidoc_get_documentation(topic)`, `aidoc_search_patterns(query)`, `aidoc_get_pattern(name)`. For built-in
   AMIScript method signatures, search instead of guessing — `aidoc_findMethodByName(method_name)`,
   `aidoc_findMethodByDesc(method_desc)`, or `aidoc_listMethodsInClass(class_name)`.
-- **Tool naming:** global frames `ami_`, `aidoc_`, `log_`; component tools take a `componentId` first
-  arg — `center_`, `web_`, `relay_`, `web_balancer_` (list IDs with `ami_console(view=components)`).
+- **Tool naming:** global frames `ami_`, `aidoc_`, `log_`; component tools `center_`, `web_`, `relay_`,
+  `webbalancer_` take an optional `componentId` (needed only when several components of a type run in
+  one JVM; list IDs with `ami_console(op=components)`). Multi-action tools take an `op` selector.
 - **Doc → verify → apply:** before any mutating call, read the docs, run a validation tool if one
-  exists (`web_verify(kind=script)`, `web_verify(kind=datamodel)`, …), then apply.
-- **Transient vs. committed:** panels/layouts from `web_execute` (e.g. `action=addPanelNextTo` /
-  `action=updatePanel`) are transient until you commit them — `web_execute(action=commitPanel)` /
-  `web_execute(action=commitSession)`. Never auto-commit without user confirmation.
+  exists (`web_verify(op=script)`, `web_verify(op=datamodel)`, …), then apply.
+- **Transient vs. committed:** panels/layouts from `web_execute` (e.g. `op=addPanelNextTo` /
+  `op=updatePanel`) are transient until you commit them — `web_execute(op=commitPanel)` /
+  `web_execute(op=commitSession)`. Never auto-commit without user confirmation.
 
 ## Release
 

@@ -3,7 +3,7 @@
 AMI configuration is done via `.properties` files. Properties support `${variable}` interpolation.
 The canonical template is `defaults.properties` — copy it and override in `local.properties`.
 
-> **Version note:** All files in this directory reflect the **`//depot/dev/` (latest dev)** branch.
+> **Version note:** All files in this directory reflect the **latest AMI development** branch.
 > Property names, defaults, and available values may differ on `stable`, `qa`, and `prod` branches.
 
 ---

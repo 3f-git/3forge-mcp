@@ -19,6 +19,6 @@ Activate when the user is:
 
 ## Knowledge
 
-Full reference for datasource types, feedhandler adapters, custom Java implementation, and integration patterns: call `aidoc_getDocumentation("datasource")` (and `aidoc_getDocumentation("adapters")` / `aidoc_getDocumentation("feedhandlers")`) on the live instance.
+Full reference for datasource types, feedhandler adapters, custom Java implementation, and integration patterns: call `aidoc_get_documentation("datasource")` (and `aidoc_get_documentation("adapters")` / `aidoc_get_documentation("feedhandlers")`) on the live instance.
 
-Relay wire protocol for external applications connecting directly to the Relay socket (port 3289) — message types, data type encoding, command definitions, and JSON form schema: call `aidoc_getDocumentation("relay")` on the live instance.
+Relay wire protocol for external applications connecting directly to the Relay socket (port 3289) — message types, data type encoding, command definitions, and JSON form schema: call `aidoc_get_documentation("relay")` on the live instance.

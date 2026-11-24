@@ -1,13 +1,8 @@
 # AMI LDAP Authentication Configuration
 
-> **Version note:** Property names and class paths on this page reflect the **`//depot/dev/` (latest dev)** branch.
-> They may differ on `stable`, `qa`, and `prod` branches — always verify against the deployed version's
-> `OpenLDAPHandler.java` and `//depot/dev/documentation/ami/docs/authentication_and_entitlements/ldap.md`
-> before applying to non-dev environments.
->
-> Sources used to produce this file:
-> - `//depot/dev/java/amiplugins/amildap/src/main/java/com/f1/ami/amildap/OpenLDAPHandler.java`
-> - `//depot/dev/documentation/ami/docs/authentication_and_entitlements/ldap.md`
+> **Version note:** Property names and class paths on this page reflect the **latest AMI development** branch.
+> They may differ on `stable`, `qa`, and `prod` branches — verify against the deployed version's LDAP
+> plugin (`OpenLDAPHandler`) and its documentation before applying to non-dev environments.
 
 ---
 

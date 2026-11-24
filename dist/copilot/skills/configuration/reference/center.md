@@ -1,7 +1,7 @@
 # AMI Center Configuration Properties
 
-> **Version note:** Reflects **`//depot/dev/` (latest dev)**. May differ on `stable`, `qa`, and `prod` branches.
-> Source: `AmiCenterProperties` in `//depot/dev/java/ami/`
+> **Version note:** Reflects **latest AMI development**. May differ on `stable`, `qa`, and `prod` branches.
+> Source: `AmiCenterProperties` (AMI source)
 
 Governs the AMI in-memory database engine (Center process).
 

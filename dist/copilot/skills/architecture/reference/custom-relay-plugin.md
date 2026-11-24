@@ -92,12 +92,12 @@ Activate by specifying `com.f1.ami.relay.plugins.FixAmiPlugin` as the plugin cla
 
 ## Wire Protocol
 
-Call `aidoc_getDocumentation("relay")` for the full relay wire protocol — connection modes, instruction format, message types, and data type encoding.
+Call `aidoc_get_documentation("relay")` for the full relay wire protocol — connection modes, instruction format, message types, and data type encoding.
 
 ---
 
 ## See Also
 
 - [`custom-java-plugins.md`](custom-java-plugins.md) — general plugin build and deployment guide
-- `aidoc_getDocumentation("relay")` — relay wire protocol reference
+- `aidoc_get_documentation("relay")` — relay wire protocol reference
 - [`scaling.md`](scaling.md) — using multiple Relay instances

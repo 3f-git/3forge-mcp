@@ -187,7 +187,7 @@ To automatically convert Tableau's MySQL dialect to AMI SQL on connection:
 SETLOCAL dialect=TABLEAU
 ```
 
-Call `aidoc_getDocumentation("amisql")` for full syntax.
+Call `aidoc_get_documentation("amisql")` for full syntax.
 
 ---
 
@@ -214,5 +214,5 @@ This contrasts with data arriving via the Relay (e.g., feed handlers, AmiClient)
 ## See Also
 
 - [`rest-server.md`](rest-server.md) — HTTP-based query access
-- `aidoc_getDocumentation("amisql")` — AMI SQL syntax and patterns
+- `aidoc_get_documentation("amisql")` — AMI SQL syntax and patterns
 - [`../../configuration/reference/guide.md`](../../configuration/reference/guide.md) — full property reference

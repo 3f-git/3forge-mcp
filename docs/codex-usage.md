@@ -1,7 +1,7 @@
 # Using the 3forge MCP Plugin with Codex
 
 This guide explains how to use the `3forge-mcp` plugin from Codex: what it
-installs, how to invoke it, how bundled live MCP workflows behave, how the
+installs, how to invoke it, how to connect and use the live MCP server, how the
 command workflows map from Claude Code slash commands, and how to ask for the
 bundled agent roles.
 
@@ -11,7 +11,7 @@ Codex plugins can bundle reusable skills, MCP server configuration, and optional
 app integrations. This plugin currently gives Codex:
 
 - 0 bundled MCP server configurations: register `3forge-runtime` in your own Codex config
-- 28 3forge skills under `3forge-mcp/skills`
+- 29 3forge skills, generated under `dist/codex/skills` from `3forge-mcp/skills`
 - A Codex command-equivalent skill named `commands`
 - Generated Codex custom-agent TOML under `dist/codex/.codex/agents`
 - Plugin metadata and default prompts from `dist/codex/.codex-plugin/plugin.json`
@@ -49,8 +49,8 @@ The generated marketplace file at `dist/codex/.agents/plugins/marketplace.json`
 points back to the standalone `dist/codex` plugin tree when that tree is used
 as the marketplace root.
 
-After installing or updating, start a new Codex thread so the plugin skills and
-MCP tools are loaded.
+After installing or updating, start a new Codex thread so the plugin skills are
+loaded.
 
 Verify install state:
 
@@ -62,8 +62,9 @@ Expected:
 
 - `3forge-mcp@3forge-mcp-codex`
 - `installed, enabled`
-- The current generated version, for example `0.2.0`. Local development
-  refreshes may show a cachebuster suffix such as `0.2.0+codex.20260701183612`.
+- The current generated version (the `version` in `3forge-mcp/.claude-plugin/plugin.json`,
+  for example `0.8.1`). Local development refreshes may show a cachebuster suffix such
+  as `0.8.1+codex.20260701183612`.
 
 ## Runtime MCP Configuration
 
@@ -71,31 +72,42 @@ Expected:
 own AMI deployment — the endpoint host, port, credentials, and certificate trust are
 all deployment-specific.
 
-AMI's `AmiMcpPlugin` serves MCP as an authenticated REST plugin on the AMI web
-**HTTPS** port of the JVM running `amimcp`:
+The bundled **`setup-3forge-runtime`** skill walks through all of this interactively. Ask for
+it, or say *"set up the 3forge runtime connection"*. The short version is below.
+
+AMI's `AmiMcpPlugin` serves MCP as an authenticated REST plugin on the AMI Web **HTTPS** port:
 
 ```
-https://<host>:<webHttpsPort>/3forge_rest/mcp        # webHttpsPort defaults to 33333
+https://<host>:<https.port>/3forge_rest/mcp        # AmiOne default https.port=33333
 ```
 
-Three things are mandatory, and each fails in a distinct way:
+A fresh AMI install needs these before any MCP client works:
 
 | Requirement | Symptom if wrong |
 |---|---|
-| **HTTPS**, not HTTP | Connection fails with no HTTP status — plain `http://` never answers |
-| **HTTP Basic auth** on every call | `401` — the MCP tools are high-privilege, so everything is authenticated |
-| **Trusted certificate** | `DEPTH_ZERO_SELF_SIGNED_CERT` if AMI uses a self-signed cert |
+| **`MCP_TOOLS` grant** for the AMI user — tools are **off by default** (`MCP_TOOLS=*` in `access.txt`, or `ami.web.default.MCP_TOOLS`) | Connects and authenticates, but lists **zero tools** |
+| **Trusted certificate** — AMI ships a self-signed cert for `CN=MyServer`; install your own, or trust that one and connect as `https://MyServer:<port>` | `DEPTH_ZERO_SELF_SIGNED_CERT`; `ERR_TLS_CERT_ALTNAME_INVALID` when connecting by another name |
+| **HTTPS URL** | `http://` to the web port gets a `302`; to the HTTPS port, no valid HTTP response |
+| **HTTP Basic auth** on every call | `401` |
 
-Verify the endpoint before configuring the client:
+Verify the endpoint before configuring the client, **without `-k`**, using the URL the client
+will use:
 
 ```bash
-curl -sk -u '<user>:<pass>' -X POST https://<host>:33333/3forge_rest/mcp \
-  -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.0.1"}}}'
+URL='https://<host>:33333/3forge_rest/mcp'          # exactly the URL your client will use
+CA=/abs/path/ca-or-ami-myserver.pem                 # the certificate or CA file your client trusts
+printf 'AMI password: '; read -rs AMI_PASS; echo    # not echoed, not saved in shell history
+
+curl -sS --cacert "$CA" -u "<user>:$AMI_PASS" -X POST "$URL" \
+  -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+  -o mcp-probe.json -w 'HTTP %{http_code}\n'
+python3 -c 'import json; print(len(json.load(open("mcp-probe.json"))["result"]["tools"]), "tools")'
 ```
 
-`401` means credentials. Working only with `-k` means the cert is self-signed — trust it
-or use a CA-signed host; MCP clients verify TLS with no per-server opt-out.
+Leave out `--cacert "$CA"` if the OS trust store already trusts the certificate. curl does not
+read `NODE_EXTRA_CA_CERTS`. `HTTP 200` then `0 tools` means no `MCP_TOOLS` grant. `HTTP 401`
+means credentials. curl error 60 means the certificate is untrusted or the name does not match
+it. MCP clients verify TLS with no per-server opt-out.
 
 Register it in your Codex MCP config:
 
@@ -108,7 +120,8 @@ startup_timeout_sec = 60
 Authorization = "Basic <base64(user:pass)>"
 ```
 
-Generate the credential with `printf '<user>:<pass>' | base64`. Start a fresh Codex
+Generate the credential in the same shell with
+`printf '%s' "<user>:$AMI_PASS" | base64 | tr -d '\n'`, which keeps the password out of shell history. Start a fresh Codex
 thread afterwards so the tools are discovered.
 
 ## First Prompt
@@ -123,15 +136,15 @@ Expected behavior:
 
 - Codex activates `3forge-mcp:commands`.
 - The skill dispatches to `reference/3forge-init.md`.
-- If `3forge-runtime` is reachable, Codex probes `aidoc_getDocumentation`,
-  `ami_console(view=components)`, Web sessions, and AMIScript class introspection
+- If `3forge-runtime` is reachable, Codex probes `aidoc_get_documentation`,
+  `ami_console(op=components)`, Web sessions, and AMIScript class introspection
   when a Web session is available.
 - Codex loads the runtime catalog and doc -> verify -> apply workflow when live
   tools are available.
 
-If there is no active Web session, `web_console(view=amiScriptClass)` can return
-`Session not found: null`. That is not a plugin failure. It means Web-context
-method introspection needs an active session ID. Do not create a headless
+If there is no active Web session, `web_console(op=amiScriptClass)` is refused with
+`missing required argument '__SESSIONID'`. That is not a plugin failure. It means
+Web-context method introspection needs an active session ID. Do not create a headless
 session just for `/3forge-init` unless you explicitly want one.
 
 ## Command Workflows
@@ -235,17 +248,18 @@ Use 3forge MCP to review this .ami layout before I commit it.
 ## MCP Tool Families
 
 When reachable, the `3forge-runtime` MCP server reflects live AMI console
-methods as 37 consolidated tools. Use `ami_console(view=components)` first to
+methods as MCP tools; how many depends on the AMI build, the running components, and the
+user's `MCP_TOOLS` grant. Use `ami_console(op=components)` first to
 find valid component IDs such as `center`, `web`, or `relay`.
 
 | Prefix | Scope | Typical use |
 |---|---|---|
-| `aidoc_*` | Global docs and patterns | `aidoc_getDocumentation("amisql")`, `aidoc_search_patterns("master detail table")` |
+| `aidoc_*` | Global docs and patterns | `aidoc_get_documentation("amisql")`, `aidoc_search_patterns("master detail table")` |
 | `ami_*` | Component/plugin lifecycle | Show, add, remove, restart components; inspect plugin registry. |
 | `center_*` | Center component | AMI SQL, tables, indexes, triggers, timers, procedures, datasources, replication. |
 | `web_*` | Web component/session | Sessions, panels, layouts, DataModels, validation, live AMIScript editors. |
 | `relay_*` | Relay component | Feedhandlers, routes, transforms, dictionaries, streaming integration. |
-| `web_balancer_*` | WebBalancer component | Load balancer pools and connection status. |
+| `webbalancer_*` | WebBalancer component | Load balancer pools and connection status. |
 | `log_*` | Global logs | Show sinks, tail logs, scan for warnings/errors. |
 
 **Finding built-in methods:** to search AMIScript's built-in methods, use
@@ -275,24 +289,24 @@ Use 3forge MCP to show active Web sessions and recent session errors.
 
 For every live mutation, Codex must follow:
 
-1. **Doc**: read `aidoc_getDocumentation(topic)` or `aidoc_search_patterns`.
+1. **Doc**: read `aidoc_get_documentation(topic)` or `aidoc_search_patterns`.
 2. **Verify**: run a validator when one exists, such as
-   `web_verify(kind=panelJson)`, `web_verify(kind=script)`, or
-   `web_verify(kind=datamodel)`.
+   `web_verify(op=panelJson)`, `web_verify(op=script)`, or
+   `web_verify(op=datamodel)`.
 3. **Apply**: call the mutating MCP tool only after validation.
 
 Web panel/layout changes are usually transient until explicitly committed:
 
-- `web_execute(action=addPanelNextTo)`
-- `web_execute(action=addTabToTabsPanel)`
-- `web_execute(action=wrapPanelInTab)`
-- `web_execute(action=updatePanel)`
-- `web_execute(action=importDatamodel)`
-- `web_execute(action=addRelationship)`
-- `web_execute(action=setLayoutStyle)`
+- `web_execute(op=addPanelNextTo)`
+- `web_execute(op=addTabToTabsPanel)`
+- `web_execute(op=wrapPanelInTab)`
+- `web_execute(op=updatePanel)`
+- `web_execute(op=importDatamodel)`
+- `web_execute(op=addRelationship)`
+- `web_execute(op=setLayoutStyle)`
 
-Codex should not call `web_execute(action=commitPanel)` or
-`web_execute(action=commitSession)` unless you explicitly
+Codex should not call `web_execute(op=commitPanel)` or
+`web_execute(op=commitSession)` unless you explicitly
 confirm that the staged change should be persisted.
 
 Use wording like this when you want live edits but no persistence yet:
@@ -317,7 +331,8 @@ groups.
 | Skill | Use when |
 |---|---|
 | `using-3forge-runtime` | Any live runtime work; loads the doc -> verify -> apply rule, tool naming, transient object rules. |
-| `runtime` | General live instance interaction; routes to `rt-*` skills. |
+| `runtime-router` | General live instance interaction; routes to `rt-*` skills. |
+| `setup-3forge-runtime` | First-time connection to an AMI instance, or runtime tools missing / TLS errors / 401 / zero tools. |
 | `commands` | Codex equivalent for `/3forge-init`, `/runtime`, `/3forge-plan`, `/3forge-query`, `/3forge-review`, `/3forge-debug`. |
 | `workflows` | Cross-cutting workflow routing, including doc -> verify -> apply and Excel migration. |
 | `workflows/excel` (`excel`) | Analyze or migrate Excel workbooks. |
@@ -464,7 +479,7 @@ Use 3forge MCP and the Excel migration workflow to analyze workbook.xlsx, identi
 - Do not type bare `/3forge-init` and expect a native Codex slash command. Use
   `Use 3forge MCP /3forge-init`.
 - Do not let Codex answer 3forge syntax questions from model memory. It should
-  use `aidoc_getDocumentation(...)` from the live instance.
+  use `aidoc_get_documentation(...)` from the live instance.
 - Do not mutate live layouts without the doc -> verify -> apply workflow.
 - Do not commit or save transient Web changes without explicit confirmation.
 - Do not create headless sessions during `/3forge-init` unless you asked for one.
@@ -475,30 +490,33 @@ Use 3forge MCP and the Excel migration workflow to analyze workbook.xlsx, identi
   the generated TOML files under a project/global `.codex/agents/` directory
   when you want native custom-agent spawning.
 - Do not keep stale user/project MCP config entries such as `ami-runtime` enabled
-  after installing this plugin. The bundled server key is `3forge-runtime`.
+  after installing this plugin. Register the server under the key `3forge-runtime`.
 
 ## Updating The Local Plugin During Development
 
-After changing plugin source under `3forge-mcp/`:
+For contributors. After changing plugin source under `3forge-mcp/`, run the steps below. The
+validator and cachebuster scripts ship with Codex's bundled `plugin-creator` / `skill-creator`
+system skills under `$CODEX_HOME/skills/.system/`. Skip those lines if your Codex install lacks
+them.
 
 ```bash
 node build/generate.mjs
 node build/verify.mjs
-conda run -n forge python /home/ethan/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py dist/codex
-python3 /home/ethan/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py dist/codex
+python3 "${CODEX_HOME:-$HOME/.codex}"/skills/.system/plugin-creator/scripts/validate_plugin.py dist/codex
+python3 "${CODEX_HOME:-$HOME/.codex}"/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py dist/codex
 codex plugin add 3forge-mcp@3forge-mcp-codex
 ```
 
 Then start a new Codex thread.
 
-## Quick Verification
+## Quick Verification (contributors)
 
 ```bash
 codex plugin list
 codex plugin marketplace list
 node build/verify.mjs
-conda run -n forge python /home/ethan/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py dist/codex
-conda run -n forge python /home/ethan/.codex/skills/.system/skill-creator/scripts/quick_validate.py 3forge-mcp/skills/commands
+python3 "${CODEX_HOME:-$HOME/.codex}"/skills/.system/plugin-creator/scripts/validate_plugin.py dist/codex
+python3 "${CODEX_HOME:-$HOME/.codex}"/skills/.system/skill-creator/scripts/quick_validate.py 3forge-mcp/skills/commands
 # Codex skills are adapted by the generator; node build/verify.mjs checks their parity.
 cmp -s 3forge-mcp/CLAUDE.md dist/codex/AGENTS.md
 git diff --check

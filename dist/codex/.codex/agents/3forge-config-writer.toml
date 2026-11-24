@@ -63,9 +63,9 @@ Build a verification table:
 ### Default Verification
 | Property | Caller's requested value | Default (source file + line) | Override needed? |
 |---|---|---|---|
-| ami.center.port | 3290 | 3290 (configuration/common.md L42) | NO — already default |
-| ami.web.port | 3270 | 3270 (configuration/web.md L18) | NO — already default |
-| ami.aes.key.file | persist/prod/amikey.aes | persist/amikey.aes (configuration/overrides.md L31) | YES — different path |
+| ami.center.port | 3270 | 3270 (configuration/common.md L62) | NO — already default |
+| http.port | 33332 | 33332 (configuration/web.md L14) | NO — already default |
+| ami.aes.key.file | persist/prod/amikey.aes | persist/amikey.aes (configuration/overrides.md L33) | YES — different path |
 ```
 
 **Rules:**
@@ -94,8 +94,8 @@ Before writing files, produce a brief plan. Only include properties that passed 
 ### Overrides required (verified non-default only):
 | Property | Value | Default | Source | Reason |
 |---|---|---|---|---|
-| ami.center.port | 3271 | 3270 | configuration/common.md L42 | avoids conflict with existing service |
-| ami.aes.key.file | ${ami.global.dir}persist/${env}/amikey.aes | persist/amikey.aes | configuration/overrides.md L31 | per-env key isolation |
+| ami.center.port | 3271 | 3270 | configuration/common.md L62 | avoids conflict with existing service |
+| ami.aes.key.file | ${ami.global.dir}persist/${env}/amikey.aes | persist/amikey.aes | configuration/overrides.md L33 | per-env key isolation |
 [etc.]
 ```
 

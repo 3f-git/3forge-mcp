@@ -12,13 +12,13 @@ Companion skill: [`../workflows/doc-verify-apply.md`](../workflows/doc-verify-ap
 ## The non-negotiable ritual
 
 ```
-1. aidoc_search_patterns(intent) → aidoc_getPattern(name)
-2. center_console(view=describeTable, tableName=t)   — confirm columns + types
+1. aidoc_search_patterns(query) → aidoc_get_pattern(name)
+2. center_console(op=describeTable, tableName=t)   — confirm columns + types
 3. (build panel JSON)
-4. web_verify(kind=panelJson, componentId, portletType, json)   — must return "OK"
-5. web_execute(action=importWindow, ...)  or  web_execute(action=addPanelNextTo, ...)   ← TRANSIENT
+4. web_verify(op=panelJson, componentId, portletType, json)   — must return "OK"
+5. web_execute(op=importWindow, ...)  or  web_execute(op=addPanelNextTo, ...)   ← TRANSIENT
 6. Show user. WAIT for confirmation.
-7. web_execute(action=commitPanel, panelId)   ← PERSISTED
+7. web_execute(op=commitPanel, __SESSIONID, panelId)   ← PERSISTED
 ```
 
 Never skip step 4. Never auto-commit (step 6).
@@ -34,7 +34,7 @@ Never skip step 4. Never auto-commit (step 6).
 
 ## Required panel properties
 
-Every visible column must have **all five**: `id`, `pos`, `title`, `type`, `value`, `width`.
+Every visible column must have **all six**: `id`, `pos`, `title`, `type`, `value`, `width`.
 
 | Property | Notes |
 |---|---|
@@ -47,10 +47,10 @@ Every visible column must have **all five**: `id`, `pos`, `title`, `type`, `valu
 
 | Property | Notes |
 |---|---|
-| `type` | `"realtimetable"`, `"table"`, `"form"`, `"chart"`, `"tree"`, `"tab"`, `"div"`, `"blank"`, etc. |
+| `type` | `"realtimetable"`, `"table"`, `"form"`, `"amichartgrid"` (chart), `"tree"`, `"tab"`, `"div"`, `"blank"`, etc. |
 | `haltOnHidden` | **MUST be `"true"`** on realtimetable. Without it the feed never binds. |
 | `rtSources` | Live only. Array; entries prefixed `"FEED:"`. |
-| `varTypes` | Required. Array of `{name, type}` — Java types (`String`, `Double`, `Long`, `Integer`, `Boolean`). Get from `center_console(view=describeTable)`. Never fabricate. |
+| `varTypes` | Required. Array of `{name, type}` — Java types (`String`, `Double`, `Long`, `Integer`, `Boolean`). Get from `center_console(op=describeTable)`. Never fabricate. |
 | `id`, `title` | Internal id and display title. |
 
 ## ⚠️ Empty column `title` silently drops the column on `realtimetable` import
@@ -67,12 +67,12 @@ A column with `"title": ""` is **silently dropped** by `realtimetable` import �
 ```
 ## ⚠️ `varTypes` are silently pruned on import for `realtimetable`
 
-When a `realtimetable` panel is imported via `web_execute(action=addPanelNextTo)` or `web_execute(action=importWindow)`, AMI **prunes its `varTypes` to only the fields referenced by visible columns**. Fields you declared but don't use in any visible column disappear from `varTypes` after import — and any hidden column whose `value` references one of those pruned fields will fail to bind silently.
+When a `realtimetable` panel is imported via `web_execute(op=addPanelNextTo)` or `web_execute(op=importWindow)`, AMI **prunes its `varTypes` to only the fields referenced by visible columns**. Fields you declared but don't use in any visible column disappear from `varTypes` after import — and any hidden column whose `value` references one of those pruned fields will fail to bind silently.
 
 If you need a field available to a hidden column, a callback, or a relationship clause, **either**:
 - Make at least one column visibly use it (give it `pos`), or
 - Patch the layout on disk after import to restore the full `varTypes`.
-## DOM type names for `web_verify(kind=panelJson)`
+## DOM type names for `web_verify(op=panelJson)`
 
 The portletType for validation is NOT the AmiWeb*Portlet class name. Use:
 
@@ -95,7 +95,7 @@ The portletType for validation is NOT the AmiWeb*Portlet class name. Use:
 | Datamodel | `Datamodel` |
 | Window | `Window` |
 
-Full list: `web_console(view=domTypes, componentId)`.
+Full list: `web_console(op=domTypes, componentId)`.
 
 ## DividerPanel shape
 
@@ -105,7 +105,7 @@ Dividers are **binary trees**, not arrays of children:
 {
   "id":"div_outer",
   "type":"div",
-  "dir":"H",                     // "H" or "V"
+  "dir":"h",                     // "h" or "v" -- lowercase; "H"/"V" are rejected
   "child1":"panel_or_div_id",
   "child2":"panel_or_div_id",
   "offset":0.5                   // ratio 0..1
@@ -115,11 +115,11 @@ Dividers are **binary trees**, not arrays of children:
 For a single panel as window content, use a blank as `child2`:
 
 ```json
-{"id":"div_outer","type":"div","dir":"H","child1":"pnl_main","child2":"pnl_blank","offset":1.0},
+{"id":"div_outer","type":"div","dir":"h","child1":"pnl_main","child2":"pnl_blank","offset":1.0},
 {"id":"pnl_blank","type":"blank","title":""}
 ```
 
-## `web_execute(action=importWindow)` config
+## `web_execute(op=importWindow)` config
 
 ```json
 {
@@ -129,24 +129,24 @@ For a single panel as window content, use a blank as `child2`:
 }
 ```
 
-After import, the panel is transient. Show the user → confirm → `web_execute(action=commitPanel, componentId, sessionId, panelId)`.
+After import, the panel is transient. Show the user → confirm → `web_execute(op=commitPanel, componentId, __SESSIONID, panelId)`.
 
 ## Transient lifecycle
 
 These tools all produce session-scoped, **uncommitted** changes:
 
-`web_execute(action=addPanelNextTo)`, `web_execute(action=addTabToTabsPanel)`, `web_execute(action=wrapPanelInTab)`,
-`web_execute(action=updatePanel)`, `web_danger(action=deletePanel)`, `web_execute(action=importDatamodel)`,
-`web_danger(action=deleteDatamodel)`, `web_execute(action=addRelationship)`,
-`web_execute(action=setDividerOffset)`, `web_execute(action=distributeDividers)`, `web_execute(action=flipPanels)`,
-`web_execute(action=rotatePanels)`, `web_execute(action=importWindow)`.
+`web_execute(op=addPanelNextTo)`, `web_execute(op=addTabToTabsPanel)`, `web_execute(op=wrapPanelInTab)`,
+`web_execute(op=updatePanel)`, `web_danger(op=deletePanel)`, `web_execute(op=importDatamodel)`,
+`web_danger(op=deleteDatamodel)`, `web_execute(op=addRelationship)`,
+`web_execute(op=setDividerOffset)`, `web_execute(op=distributeDividers)`, `web_execute(op=flipPanels)`,
+`web_execute(op=rotatePanels)`, `web_execute(op=importWindow)`.
 
 Persist with:
 
 | Tool | Scope |
 |---|---|
-| `web_execute(action=commitPanel, panelId)` | One panel + its descendants |
-| `web_execute(action=commitSession, sessionId)` | All pending changes in the session |
+| `web_execute(op=commitPanel, __SESSIONID, panelId)` | One panel + its descendants |
+| `web_execute(op=commitSession, __SESSIONID)` | All pending changes in the session |
 
 ## DataModels (for static tables)
 
@@ -175,22 +175,22 @@ Persist with:
 When you don't know which fields a panel type accepts, the schema is reachable directly:
 
 ```
-web_console(view=domTypes, componentId)            → all panel/portlet type names
-web_console(view=domSchema, componentId, "X")      → full JSON Schema for one type
+web_console(op=domTypes, componentId)            → all panel/portlet type names
+web_console(op=domSchema, componentId, "X")      → full JSON Schema for one type
 ```
 
 The schema returned has `properties`, `required`, and (sometimes) `oneOf`/`if-then`. Use this whenever the pattern doc is missing or the validator emits a confusing required-field error.
 
 ## Getting `varTypes` from a feed
 
-`web_console(view=tableColumns)` fails with `"key is null"` when no layout is loaded in the session. The reliable path is via the feed registry:
+`web_console(op=tableColumns)` fails with `"key is null"` when no layout is loaded in the session. The reliable path is via the feed registry:
 
 ```
-web_console(view=feeds, componentId, sessionId)              → list registered feeds
-web_console(view=varTypesForFeed, componentId, sessionId, table) → ready-to-paste varTypes array
+web_console(op=feeds, componentId, __SESSIONID)              → list registered feeds
+web_console(op=varTypesForFeed, componentId, __SESSIONID, tableName) → ready-to-paste varTypes array
 ```
 
-`web_console(view=varTypesForFeed)` returns the JSON array shape you embed directly in the panel — no hand-translation of types.
+`web_console(op=varTypesForFeed)` returns the JSON array shape you embed directly in the panel — no hand-translation of types.
 
 ## ⚠️ Realtime tree — TEMPORARY WORKAROUND for a known bug
 
@@ -200,7 +200,7 @@ web_console(view=varTypesForFeed, componentId, sessionId, table) → ready-to-pa
 
 ### The bug
 
-`web_verify(kind=panelJson)` and `web_execute(action=importWindow)` against `TreePanel` unconditionally require `dm` and `dmTable`, even when the panel is `type: "realtimetree"` (which binds via `rtSources` and has nothing to do with a DataModel). The pattern doc (`aidoc_getPattern("realtime-tree")`) shows examples without `dm`/`dmTable` — following it verbatim fails validation.
+`web_verify(op=panelJson)` and `web_execute(op=importWindow)` against `TreePanel` unconditionally require `dm` and `dmTable`, even when the panel is `type: "realtimetree"` (which binds via `rtSources` and has nothing to do with a DataModel). The pattern doc (`aidoc_get_pattern("realtime-tree")`) shows examples without `dm`/`dmTable` — following it verbatim fails validation.
 
 ### The workaround (until issue #16 is fixed)
 
@@ -225,16 +225,16 @@ Pass empty strings for both fields. AMI ignores them at runtime when `rtSources`
 If the only thing you're changing is the AMIScript embedded in a callback (e.g. `pnl_blotter.onSelected`) or a DataModel's `onProcess`, **do not patch the `.ami` on disk and bounce the session**. Use the live editor tools owned by `rt-script`:
 
 ```
-web_editor(op=openCallback, componentId, sessionId, ari="PANEL:pnl_blotter", callbackName="onSelected")
+web_editor(op=openCallback, componentId, __SESSIONID, ari="PANEL:pnl_blotter", callbackName="onSelected")
    ↓
-web_editor(op=getCode) → web_editor(op=edit, expectedRevision=...) → web_editor(op=validate) → web_editor(op=apply)
+web_editor(op=getCode) → web_editor(op=edit, __SESSIONID, handle, oldText, newText, expectedRevision=...) → web_editor(op=validate) → web_editor(op=apply)
 ```
 
-This persists into the in-memory DOM object without touching disk and without killing the session. For DataModels, use `web_editor(op=openDatamodel, dmName="dm_xyz")` instead — same loop, plus `web_editor(op=dmExecute)` / `web_editor(op=dmGetStatus)` / `web_editor(op=dmOutputTables)` / `web_editor(op=dmOutputTableSchema)` for runtime introspection. Full walkthrough in `rt-script`.
+This persists into the in-memory DOM object without touching disk and without killing the session. For DataModels, use `web_editor(op=openDatamodel, __SESSIONID, dmName="dm_xyz")` instead — same loop, plus `web_editor(op=dmExecute)` / `web_editor(op=dmGetStatus)` / `web_editor(op=dmOutputTables)` / `web_editor(op=dmOutputTableSchema)` for runtime introspection. Full walkthrough in `rt-script`.
 
-**Still requires the rt-panels disk path:** structural changes — adding/removing panels, dividers, tabs, DMs themselves, or changing non-AMIScript properties of a panel. The editor surface only changes AMIScript inside objects that already exist.
+**Still requires the rt-panels structural tools** (`web_execute(op=updatePanel)` / `importWindow` / `addPanelNextTo` / `importDatamodel`): structural changes — adding/removing panels, dividers, tabs, DMs themselves, or changing non-AMIScript properties of a panel. The editor surface only changes AMIScript inside objects that already exist.
 
-After `web_editor(op=apply)`, if you also want the change committed to the session, follow with `web_execute(action=commitSession)`.
+After `web_editor(op=apply)`, if you also want the change committed to the session, follow with `web_execute(op=commitSession)`.
 
 ## Common pitfalls (gotchas first)
 
@@ -249,39 +249,39 @@ After `web_editor(op=apply)`, if you also want the change committed to the sessi
 | `rtSources` without `FEED:` prefix | Feed not found. |
 | Validating against `AmiWeb*Portlet` class name | Returns "Unknown type" — use the bare `RealtimeTablePanel` etc. |
 | Single-letter column ids (`D`/`A`/`M`/`C`/`V`/`W`/`T`/`P`/`E`/`I`) | Collide with AMI system columns. |
-| Skipping `web_verify(kind=panelJson)` | Bad JSON imports silently. |
+| Skipping `web_verify(op=panelJson)` | Bad JSON imports silently. |
 
 ## Tools owned by this skill
 
-`web_execute(action=addPanelNextTo)`, `web_execute(action=addTabToTabsPanel)`, `web_execute(action=wrapPanelInTab)`,
-`web_execute(action=updatePanel)`, `web_danger(action=deletePanel)`, `web_execute(action=addRelationship)`,
-`web_execute(action=importWindow)`, `web_execute(action=importDatamodel)`, `web_danger(action=deleteDatamodel)`,
-`web_execute(action=executeDatamodel)`,
-`web_console(view=exportLayout)`, `web_console(view=exportPanel)`,
-`web_verify(kind=panelJson)`, `web_verify(kind=script)`, `web_verify(kind=datamodel)`,
-`web_debug(kind=tableSchemaWarnings)`, `web_debug(kind=chartSchemaWarnings)`, `web_console(view=callbackVariables)`,
-`web_console(view=tableColumns)`, `web_console(view=datamodelTables)`, `web_console(view=datamodelTableSchema)`,
-`web_console(view=feeds)`, `web_console(view=varTypesForFeed)`,
-`web_console(view=panels)`, `web_console(view=datamodels)`, `web_console(view=sessions)`, `web_console(view=domSchema)`, `web_console(view=domTypes)`,
-`web_console(view=logins)`, `web_console(view=sqlAggregations)`, `web_console(view=autosaves)`,
-`web_execute(action=setDividerOffset)`, `web_execute(action=distributeDividers)`, `web_execute(action=flipPanels)`, `web_execute(action=rotatePanels)`,
-`web_execute(action=commitPanel)`, `web_execute(action=commitSession)`,
-`web_execute(action=createHeadlessSession)`, `web_console(view=headlessSessionDetail)`, `web_execute(action=enableHeadlessSession)`,
-`web_execute(action=disableHeadlessSession)`, `web_danger(action=deleteHeadlessSession)`,
-`web_danger(action=killLogin)`, `web_danger(action=killSession)`, `web_console(view=diagnostics)`, `web_console(view=sessionInfo)`, `web_debug(kind=sessionErrors)`,
-`web_script`, `web_console(view=amiScriptClass)`,
-`web_console(view=status)`, `web_console(view=configuration)`, `web_console(view=properties)`,
-`web_execute(action=initDatamodelSchema)`.
+`web_execute(op=addPanelNextTo)`, `web_execute(op=addTabToTabsPanel)`, `web_execute(op=wrapPanelInTab)`,
+`web_execute(op=updatePanel)`, `web_danger(op=deletePanel)`, `web_execute(op=addRelationship)`,
+`web_execute(op=importWindow)`, `web_execute(op=importDatamodel)`, `web_danger(op=deleteDatamodel)`,
+`web_execute(op=executeDatamodel)`,
+`web_console(op=exportLayout)`, `web_console(op=exportPanel)`,
+`web_verify(op=panelJson)`, `web_verify(op=script)`, `web_verify(op=datamodel)`,
+`web_debug(op=tableSchemaWarnings)`, `web_debug(op=chartSchemaWarnings)`, `web_console(op=callbackVariables)`,
+`web_console(op=tableColumns)`, `web_console(op=datamodelTables)`,
+`web_console(op=feeds)`, `web_console(op=varTypesForFeed)`,
+`web_console(op=panels)`, `web_console(op=datamodels)`, `web_console(op=sessions)`, `web_console(op=domSchema)`, `web_console(op=domTypes)`,
+`web_console(op=logins)`, `web_console(op=sqlAggregations)`, `web_console(op=autosaves)`,
+`web_execute(op=setDividerOffset)`, `web_execute(op=distributeDividers)`, `web_execute(op=flipPanels)`, `web_execute(op=rotatePanels)`,
+`web_execute(op=commitPanel)`, `web_execute(op=commitSession)`,
+`web_execute(op=createHeadlessSession)`, `web_console(op=headlessSessionDetail)`, `web_execute(op=enableHeadlessSession)`,
+`web_execute(op=disableHeadlessSession)`, `web_danger(op=deleteHeadlessSession)`,
+`web_danger(op=killLogin)`, `web_danger(op=killSession)`, `web_console(op=diagnostics)`, `web_console(op=sessionInfo)`, `web_debug(op=sessionErrors)`,
+`web_script`, `web_console(op=amiScriptClass)`,
+`web_console(op=status)`, `web_console(op=configuration)`, `web_console(op=properties)`,
+`web_execute(op=initDatamodelSchema)`.
 
-Always pass `componentId="web"` (or the actual Web component name from `ami_console(view=components)`) and `__SESSIONID` (from `web_console(view=sessions)`).
+Always pass `componentId="web"` (or the actual Web component name from `ami_console(op=components)`) and `__SESSIONID` (from `web_console(op=sessions)`).
 
 ## Authoritative doc references
 
-- `aidoc_getPattern("tables")` — realtime vs static table patterns (the source for most of this skill)
-- `aidoc_search_patterns(intent)` — to find the right pattern by NL query
-- `aidoc_getDocumentation("panel_table")` / `panel_chart` / `panel_form` / `panel_tabs` / `panel_divider`
-- `aidoc_getDocumentation("layout_structure")` / `layout_style`
-- `aidoc_getDocumentation("datamodel")` / `data_loading` / `relationships`
-- `aidoc_getDocumentation("callbacks")`
-- `aidoc_getDocumentation("transient_objects")` — the commit/save lifecycle
-- `aidoc_getDocumentation("sessions")`
+- `aidoc_get_pattern("tables")` — realtime vs static table patterns (the source for most of this skill)
+- `aidoc_search_patterns(query)` — to find the right pattern by NL query
+- `aidoc_get_documentation("panel_table")` / `panel_chart` / `panel_form` / `panel_tabs` / `panel_divider`
+- `aidoc_get_documentation("layout_structure")` / `layout_style`
+- `aidoc_get_documentation("datamodel")` / `data_loading` / `relationships`
+- `aidoc_get_documentation("callbacks")`
+- `aidoc_get_documentation("transient_objects")` — the commit/save lifecycle
+- `aidoc_get_documentation("sessions")`

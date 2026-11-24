@@ -1,7 +1,7 @@
 # AMI Web Configuration Properties
 
-> **Version note:** Reflects **`//depot/dev/` (latest dev)**. May differ on `stable`, `qa`, and `prod` branches.
-> Source: `AmiWebProperties` in `//depot/dev/java/ami/`
+> **Version note:** Reflects **latest AMI development**. May differ on `stable`, `qa`, and `prod` branches.
+> Source: `AmiWebProperties` (AMI source)
 
 Controls the HTTP server, UI, sessions, and client-facing features.
 

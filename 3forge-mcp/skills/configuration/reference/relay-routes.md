@@ -128,14 +128,14 @@ to take effect.
 After editing `relay.routes` (when hot-reload is not configured):
 
 ```
-ami_execute(action=restartComponent, componentId="relay")
+ami_execute(op=restartComponent, name="relay")
 ```
 
 Verify routing after restart:
 
 ```
-relay_console(view=routes, componentId="relay")
-relay_console(view=centers, componentId="relay")
+relay_console(op=routes, componentId="relay")
+relay_console(op=centers, componentId="relay")
 ```
 
 > Allow a few seconds after restart — feedhandlers need to re-establish
@@ -148,9 +148,9 @@ relay_console(view=centers, componentId="relay")
 Use the MCP tools (no file access required):
 
 ```
-relay_console(view=routes, componentId="relay")        # current routing rules and their targets
-relay_console(view=feedHandlers, componentId="relay")  # feedhandlers and their status
-relay_console(view=centers, componentId="relay")       # Centers the Relay is currently routing to
+relay_console(op=routes, componentId="relay")        # current routing rules and their targets
+relay_console(op=feedHandlers, componentId="relay")  # feedhandlers and their status
+relay_console(op=centers, componentId="relay")       # Centers the Relay is currently routing to
 ```
 
 ---
@@ -177,7 +177,7 @@ without requiring filesystem access.
 | Reference | Relevance |
 |---|---|
 | [relay.md](relay.md) | All relay.properties — ports, feedhandlers, file paths |
-| `aidoc_getDocumentation("center")` | Registering and querying multiple Center components |
-| `aidoc_getDocumentation("datasource")` / `aidoc_getDocumentation("feedhandlers")` | Feedhandler selection — Kafka, FIX, Bloomberg, custom |
-| `aidoc_getDocumentation("relay")` | Relay wire protocol — O, D, C, S message types |
+| `aidoc_get_documentation("center")` | Registering and querying multiple Center components |
+| `aidoc_get_documentation("datasource")` / `aidoc_get_documentation("feedhandlers")` | Feedhandler selection — Kafka, FIX, Bloomberg, custom |
+| `aidoc_get_documentation("relay")` | Relay wire protocol — O, D, C, S message types |
 | [component_management.md](component_management.md) | Runtime addComponent / restartComponent API |

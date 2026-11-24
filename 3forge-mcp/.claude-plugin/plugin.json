@@ -1,7 +1,7 @@
 {
   "name": "3forge-mcp",
-  "version": "0.8.1",
-  "description": "3forge AMI authoring and runtime workflow skills. Live-instance tools need a `3forge-runtime` MCP server, which you configure yourself against your own AMI deployment — run `claude mcp add` with your endpoint and credentials (see README). All 3forge knowledge is served by the live instance via aidoc.",
+  "version": "0.9.0",
+  "description": "3forge AMI authoring and runtime workflow skills. Live-instance tools need a `3forge-runtime` MCP server, which you configure yourself against your own AMI deployment — the bundled `setup-3forge-runtime` skill walks through the AMI-side grant, TLS, and `claude mcp add`. All 3forge knowledge is served by the live instance via aidoc.",
   "author": {
     "name": "3forge"
   },

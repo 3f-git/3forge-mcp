@@ -1,7 +1,7 @@
 ---
 name: 3forge-layout-style
 description: AMI layout visual stylist. Applies or improves the aesthetic design of .ami layout files — color themes, amiStyle properties, styleSets, custom CSS, column color formulas, and HTML panel design. Use when the user wants to style, theme, or visually polish a layout. Can also be called by 3forge-layout-architect after the structural layout is complete.
-tools: ["Read", "Write", "Edit", "Glob", "Grep"]
+tools: ["Read", "Write", "Edit", "Glob", "Grep", "ToolSearch", "mcp__3forge-runtime__*"]
 model: sonnet
 ---
 
@@ -15,9 +15,9 @@ If no file path is given, look for a `.ami` file in `inputs/`. Use that as the s
 
 ## Step 1 — Load the Style Knowledge
 
-Before touching any file, call `aidoc_getDocumentation("layout_style")` for the full amiStyle reference, styleSets, CSS, column coloring, and design principles. Call `aidoc_getDocumentation("layout_structure")` for panel types and structure (context for what you are styling).
+Before touching any file, call `aidoc_get_documentation("layout_style")` for the full amiStyle reference, styleSets, CSS, column coloring, and design principles. Call `aidoc_get_documentation("layout_structure")` for panel types and structure (context for what you are styling).
 
-For exact `styles` property names (`panelBgCl`, `panelFontCl`, panel-specific style keys, valid value ranges) — the authoritative source is the live DOM schema: call `web_console(view=domSchema)` (or `web_console(view=domSchema, typeName=…)` for a single panel type). Do not invent style property names from training knowledge. If a property name is uncertain, pull the relevant type from the live schema — each panel type's schema includes its style-related properties grouped by category.
+For exact `styles` property names (`panelBgCl`, `panelFontCl`, panel-specific style keys, valid value ranges) — the authoritative source is the live DOM schema: call `web_console(op=domSchema)` (or `web_console(op=domSchema, typeName=…)` for a single panel type). Do not invent style property names from training knowledge. If a property name is uncertain, pull the relevant type from the live schema — each panel type's schema includes its style-related properties grouped by category.
 
 ## Step 2 — Read the Target Layout
 
@@ -63,7 +63,7 @@ Before editing, write a brief styling plan:
   [List each panel and whether its title bar / search bar / filter row is shown or hidden]
 
 ### Column Coloring:
-  [List columns receiving fg/bg/sy formulas and the logic]
+  [List columns receiving color/bg/style formulas and the logic]
 
 ### CSS:
   [List any custom CSS overrides to apply]
@@ -79,8 +79,8 @@ Edit the layout file to apply styling in this order:
 
 Add or update the `LAYOUT_DEFAULT` entry in `styles` (v6) or `metadata.styleSets` (v5):
 
-- Define the full color palette in `vl.colors`
-- Set `global`, `table`, `treegrid`, `form`, `field`, `panel`, `tabs`, `div`, `chart`, `chartAxis` sections
+- Define the full color palette in `vars.colors` (a sibling of `vl`, not inside it)
+- Set `global`, `table`, `form`, `field`, `panel`, `tabs`, `div`, `chart`, `chartAxis` sections under `vl` (table and tree panels share `table`)
 - Add `css` array for custom CSS (scrollbars, button rounding, header typography)
 
 Use only `$variable` references inside style value fields — never raw hex colors inside `amiStyle.bgCl` etc. if a variable covers it.
@@ -102,10 +102,12 @@ For every panel in the `panels` array:
 
 For each numeric/status column identified in Step 2, add or update:
 
-- `fg` for text color (P&L: green/red/muted; status: conditional)
+- `color` for text color (P&L: green/red/muted; status: conditional)
 - `bg` for cell background (optional: heatmap or status badge)
-- `sy` for text alignment (numeric columns: `"right"`, labels: `"left"`, codes: `"center"`)
-- `hs` for header alignment (match `sy`)
+- `style` for text alignment (numeric columns: `"\"right\""`, labels: `"\"left\""`, codes: `"\"center\""` — an AMIScript expression, so quote the literal)
+- `headerStyle` for header alignment (match `style`; a **literal** string such as `"right"`, not an expression)
+
+`fg`, `sy` and `hs` are legacy aliases of `color`, `style` and `headerStyle` — accepted on load, but write the modern keys.
 
 ### 5d — `htmlTemplate2` (if applicable)
 
@@ -127,11 +129,11 @@ Apply CSS for:
 Before writing the final file, verify:
 
 - [ ] Every panel has `"pt": "LAYOUT_DEFAULT"` in its `amiStyle`
-- [ ] `LAYOUT_DEFAULT` styleSet exists with a full `vl.colors` palette
+- [ ] `LAYOUT_DEFAULT` styleSet exists with a full `vars.colors` palette
 - [ ] No raw hex colors remain in `amiStyle` fields where `$variables` could be used
-- [ ] All numeric columns have `sy: "\"right\""` alignment
-- [ ] All P&L / numeric delta columns have `fg` formulas
-- [ ] All status/flag columns have `fg` or `bg` formulas
+- [ ] All numeric columns have `style: "\"right\""` alignment
+- [ ] All P&L / numeric delta columns have `color` formulas
+- [ ] All status/flag columns have `color` or `bg` formulas
 - [ ] No `height:100%` on any `htmlTemplate2` root div (use `top:0;bottom:0` instead)
 - [ ] `FlashMillis` is set on live-data tables; `0.0` on static summary tables
 - [ ] Divider bars are thin (≤2px) and color-matched to background
@@ -155,7 +157,7 @@ Report:
 | ... | hidden | hidden | hidden |
 
 ### Column Coloring
-| Column | fg | bg | sy |
+| Column | color | bg | style |
 |---|---|---|---|
 | Pnl | green/red/muted | — | right |
 
@@ -172,5 +174,5 @@ Report:
 - Use raw hex colors inside `amiStyle` value fields when a `$variable` is defined for the same role
 - Set `"normal"` as `stateDflt` — use `"flt"` instead
 - Use `height:100%` on `htmlTemplate2` root divs — use `position:absolute;top:0;bottom:0`
-- Remove or change data columns (`fm` formulas, `dmadn`, `dmtbid`) — style only
+- Remove or change data columns (`value` formulas, `dm`, `dmTable`; v5: `fm`, `dmadn`, `dmtbid`) — style only
 - Write files anywhere other than `outputs/` unless explicitly directed to edit in-place

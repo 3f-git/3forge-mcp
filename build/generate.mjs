@@ -24,8 +24,8 @@ function commandSkillContent(content) {
 // the user drops the skills/ folder — there is no ${CLAUDE_PLUGIN_ROOT} outside a plugin.
 function portableCommandContent(content) {
   return content
-    .replaceAll("${CLAUDE_PLUGIN_ROOT}/skills/", "skills/")
-    .replaceAll(".claude/skills/", "skills/");
+    .replaceAll("${CLAUDE_PLUGIN_ROOT}/skills/", ".opencode/skills/")
+    .replaceAll(".claude/skills/", ".opencode/skills/");
 }
 
 function parseMarkdownFrontmatter(content, path) {
@@ -68,6 +68,16 @@ function codexAgentInstructions(content) {
     .replaceAll("You have `Agent` in your tool list.", "Use Codex subagent workflows when delegation is required.");
 }
 
+// The 3forge-runtime agent's Step 0 is written for Claude Code's ToolSearch. Harnesses without
+// ToolSearch get a neutral instruction instead (Codex has its own wording in codexAgentInstructions).
+function neutralStepZero(content) {
+  return content
+    .replaceAll('**Call `ToolSearch` with `query: "select:mcp__3forge-runtime__ami_console"` to load the MCP tool schema.**',
+      "**Use the `3forge-runtime` `ami_console` tool already exposed in this session, or load it with the harness's MCP tool discovery if its schema is deferred.**")
+    .replaceAll("> `ToolSearch` is in your tool list. Call it **directly** \u2014 do **not** spawn a sub-agent or use `WebSearch`/`Bash` as a substitute.",
+      "> Call the MCP tool **directly** \u2014 do **not** spawn a sub-agent or use `WebSearch`/`Bash` as a substitute.");
+}
+
 function copilotToolDiscovery(content) {
   return content
     .replaceAll("`ToolSearch`", "tool discovery")
@@ -75,7 +85,7 @@ function copilotToolDiscovery(content) {
 }
 
 function copilotAgentInstructions(content) {
-  return copilotToolDiscovery(content)
+  return copilotToolDiscovery(neutralStepZero(content))
     .replaceAll(".claude/skills/", "skills/")
     .replaceAll("mcp__3forge-runtime__", "")
     .replaceAll("select:mcp__3forge_runtime__", "")
@@ -135,7 +145,7 @@ function opencodeToolRefs(content) {
 }
 
 function opencodeAgentInstructions(content) {
-  return opencodeToolRefs(opencodeToolDiscovery(content))
+  return opencodeToolRefs(opencodeToolDiscovery(neutralStepZero(content)))
     .replaceAll(".claude/skills/", "skills/")
     .replaceAll("**Delegation method: always the `Agent` tool.** You have `Agent` in your tool list. **Never run `claude` as a Bash command** \u2014 it fails. Go straight to Agent.",
       "**Delegation method: use opencode's `task` tool to spawn the named subagent.** Do not run a CLI command to delegate.")
@@ -207,8 +217,8 @@ function opencodeAgentMarkdown(content, path) {
 
 function opencodeCommandContent(content) {
   return opencodeToolRefs(opencodeToolDiscovery(content))
-    .replaceAll("${CLAUDE_PLUGIN_ROOT}/skills/", "skills/")
-    .replaceAll(".claude/skills/", "skills/");
+    .replaceAll("${CLAUDE_PLUGIN_ROOT}/skills/", ".opencode/skills/")
+    .replaceAll(".claude/skills/", ".opencode/skills/");
 }
 
 function tomlBasicString(value) {

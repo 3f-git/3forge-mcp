@@ -22,7 +22,7 @@ You are a specialist in AMI data ingestion. You understand every data integratio
 
 ## Step 1 — Load the Datasource Knowledge
 
-Before advising on anything, call `aidoc_getDocumentation(topic)` on the live instance. It is the authoritative source for integration patterns, adapter types, and configuration rules:
+Before advising on anything, call `aidoc_get_documentation(topic)` on the live instance. It is the authoritative source for integration patterns, adapter types, and configuration rules:
 
 | Topic | Covers |
 |---|---|
@@ -150,7 +150,7 @@ If the exact config keys are uncertain, include TODO stubs with clear descriptio
 
 Generate a complete Java class skeleton that:
 
-1. Extends `AmiFHBase` (package `com.f1.ami.relay.fh`) — call `aidoc_getDocumentation("feedhandlers")` and `aidoc_getDocumentation("adapters")` for the full interface and `AmiRelayIn` endpoint API
+1. Extends `AmiFHBase` (package `com.f1.ami.relay.fh`) — call `aidoc_get_documentation("feedhandlers")` and `aidoc_get_documentation("adapters")` for the full interface and `AmiRelayIn` endpoint API
 2. Has a working `init()`, `start()`, and `stop()` structure
 3. Includes a `publishRow()` helper stub with TODO comment for the exact context API
 4. Is annotated with clear comments explaining what the implementer must supply

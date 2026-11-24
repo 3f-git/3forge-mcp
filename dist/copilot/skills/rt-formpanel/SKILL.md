@@ -50,7 +50,7 @@ If you'd rather think in pixels, use the absolute `left` / `top` / `width` / `he
 | Template interpolation (`${field}`) | In `htmlTemplate2`, `${fieldName}` is substituted with values from the bound feed or DM. |
 | Coexistence with form fields | A FormPanel can hold both injected HTML and normal form fields. The HTML renders behind fields; fields stay interactive. |
 | **Panel fields (`type: "panel"`)** | A field whose box hosts a nested panel — inline a table, chart, or another form inside the form. See below. |
-| `setCssClass()` | Toggle classes on form fields or the panel via AMIScript at runtime. |
+| `setCssClass()` | Toggle classes on form fields via AMIScript at runtime (a `FormField` method — `FormPanel` itself has no `setCssClass`). |
 
 ## Panel fields — a panel inlined inside a form
 
@@ -64,11 +64,11 @@ A `"panel"` field is a slot on the form that **holds another panel**. An importa
 Over MCP, build one with the field ops rather than by hand:
 
 ```
-web_execute(action=addFormField, field={"type": "panel", ...})   → creates the field with a blank panel chooser, returns its id
-web_execute(action=updatePanel, panelId=<chooser id>, ...)       → puts the real panel in
+web_execute(op=addFormField, __SESSIONID, panelId, field={"type": "panel", ...})   → creates the field with a blank panel chooser, returns its id
+web_execute(op=updatePanel, __SESSIONID, panelConfig, panelId=<chooser id>, ...)       → puts the real panel in
 ```
 
-`child` is never given to `addFormField` and can't be patched by `updateFormField` — the panel stays in the field and moves with it. Full contract: `aidoc_getDocumentation("panel_form")`.
+`child` is never given to `addFormField` and can't be patched by `updateFormField` — the panel stays in the field and moves with it. Full contract: `aidoc_get_documentation("panel_form")`.
 
 ## What FormPanel does NOT support (the trap list)
 
@@ -88,7 +88,7 @@ The instinct from web development is to reach for these. None of them work witho
 | **Service Workers / Web Workers / WebSockets** | Not supported in embedded HTML | Reconsider the requirement — AMI's own feed subscription is the live-data channel |
 | **DOM events on form fields via JS** | JS can manipulate decoration HTML but should not try to drive form fields | Use the field's AMIScript callbacks (`onChange`, `onEnterKey`, `onFocus`, etc.) |
 | **`window.alert()` / `confirm()` / `prompt()`** | Probably blocked or unstyled | Use `session.log()` or a styled form field for messages |
-| **Drag-and-drop API, File API** | Not supported in embedded HTML | Use `formuploadfield` for uploads; AMI provides its own drag/drop for layout editing |
+| **Drag-and-drop API, File API** | Not supported in embedded HTML | Use an upload field (`"type": "upload"`, `FormUploadField`) for uploads; AMI provides its own drag/drop for layout editing |
 | **`setHtml()` preserving JS state** | **Calling `setHtml()` resets ALL JavaScript state for that panel.** Variables, event listeners, timers — wiped each time. | Don't call `setHtml()` on every event; build the HTML once and use `amiJsCallback` to update state. |
 
 ## Performance — live KPIs: prefer a styled realtime table over DataModel + `setHtml`
@@ -167,7 +167,7 @@ Use this when you need a third-party JS library loaded per session (date picker,
 | A bit of embedded JS for a one-off interaction | Enable `ami.web.allow.javascript.embedded.in.html=true` + `amiJsCallback` |
 | A third-party JS library or persistent JS state | **GuiServicePlugin** (Java) |
 | A genuinely custom widget that AMI doesn't ship | **Custom Panel plugin** (`AmiWebPanelPlugin`) |
-| File upload | `formuploadfield` |
+| File upload | Upload field (`"type": "upload"`, `FormUploadField`) |
 | Multi-step form workflow | A sequence of FormFields + AMIScript callbacks; **not** an HTML `<form action="">` |
 
 ## Common gotchas
@@ -189,11 +189,11 @@ Use this when you need a third-party JS library loaded per session (date picker,
 
 ## Authoritative doc references
 
-- `aidoc_getDocumentation("custom_html")` — HTML + JS bridge canonical reference (source of this skill)
-- `aidoc_getDocumentation("panel_form")` — FormPanel structure and `htmlTemplate2`
-- `aidoc_getDocumentation("layout_style")` — `htmlTemplate2` styling rules
-- `aidoc_getDocumentation("web")` — full `amiJsCallback` bridge pattern
-- `aidoc_getDocumentation("amiscript")` — `setHtml`, `setCssClass`, `session` API
+- `aidoc_get_documentation("custom_html")` — HTML + JS bridge canonical reference (source of this skill)
+- `aidoc_get_documentation("panel_form")` — FormPanel structure and `htmlTemplate2`
+- `aidoc_get_documentation("layout_style")` — `htmlTemplate2` styling rules
+- `aidoc_get_documentation()` — full `amiJsCallback` bridge pattern
+- `aidoc_get_documentation("amiscript")` — `setHtml`, `setCssClass`, `session` API
 - `rt-script` — live execution of `setHtml` / `setCssClass` via `web_script`
 - `rt-style` — visual styling that pairs with HTML content
 - `rt-panels` — adding a FormPanel structurally

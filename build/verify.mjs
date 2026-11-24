@@ -289,6 +289,21 @@ function verifyHygiene() {
       }
     }
   }
+  // Agents for harnesses without Claude Code's ToolSearch must not keep its select: syntax
+  // or the Claude-only "ToolSearch is in your tool list" startup instruction.
+  const nonClaudeAgents = [
+    join(DIST, "codex", ".codex", "agents"),
+    join(DIST, "copilot", "agents"),
+    join(DIST, "opencode", ".opencode", "agents"),
+    join(DIST, "opencode", ".opencode", "commands"),
+  ];
+  for (const target of nonClaudeAgents) {
+    for (const file of listFiles(target)) {
+      const content = read(file);
+      if (/\bselect:/.test(content)) fail(`${relativePath(file)} contains ToolSearch select: syntax`);
+      if (/is in your tool list\. Call it \*\*directly/.test(content)) fail(`${relativePath(file)} contains the Claude-only ToolSearch startup instruction`);
+    }
+  }
 }
 
 // 7. Codex instructions must work after installing the plugin and copying its

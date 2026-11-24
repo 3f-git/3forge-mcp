@@ -1,7 +1,7 @@
 # AMI WebBalancer Configuration Properties
 
-> **Version note:** Reflects **`//depot/dev/` (latest dev)**. May differ on `stable`, `qa`, and `prod` branches.
-> Source: `AmiWebBalancerProperties` in `//depot/dev/java/ami/`
+> **Version note:** Reflects **latest AMI development**. May differ on `stable`, `qa`, and `prod` branches.
+> Source: `AmiWebBalancerProperties` (AMI source)
 
 The WebBalancer is a reverse proxy / load balancer in front of multiple AMI Web instances.
 

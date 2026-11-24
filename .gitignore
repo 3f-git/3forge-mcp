@@ -7,3 +7,4 @@ node_modules/
 
 # Built-on-demand portable release asset (from build/pack-portable.mjs)
 3forge-mcp-portable-*.zip
+.playwright-mcp/

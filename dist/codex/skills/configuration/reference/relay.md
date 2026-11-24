@@ -1,7 +1,7 @@
 # AMI Relay Configuration Properties
 
-> **Version note:** Reflects **`//depot/dev/` (latest dev)**. May differ on `stable`, `qa`, and `prod` branches.
-> Source: `AmiRelayProperties` in `//depot/dev/java/ami/`
+> **Version note:** Reflects **latest AMI development**. May differ on `stable`, `qa`, and `prod` branches.
+> Source: `AmiRelayProperties` (AMI source)
 
 The Relay streams real-time data between feed handlers and AMI Center/Web clients.
 

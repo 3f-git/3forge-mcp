@@ -62,8 +62,8 @@ AMI discovers plugins from `amione/lib/` automatically — no additional classpa
 |---|---|---|---|
 | Custom AmiScript class (Web) | — | `ami.web.amiscript.custom.classes` | — |
 | Custom AmiScript class (Center) | — | `ami.center.amiscript.custom.classes` | — |
-| Feed Handler | `AmiFH` / `AmiFHBase` | `ami.relay.fh.active`, `ami.relay.fh.<name>.class` | `aidoc_getDocumentation("datasource")` |
-| Datasource Adapter | `AmiDatasourceAdapter` | `ami.datasource.adapters` | `aidoc_getDocumentation("datasource")` |
+| Feed Handler | `AmiFH` / `AmiFHBase` | `ami.relay.fh.active`, `ami.relay.fh.<name>.class` | `aidoc_get_documentation("datasource")` |
+| Datasource Adapter | `AmiDatasourceAdapter` | `ami.datasource.adapters` | `aidoc_get_documentation("datasource")` |
 | SSO / Federated Auth | `AmiWebSSOPlugin` | `sso.plugin.class` | [`../../configuration/reference/authentication/guide.md`](../../configuration/reference/authentication/guide.md) |
 | Custom Credentials Auth | `AmiAuthenticatorPlugin` | `ami.auth.plugin.class` | [`../../configuration/reference/authentication/entitlements.md`](../../configuration/reference/authentication/entitlements.md) |
 | Row-level Data Filter | `AmiWebDataFilterPlugin` | `ami.web.data.filter.plugin.class` | [`../../configuration/reference/authentication/data-filter.md`](../../configuration/reference/authentication/data-filter.md) |

@@ -13,4 +13,4 @@ Activate when writing AMI SQL queries, troubleshooting SQL errors, converting st
 
 ## Knowledge
 
-Full patterns, examples, pitfalls, and syntax reference: call `aidoc_getDocumentation("amisql")` on the live instance.
+Full patterns, examples, pitfalls, and syntax reference: call `aidoc_get_documentation("amisql")` on the live instance.

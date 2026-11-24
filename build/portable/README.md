@@ -1,8 +1,8 @@
 # 3forge-mcp — portable bundle (v{{VERSION}})
 
-A tool-agnostic copy of everything the **3forge-mcp** plugin provides — skills, agents,
-command prompts, and the runtime MCP connection config — in a plain folder you can install
-by hand. Use this when your AI coding tool **cannot install plugins from a marketplace** but
+A tool-agnostic copy of everything the **3forge-mcp** plugin provides — skills, agents, and
+command prompts, plus instructions for connecting the runtime MCP server — in a plain folder
+you can install by hand. Use this when your AI coding tool **cannot install plugins from a marketplace** but
 can still connect to an MCP server and read local instruction/skill files.
 
 Everything here is a plain Markdown/JSON file. There is nothing to build.
@@ -32,16 +32,19 @@ AMI's `AmiMcpPlugin` serves MCP as an authenticated REST plugin on the AMI web *
 of the JVM that has the `amimcp` plugin loaded:
 
 ```
-https://<host>:<webHttpsPort>/3forge_rest/mcp        # webHttpsPort defaults to 33333
+https://<host>:<https.port>/3forge_rest/mcp        # AmiOne default https.port=33333
 ```
 
-Three things are mandatory, and each fails in a distinct way:
+The bundled `setup-3forge-runtime` skill walks through all of this. Once you have copied the
+skills in (section 2), ask your agent to load it. A fresh AMI install needs these before any
+MCP client works:
 
 | Requirement | Symptom if wrong |
 |---|---|
-| **HTTPS**, not HTTP | Connection fails with no HTTP status — plain `http://` on that port never answers |
-| **HTTP Basic auth** on every call | `401` — the MCP tools are high-privilege, so the plugin authenticates everything |
-| **Trusted certificate** | `DEPTH_ZERO_SELF_SIGNED_CERT` if AMI uses a self-signed cert |
+| **`MCP_TOOLS` grant** for the AMI user — tools are **off by default** (`MCP_TOOLS=*` in `access.txt`, or `ami.web.default.MCP_TOOLS`) | Connects and authenticates, but lists **zero tools** |
+| **Trusted certificate** — AMI ships a self-signed cert for `CN=MyServer`; install your own, or trust that one and connect as `https://MyServer:<port>` | `DEPTH_ZERO_SELF_SIGNED_CERT`; `ERR_TLS_CERT_ALTNAME_INVALID` when connecting by another name |
+| **HTTPS URL** | `http://` to the web port gets a `302`; to the HTTPS port, no valid HTTP response |
+| **HTTP Basic auth** on every call | `401` |
 
 ### Verify the endpoint first
 
@@ -49,28 +52,37 @@ Confirm the server answers before configuring any tool — this separates server
 client problems:
 
 ```bash
-curl -sk -u '<user>:<pass>' -X POST https://<host>:33333/3forge_rest/mcp \
-  -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.0.1"}}}'
+URL='https://<host>:33333/3forge_rest/mcp'          # exactly the URL your client will use
+CA=/abs/path/ca-or-ami-myserver.pem                 # the certificate or CA file your client trusts
+printf 'AMI password: '; read -rs AMI_PASS; echo    # not echoed, not saved in shell history
+
+curl -sS --cacert "$CA" -u "<user>:$AMI_PASS" -X POST "$URL" \
+  -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+  -o mcp-probe.json -w 'HTTP %{http_code}\n'
+python3 -c 'import json; print(len(json.load(open("mcp-probe.json"))["result"]["tools"]), "tools")'
 ```
 
-A healthy server returns a JSON-RPC result with `serverInfo`. `401` means credentials are
-wrong. If it works **only** with `-k`, the certificate is self-signed — trust it in your
-client's trust store or use a host with a CA-signed certificate. MCP clients verify TLS with
-no per-server opt-out, so `-k` is not something you can replicate in the client config.
+Run it **without `-k`**, with the URL your tool will use. Leave out `--cacert "$CA"` if the
+OS trust store already trusts the certificate. curl does not read `NODE_EXTRA_CA_CERTS`, which
+is how Node-based clients such as Claude Code are told to trust it. `HTTP 200` then `0 tools`
+means no `MCP_TOOLS` grant; `HTTP 401` means credentials; curl error 60 means the certificate is
+untrusted or the name does not match it. MCP clients verify TLS with no per-server opt-out, so
+`-k` is not something you can replicate in the client config.
 
 ### Register it
 
 **Claude Code:**
 
 ```bash
-claude mcp add --transport http 3forge-runtime https://<host>:33333/3forge_rest/mcp \
-  --header "Authorization: Basic $(printf '<user>:<pass>' | base64)"
+claude mcp add --transport http --scope user 3forge-runtime https://<host>:33333/3forge_rest/mcp \
+  --header "Authorization: Basic $(printf '%s' "<user>:$AMI_PASS" | base64 | tr -d '\n')"
 ```
 
 **Codex / Copilot / Gemini / Cursor** — add an HTTP MCP server named `3forge-runtime` in your
 tool's own MCP configuration, with that URL and an `Authorization: Basic <base64(user:pass)>`
-header. Generate the credential with `printf '<user>:<pass>' | base64`.
+header. Generate the credential in the same shell with
+`printf '%s' "<user>:$AMI_PASS" | base64 | tr -d '\n'`, which keeps the password out of shell
+history. Put a literal credential only in user-level config, never in a file that git tracks.
 
 Start a fresh session afterwards so the MCP tools are discovered.
 
@@ -101,8 +113,8 @@ committed changes, tool-naming conventions).
 ## Operating rules (summary — full text in CLAUDE.md)
 
 - **Never answer 3forge/AMI questions from training data.** Fetch everything live via
-  `aidoc_getDocumentation`, `aidoc_search_patterns`, `aidoc_getPattern`.
+  `aidoc_get_documentation`, `aidoc_search_patterns`, `aidoc_get_pattern`.
 - **Doc → verify → apply.** Read the docs, run a validation tool if one exists
-  (`web_verify(kind=script)`, `web_verify(kind=datamodel)`, `center_verify`, …), then apply.
+  (`web_verify(op=script)`, `web_verify(op=datamodel)`, `center_verify`, …), then apply.
 - **Transient vs. committed.** Panels/layouts are transient until committed — never
   auto-commit without user confirmation.

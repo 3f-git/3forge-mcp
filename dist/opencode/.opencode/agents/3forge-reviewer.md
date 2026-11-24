@@ -32,7 +32,7 @@ You are an expert AMI/3forge code reviewer. Your job is to catch real bugs and r
 
 ## Layout File Review (`.ami` files)
 
-Before reviewing a v6 layout, load the property reference if validating specific field names or types: call `web_console(view=domSchema)` for the full live DOM schema (all valid v6 property names, types, and constraints per panel type), or `web_console(view=domSchema, typeName=…)` for just the panel type being reviewed. Use it to flag unknown or mistyped property keys.
+Before reviewing a v6 layout, load the property reference if validating specific field names or types: call `web_console(op=domSchema)` for the full live DOM schema (all valid v6 property names, types, and constraints per panel type), or `web_console(op=domSchema, typeName=…)` for just the panel type being reviewed. Use it to flag unknown or mistyped property keys.
 
 For each `.ami` file, run these three passes in order. Report all findings using the same output format as the Script Review (severity, location, issue → fix).
 
@@ -51,7 +51,7 @@ For each `.ami` file, run these three passes in order. Report all findings using
 - [ ] `"fileVersion": 6` present
 - [ ] `"panels"` is a flat array (no nesting) — NOT `portletConfigs`
 - [ ] `"datamodels"` is a flat array at top level — NOT inside `metadata.dm.dms`
-- [ ] `"desktop"` contains `"windows"` array (required for a renderable layout)
+- [ ] Top-level `"windows"` array present (required for a renderable layout)
 - [ ] `"callbacks"` is a direct array — NOT `{ "entries": [...] }`
 - [ ] `"amiscript"` (if present) is a single string — NOT an array
 
@@ -61,19 +61,19 @@ For each `.ami` file, run these three passes in order. Report all findings using
 - [ ] Each callback `"schema"` is a flat array — NOT `{ "tbl": [...] }`
 - [ ] Schema table entries use `"name"` and `"columns"` — NOT `"nm"`, `"cols"`
 - [ ] Schema column entries use `"name"` and `"type"` — NOT `"nm"`, `"tp"`
-- [ ] DM chaining uses top-level `"relationships"` — NOT `"inputDm"` on the DM object
-- [ ] No v5 artifacts on DM callbacks: `hasDatamodel`, `linkedVariables`, `"oc"` on schema tables
+- [ ] DM-on-DM chaining (blenders) lists upstream DMs in the callback's `"inputDm"` array (`callbacks[].inputDm`) — NOT on the DM object itself; top-level `"relationships"` link panels (`sourcePanel`/`targetPanel`), not DMs
+- [ ] No v5 artifacts on DM callbacks: `hasDatamodel`, `"oc"` on schema tables (`linkedVariables` is a valid v6 callback key — do not flag it)
 
 **Panel rules (v6):**
 - [ ] Each panel uses `"id"` — NOT `"amiPanelId"` or `"upid"` as primary key
 - [ ] Each panel uses `"type"` — NOT `"portletBuilderId"` or `"panelType"` as primary key
-- [ ] Valid `"type"` values: `"div"`, `"form"`, `"table"`, `"realtimetable"`, `"realtimeaggtable"`, `"tree"`, `"tab"`, `"amichartgrid"`, `"blank"`, `"surface"`, `"scrollpane"`
+- [ ] Valid `"type"` values include: `"div"`, `"form"`, `"table"`, `"realtimetable"`, `"realtimeaggtable"`, `"tree"`, `"realtimetree"`, `"tab"`, `"amichartgrid"`, `"heatmap"`, `"realtimeheatmap"`, `"filter"`, `"blank"`, `"surface"`, `"scrollpane"` (newer builds add more, e.g. `"repeater"` — when unsure, check `web_console(op=domSchema)` rather than flagging)
 - [ ] Divider panels have `"child1"` and `"child2"` referencing valid panel `"id"` values
 - [ ] Divider `"dir"` is `"h"` or `"v"`
-- [ ] Table panels bind DMs via `"dm": [{ "dm": "DmId", "dmTable": ["TableName"] }]` — NOT `"dmadn"` / `"dmtbid"`
+- [ ] Table panels bind DMs via two strings, `"dm": "DmId", "dmTable": "TableName"` — NOT an array, and NOT `"dmadn"` / `"dmtbid"`
 - [ ] Table panels use `"columns"` array — NOT `"amiCols"`
 - [ ] Column entries use `"id"`, `"title"`, `"value"`, `"type"`, `"width"` — NOT `"hd"`, `"f"`, `"t"`, `"wi"`
-- [ ] Window `"state"` is `"max"`, `"min"`, or `"float"` — NOT `"flt"`, `"normal"`, or `"stateDflt"`
+- [ ] Window `"state"` is `"max"`, `"flt"` (floating), `"min"`, or `"minmax"` — NOT `"float"` or `"normal"`, and the key is `"state"`, not `"stateDflt"`
 - [ ] Tab panel `"title"` is an AMIScript formula string (e.g. `"\"My Tab\""`) — NOT a bare string
 - [ ] Realtime table panels use `"rtSources"` — NOT `"subscribe"` at the panel level
 - [ ] **`realtimetable`, `realtimeaggtable`, and `realtimetreemap` panels have a `varTypes` array** — CRITICAL: missing `varTypes` means AMI cannot resolve column types and the panel renders empty. This is a known recurring failure — check for it explicitly.
@@ -137,11 +137,11 @@ For every `"amiscript"` field (in DM callbacks, panel callbacks, layout callback
 **Center code must NOT contain:**
 - `session` — not available in Center
 - `layout` — not available in Center
-- `session.log()` — use `logInfo()` / `logWarn()` / `logError()` instead
+- `session.log()` — use `logInfo()` / `logWarn()` instead (there is no `logError()` — flag it in either context)
 
 **Web code must NOT contain:**
 - AMI SQL queries without `USE DS = "AMI" EXECUTE` prefix
-- `logInfo()` / `logError()` — use `session.log()` instead
+- `logError()` — it does not exist; use `logWarn()` or `session.log()` (`logInfo()` / `logWarn()` are valid in Web code too)
 
 ### CRITICAL — Security
 

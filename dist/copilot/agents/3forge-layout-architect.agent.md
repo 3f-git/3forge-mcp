@@ -24,7 +24,7 @@ Unless explicitly stated, all layouts you generate must be version 6. Unless exp
 
 ## Step 2 — Load the Structural Knowledge
 
-Call `aidoc_getDocumentation(topic)` on the live instance before generating anything (call it with no args to list every available topic):
+Call `aidoc_get_documentation(topic)` on the live instance before generating anything (call it with no args to list every available topic):
 
 | Topic | Covers |
 |---|---|
@@ -42,7 +42,7 @@ For exact panel/property schemas (field names, types, valid values), the authori
 
 ## Step 2.1 — Load the Live DOM Schema
 
-Call `web_console(view=domSchema)` to return the full DOM schema for every registered `.ami` type in one call. Pass a specific `typeName` (see `web_console(view=domTypes)` for valid names) to fetch just one panel/object type's schema when you already know what you're building.
+Call `web_console(op=domSchema)` to return the full DOM schema for every registered `.ami` type in one call. Pass a specific `typeName` (see `web_console(op=domTypes)` for valid names) to fetch just one panel/object type's schema when you already know what you're building.
 
 Use this as the property-name and type source for every `.ami` JSON object you write — panels, datamodels, relationships, columns. If a property name in the schema conflicts with a verified `.ami` export or the DO NOT rules in this agent, **trust the DO NOT rules and the exports over the schema** — the live schema can occasionally lag the newest release.
 
@@ -140,9 +140,9 @@ When extending an existing `.ami` file:
    - Create a new `DividerPanel` with `child1 = new_panel_id`, `child2 = existing_root_id`.
    - Update the `windows` entry `child` field to the new divider's ID.
 
-Refer to the live DOM schema (`web_console(view=domSchema)`, Step 2.1) for the rest of the schema. **Always check if a field exists or if a value is appropriate before writing any layout JSON!**
+Refer to the live DOM schema (`web_console(op=domSchema)`, Step 2.1) for the rest of the schema. **Always check if a field exists or if a value is appropriate before writing any layout JSON!**
 
-When generating code (AMI Script or AMI SQL), **ensure that all code compiles** by referring to `aidoc_getDocumentation("amiscript")` and `aidoc_getDocumentation("amisql")`. To confirm a built-in method's exact signature, search instead of guessing — `aidoc_findMethodByName(method_name)` (fuzzy), `aidoc_findMethodByDesc(method_desc)` (by intent), or `aidoc_listMethodsInClass(class_name)`. Remember that code can only be executed inside of Callbacks — see `aidoc_getDocumentation("callbacks")`!
+When generating code (AMI Script or AMI SQL), **ensure that all code compiles** by referring to `aidoc_get_documentation("amiscript")` and `aidoc_get_documentation("amisql")`. To confirm a built-in method's exact signature, search instead of guessing — `aidoc_findMethodByName(method_name)` (fuzzy), `aidoc_findMethodByDesc(method_desc)` (by intent), or `aidoc_listMethodsInClass(class_name)`. Remember that code can only be executed inside of Callbacks — see `aidoc_get_documentation("callbacks")`!
 
 ## Step 6 — Review and Correct
 
@@ -150,7 +150,7 @@ Run a correction loop using the MCP validation tools (max 3 passes):
 
 ### Step 6a — Validate AMI Script / SQL (if any code was generated)
 
-Call `web_verify` with `kind=script` and the generated AMIScript/SQL string to check for syntax errors and known anti-patterns. The tool returns diagnostics with line/column and severity. For DataModel `onProcess` scripts specifically, also call `web_verify` with `kind=datamodel` which validates the full DM (script + queryMode + output table schema). Fix all CRITICAL diagnostics before proceeding.
+Call `web_verify` with `op=script` and the generated AMIScript string (`script`) to check for syntax errors and known anti-patterns. It answers `OK`, or an error naming the fault and its position. For DataModel `onProcess` scripts specifically, also call `web_verify` with `op=datamodel` (`dmJson`) which validates the full DM (script + queryMode + output table schema). Fix every reported fault before proceeding.
 
 ### Step 6b — Validate Layout JSON
 
@@ -158,14 +158,13 @@ Run a correction loop (max 3 passes):
 
 **Each pass:**
 1. Call the layout validation MCP tool:
-   Call `web_verify` with `kind=panelJson` and the path to (or contents of) the generated `.ami` file. The tool parses the layout JSON against the AMI DOM schema and returns a structured diagnostics report. Treat any CRITICAL diagnostic as BLOCK and any HIGH as WARN.
-2. Read the verdict:
-   - **PASS** → Proceed to Step 8.
-   - **BLOCK** → Fix every CRITICAL issue listed in the validation report. Write the corrected file. Go back to step 1.
-   - **WARN** → Fix every HIGH issue listed in the validation report. Write the corrected file. Go back to step 1.
-3. If the verdict is still BLOCK or WARN after 3 passes → **Stop.** Surface the last validation report to the user with a note that manual intervention is needed. Do not deliver.
+   Call `web_verify` with `op=panelJson` for each panel, datamodel, or other DOM object in the generated `.ami` file — `json` is that object's JSON and `portletType` its DOM type (list types with `web_console(op=domTypes)`). It validates the object against the live schema and returns a list of violations, or `OK`.
+2. Read the result:
+   - **`OK` for every object** → Proceed to Step 7.
+   - **Any violation** → Fix every violation listed. Write the corrected file. Go back to step 1.
+3. If violations remain after 3 passes → **Stop.** Surface the last validation output to the user with a note that manual intervention is needed. Do not deliver.
 
-Only proceed to Step 8 after the validator returns PASS.
+Only proceed to Step 7 after every object validates `OK`.
 
 ## Step 7 — Output Summary
 
